@@ -11,6 +11,36 @@ A LibreELEC addon that automatically backs up the config.txt file located at /fl
 - Configurable maximum number of backups to keep
 - Optional notifications when backups are created
 
+## ⚠️ Important Warning - Untested Features
+
+**PLEASE READ CAREFULLY**: Many features in this addon are currently marked as **[UNTESTED]** and should be used with caution. These features have been implemented but have not undergone thorough testing in real-world environments.
+
+### Untested Features Include:
+- Configuration Files (except config.txt)
+- FSTAB settings
+- Bootloader settings
+- Add-ons backup/restore
+- Add-on user data backup/restore
+- Media-related backups (sources, playlists, thumbnails, database)
+- User data backups (profiles, game saves, skins, favourites)
+- Network settings (WiFi, hosts, Samba, VPN)
+- Security settings (passwords, certificates, SSH keys)
+- Custom scripts and configurations
+- System and crash logs
+- Email notifications
+
+### Safe to Use Features:
+- Config.txt backup and restore
+- Basic scheduling functionality
+- Local backup storage
+- Manual backup/restore operations
+
+**Before using any feature marked as [UNTESTED]:**
+- Create a full manual backup of your system
+- Test the feature on non-critical data first
+- Be prepared to manually restore your system if needed
+- Report any issues on GitHub
+
 ## Installation
 
 1. Download the addon zip file
