@@ -134,16 +134,12 @@ msgid "Installed Add-ons"
 msgstr "Installed Add-ons"
 
 msgctxt "#32042"
-msgid "Add-on User Data [UNTESTED]"
-msgstr "Add-on User Data [UNTESTED]"
-
-msgctxt "#32043"
-msgid "Add-on Settings [UNTESTED]"
-msgstr "Add-on Settings [UNTESTED]"
+msgid "Add-on User Data and Settings"
+msgstr "Add-on User Data and Settings"
 
 msgctxt "#32044"
-msgid "Repositories [UNTESTED]"
-msgstr "Repositories [UNTESTED]"
+msgid "Repositories"
+msgstr "Repositories"
 
 # Backup Items - Media
 msgctxt "#32050"
@@ -151,8 +147,8 @@ msgid "Media"
 msgstr "Media"
 
 msgctxt "#32051"
-msgid "Sources [UNTESTED]"
-msgstr "Sources [UNTESTED]"
+msgid "Sources"
+msgstr "Sources"
 
 msgctxt "#32052"
 msgid "Playlists [UNTESTED]"
@@ -310,8 +306,8 @@ msgid "Temporary Files [UNTESTED]"
 msgstr "Temporary Files [UNTESTED]"
 
 msgctxt "#32134"
-msgid "Verify Backup [UNTESTED]"
-msgstr "Verify Backup [UNTESTED]"
+msgid "Verify Backup"
+msgstr "Verify Backup"
 
 msgctxt "#32135"
 msgid "Notification Method [UNTESTED]"

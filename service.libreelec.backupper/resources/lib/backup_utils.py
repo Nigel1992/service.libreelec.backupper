@@ -99,26 +99,46 @@ class BackupManager:
                 message = f"{message} - {detailed_info}"
             xbmc.executebuiltin(f'Notification({self.addon.getAddonInfo("name")}, {message}, 3000)')
     
+    def get_repository_paths(self):
+        """Get all repository addon paths"""
+        repo_paths = {}
+        addons_dir = os.path.join(self.kodi_home, 'addons')
+        if os.path.exists(addons_dir):
+            for item in os.listdir(addons_dir):
+                if item.startswith('repository.') and os.path.isdir(os.path.join(addons_dir, item)):
+                    # Add the repository addon folder
+                    repo_paths[f'repo_{item}'] = os.path.join(addons_dir, item)
+                    # Add its addon data if it exists
+                    addon_data_path = os.path.join(self.kodi_userdata, 'addon_data', item)
+                    if os.path.exists(addon_data_path):
+                        repo_paths[f'repo_data_{item}'] = addon_data_path
+        return repo_paths
+
     def get_backup_paths(self):
         """Get paths for all backup items based on settings"""
         paths = {}
         
-        # Essential System Configuration - Always backup these
-        paths['config'] = '/flash/config.txt'
-        paths['guisettings'] = os.path.join(self.kodi_userdata, 'guisettings.xml')
-        paths['advancedsettings'] = os.path.join(self.kodi_userdata, 'advancedsettings.xml')
-        paths['sources'] = os.path.join(self.kodi_userdata, 'sources.xml')
-        
-        # Additional Configuration Files if enabled
+        # Configuration Files
         if self.addon.getSettingBool('backup_configs'):
+            paths['config'] = '/flash/config.txt'
+            paths['guisettings'] = os.path.join(self.kodi_userdata, 'guisettings.xml')
+            paths['advancedsettings'] = os.path.join(self.kodi_userdata, 'advancedsettings.xml')
             paths['keyboard'] = os.path.join(self.kodi_userdata, 'keyboard.xml')
             paths['keymaps'] = os.path.join(self.kodi_userdata, 'keymaps')
+        
+        # Sources
+        if self.addon.getSettingBool('backup_sources'):
+            paths['sources'] = os.path.join(self.kodi_userdata, 'sources.xml')
         
         # Addons
         if self.addon.getSettingBool('backup_addons'):
             paths['addons'] = os.path.join(self.kodi_home, 'addons')
         
-        # Addon User Data
+        # Repositories
+        if self.addon.getSettingBool('backup_repositories'):
+            paths.update(self.get_repository_paths())
+        
+        # Addon User Data and Settings
         if self.addon.getSettingBool('backup_userdata'):
             paths['addon_data'] = os.path.join(self.kodi_userdata, 'addon_data')
         
@@ -143,7 +163,9 @@ class BackupManager:
         # Skins
         if self.addon.getSettingBool('backup_skins'):
             paths['skins'] = os.path.join(self.kodi_home, 'addons', 'skin.*')
-            paths['skin_settings'] = os.path.join(self.kodi_userdata, 'addon_data', 'skin.*')
+            # Only include skin settings if addon_data is not being backed up
+            if not self.addon.getSettingBool('backup_userdata'):
+                paths['skin_settings'] = os.path.join(self.kodi_userdata, 'addon_data', 'skin.*')
         
         return paths
     
@@ -159,23 +181,29 @@ class BackupManager:
         
         # Create backup name with included items
         backup_items = []
-        if 'config' in paths:  # Always true now
-            backup_items.append('cfg')
         if self.addon.getSettingBool('backup_configs'):
             backup_items.append('conf')
         if self.addon.getSettingBool('backup_addons'):
             backup_items.append('addons')
+        if self.addon.getSettingBool('backup_repositories'):
+            backup_items.append('repos')
         if self.addon.getSettingBool('backup_userdata'):
             backup_items.append('data')
+        if self.addon.getSettingBool('backup_sources'):
+            backup_items.append('src')
         
         # Add items to backup name
-        items_str = '-'.join(backup_items) if backup_items else 'minimal'
+        items_str = '-'.join(backup_items) if backup_items else 'empty'
         backup_name = f'backup_{items_str}_{timestamp}'
         zip_path = os.path.join(self.backup_dir, f'{backup_name}.zip')
         
         try:
             total_items = len(paths)
             current_item = 0
+            
+            # Don't create empty backups
+            if total_items == 0:
+                return False, "No items selected for backup"
             
             self.notify(self.addon.getLocalizedString(32100))  # Starting backup...
             
@@ -222,6 +250,14 @@ class BackupManager:
             
             # Clean up old backups
             self.cleanup_old_backups(int(self.addon.getSetting('max_backups')))
+            
+            # Verify backup if enabled
+            if self.addon.getSettingBool('verify_backup'):
+                self.notify("Verifying backup...")
+                success, message = self.verify_backup(zip_path)
+                if not success:
+                    raise Exception(f"Backup verification failed: {message}")
+                self.notify("Backup verified successfully")
             
             self.notify(self.addon.getLocalizedString(32101))  # Backup completed successfully
             return True, "Backup created successfully"
@@ -373,4 +409,53 @@ class BackupManager:
                     manifest = json.load(f)
                 return manifest['items']
         except:
-            return [] 
+            return []
+
+    def verify_backup(self, backup_file):
+        """Verify the integrity of a backup file"""
+        if not os.path.exists(backup_file):
+            return False, "Backup file not found"
+
+        try:
+            # Test ZIP file integrity
+            with zipfile.ZipFile(backup_file, 'r') as zipf:
+                # First test the ZIP file structure
+                test_result = zipf.testzip()
+                if test_result is not None:
+                    return False, f"Corrupt ZIP file, first bad file: {test_result}"
+
+                # Verify manifest exists and is valid JSON
+                try:
+                    with zipf.open('manifest.json') as f:
+                        manifest = json.load(f)
+                except Exception as e:
+                    return False, f"Invalid or missing manifest: {str(e)}"
+
+                # Get list of all files in the ZIP
+                zip_files = set(zipf.namelist())
+                zip_files.remove('manifest.json')  # Remove manifest from comparison
+
+                # Get list of files that should be in the backup according to manifest
+                manifest_files = set()
+                for path in manifest['paths'].values():
+                    if os.path.isfile(path):
+                        manifest_files.add(os.path.relpath(path, '/'))
+                    elif os.path.isdir(path):
+                        # For directories, add all files that existed at backup time
+                        for root, _, files in os.walk(path):
+                            for file in files:
+                                file_path = os.path.join(root, file)
+                                manifest_files.add(os.path.relpath(file_path, '/'))
+
+                # Compare files in ZIP vs manifest
+                missing_files = manifest_files - zip_files
+                if missing_files:
+                    return False, f"Missing files in backup: {', '.join(sorted(missing_files)[:5])}..."
+
+                # If verification is successful
+                return True, "Backup verified successfully"
+
+        except zipfile.BadZipFile:
+            return False, "Invalid or corrupt ZIP file"
+        except Exception as e:
+            return False, f"Error verifying backup: {str(e)}" 

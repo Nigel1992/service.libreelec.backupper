@@ -30,7 +30,6 @@
         <setting label="32040" type="lsep"/><!-- Add-ons -->
         <setting id="backup_addons" type="bool" label="32041" default="false"/>
         <setting id="backup_userdata" type="bool" label="32042" default="false"/>
-        <setting id="backup_addon_data" type="bool" label="32043" default="false"/>
         <setting id="backup_repositories" type="bool" label="32044" default="false"/>
         <setting type="sep"/>
         

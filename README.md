@@ -24,12 +24,9 @@ A comprehensive backup solution for LibreELEC with automated scheduling support.
 **PLEASE READ CAREFULLY**: Many features in this addon are currently marked as **[UNTESTED]** and should be used with caution. These features have been implemented but have not undergone thorough testing in real-world environments.
 
 ### ❌ Untested Features:
-- Configuration Files (except config.txt)
 - FSTAB settings
 - Bootloader settings
-- Add-ons backup/restore
-- Add-on user data backup/restore
-- Media-related backups (sources, playlists, thumbnails, database)
+- Media-related backups (playlists, thumbnails, database)
 - User data backups (profiles, game saves, skins, favourites)
 - Network settings (WiFi, hosts, Samba, VPN)
 - Security settings (passwords, certificates, SSH keys)
@@ -42,6 +39,12 @@ A comprehensive backup solution for LibreELEC with automated scheduling support.
 - Basic scheduling functionality
 - Local backup storage
 - Manual backup/restore operations
+- Configuration files backup
+- Add-ons backup/restore
+- Add-on user data backup/restore
+- Repository backup/restore
+- Sources backup/restore
+- Backup verification
 
 ### ⚠️ Safety Precautions:
 Before using any feature marked as [UNTESTED]:
@@ -114,4 +117,11 @@ This addon is licensed under the GPL-2.0-or-later license.
 - 🎉 Initial release
 - ✨ Full backup and restore functionality
 - ⚡ Automated scheduling support
-- 🔧 Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus) 
+- 🔧 Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus)
+
+### v1.0.1 (2024-03-10)
+- ✅ Added repository-specific backup functionality
+- ✅ Added backup verification feature
+- ✅ Improved sources backup handling
+- 🔧 Fixed backup naming to reflect selected items
+- 📝 Updated documentation for tested features 
