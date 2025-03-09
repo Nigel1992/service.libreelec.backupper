@@ -4,7 +4,7 @@
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%20(Nexus)-green.svg)
-![LibreELEC](https://img.shields.io/badge/LibreELEC-11.0-red.svg)
+![LibreELEC](https://img.shields.io/badge/LibreELEC-12.0.2-red.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)
 
 A comprehensive backup solution for LibreELEC with automated scheduling support.
@@ -94,7 +94,7 @@ Before using any feature marked as [UNTESTED]:
 
 ## 📋 Requirements
 
-- LibreELEC 11.0 or later
+- LibreELEC 12.0.2 or later
 - Kodi 20 (Nexus)
 - Sufficient storage space for backups
 - Network connection for remote backups
@@ -114,4 +114,4 @@ This addon is licensed under the GPL-2.0-or-later license.
 - 🎉 Initial release
 - ✨ Full backup and restore functionality
 - ⚡ Automated scheduling support
-- 🔧 Compatible with LibreELEC 11.0 and Kodi 20 (Nexus) 
+- 🔧 Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus) 
