@@ -103,6 +103,6 @@
     <category label="32005"><!-- Credits -->
         <setting label="32080" type="lsep"/><!-- Image Credits -->
         <setting id="attribution" type="text" label="Icon by Smashicon @ flaticon.com/4275334" enable="false"/>
-        <setting id="fanart_attribution" type="text" label="Fanart: Server room image by DCStudio on Freepik" enable="false"/>
+        <setting id="fanart_attribution" type="text" label="Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html" enable="false"/>
     </category>
 </settings> 
