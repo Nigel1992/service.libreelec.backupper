@@ -35,3 +35,4 @@ Thumbs.db
 *.bak
 *.tmp
 *.zip 
+update-git-history.sh
