@@ -103,9 +103,16 @@ class BackupManager:
         """Get paths for all backup items based on settings"""
         paths = {}
         
-        # Config.txt
-        if self.addon.getSettingBool('backup_config'):
-            paths['config'] = '/flash/config.txt'
+        # Essential System Configuration - Always backup these
+        paths['config'] = '/flash/config.txt'
+        paths['guisettings'] = os.path.join(self.kodi_userdata, 'guisettings.xml')
+        paths['advancedsettings'] = os.path.join(self.kodi_userdata, 'advancedsettings.xml')
+        paths['sources'] = os.path.join(self.kodi_userdata, 'sources.xml')
+        
+        # Additional Configuration Files if enabled
+        if self.addon.getSettingBool('backup_configs'):
+            paths['keyboard'] = os.path.join(self.kodi_userdata, 'keyboard.xml')
+            paths['keymaps'] = os.path.join(self.kodi_userdata, 'keymaps')
         
         # Addons
         if self.addon.getSettingBool('backup_addons'):
@@ -115,21 +122,10 @@ class BackupManager:
         if self.addon.getSettingBool('backup_userdata'):
             paths['addon_data'] = os.path.join(self.kodi_userdata, 'addon_data')
         
-        # Sources
-        if self.addon.getSettingBool('backup_sources'):
-            paths['sources'] = os.path.join(self.kodi_userdata, 'sources.xml')
-        
         # Profiles
         if self.addon.getSettingBool('backup_profiles'):
             paths['profiles'] = os.path.join(self.kodi_userdata, 'profiles.xml')
             paths['profiles_dir'] = os.path.join(self.kodi_userdata, 'profiles')
-        
-        # Configuration Files
-        if self.addon.getSettingBool('backup_configs'):
-            paths['guisettings'] = os.path.join(self.kodi_userdata, 'guisettings.xml')
-            paths['advancedsettings'] = os.path.join(self.kodi_userdata, 'advancedsettings.xml')
-            paths['keyboard'] = os.path.join(self.kodi_userdata, 'keyboard.xml')
-            paths['keymaps'] = os.path.join(self.kodi_userdata, 'keymaps')
         
         # Game Saves
         if self.addon.getSettingBool('backup_gamesaves'):

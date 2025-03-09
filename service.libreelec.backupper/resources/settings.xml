@@ -22,7 +22,6 @@
 
     <category label="32003"><!-- Backup Items -->
         <setting label="32030" type="lsep"/><!-- System -->
-        <setting id="backup_config" type="bool" label="32031" default="true"/>
         <setting id="backup_configs" type="bool" label="32032" default="false"/>
         <setting id="backup_fstab" type="bool" label="32033" default="false"/>
         <setting id="backup_bootloader" type="bool" label="32034" default="false"/>

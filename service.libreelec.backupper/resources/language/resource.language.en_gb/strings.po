@@ -109,12 +109,12 @@ msgid "System"
 msgstr "System"
 
 msgctxt "#32031"
-msgid "Config.txt"
-msgstr "Config.txt"
+msgid "Config.txt (Always Included)"
+msgstr "Config.txt (Always Included)"
 
 msgctxt "#32032"
-msgid "Configuration Files [UNTESTED]"
-msgstr "Configuration Files [UNTESTED]"
+msgid "Configuration Files"
+msgstr "Configuration Files"
 
 msgctxt "#32033"
 msgid "FSTAB (Mount Points) [UNTESTED]"
