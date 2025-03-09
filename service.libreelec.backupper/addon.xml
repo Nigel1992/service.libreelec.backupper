@@ -24,7 +24,11 @@ Features:
 - Custom backup location support
 - Backup rotation with configurable retention
 - Easy restore functionality
-- Progress notifications</description>
+- Progress notifications
+
+Credits:
+- Icon by Smashicon @ flaticon.com/4275334
+- Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html</description>
     <platform>linux</platform>
     <license>GPL-2.0-or-later</license>
     <news>v1.0.0 (2024-03-09)
