@@ -125,7 +125,7 @@ This project is licensed under the GPL-2.0 License - see the [LICENSE](LICENSE) 
 ## Credits
 
 - Icon by Smashicon @ flaticon.com/4275334
-- Fanart: Server room image by DCStudio on Freepik
+- Fanart: Low Poly Mountain by Design+Code @ [wallpaperswide.com](https://wallpaperswide.com/low_poly_mountain_2-wallpapers.html)
 - Thanks to all contributors and the LibreELEC community
 
 ## Changelog
