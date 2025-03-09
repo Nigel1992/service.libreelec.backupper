@@ -153,12 +153,27 @@ class BackupManager:
         self.update_backup_location()
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_name = f'kodi_backup_{timestamp}'
+        
+        # Get paths to backup
+        paths = self.get_backup_paths()
+        
+        # Create backup name with included items
+        backup_items = []
+        if 'config' in paths:  # Always true now
+            backup_items.append('cfg')
+        if self.addon.getSettingBool('backup_configs'):
+            backup_items.append('conf')
+        if self.addon.getSettingBool('backup_addons'):
+            backup_items.append('addons')
+        if self.addon.getSettingBool('backup_userdata'):
+            backup_items.append('data')
+        
+        # Add items to backup name
+        items_str = '-'.join(backup_items) if backup_items else 'minimal'
+        backup_name = f'backup_{items_str}_{timestamp}'
         zip_path = os.path.join(self.backup_dir, f'{backup_name}.zip')
         
         try:
-            # Get paths to backup
-            paths = self.get_backup_paths()
             total_items = len(paths)
             current_item = 0
             
@@ -342,10 +357,10 @@ class BackupManager:
     def get_backup_date(self, backup_file):
         """Extract date from backup filename"""
         try:
-            # Extract date from filename format: kodi_backup_YYYYMMDD_HHMMSS.zip
+            # Extract date from filename format: backup_[items]_YYYYMMDD_HHMMSS.zip
             filename = os.path.basename(backup_file)
-            date_str = filename.replace('kodi_backup_', '').replace('.zip', '')
-            date_obj = datetime.strptime(date_str, '%Y%m%d_%H%M%S')
+            date_part = filename.split('_')[-2] + '_' + filename.split('_')[-1].replace('.zip', '')
+            date_obj = datetime.strptime(date_part, '%Y%m%d_%H%M%S')
             return date_obj.strftime('%Y-%m-%d %H:%M:%S')
         except:
             return "Unknown date"

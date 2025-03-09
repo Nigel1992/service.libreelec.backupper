@@ -130,8 +130,8 @@ msgid "Add-ons"
 msgstr "Add-ons"
 
 msgctxt "#32041"
-msgid "Installed Add-ons [UNTESTED]"
-msgstr "Installed Add-ons [UNTESTED]"
+msgid "Installed Add-ons"
+msgstr "Installed Add-ons"
 
 msgctxt "#32042"
 msgid "Add-on User Data [UNTESTED]"
