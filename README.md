@@ -33,10 +33,10 @@ A comprehensive backup solution for LibreELEC with automated scheduling support.
 - Custom scripts and configurations
 - System and crash logs
 - Email notifications
+- Basic scheduling functionality
 
 ### ✅ Safe to Use Features:
 - Config.txt backup and restore
-- Basic scheduling functionality
 - Local backup storage
 - Manual backup/restore operations
 - Configuration files backup
