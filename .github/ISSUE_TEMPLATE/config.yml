@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Support
+    url: https://github.com/username/LibreELEC-Backupper/discussions
+    about: Please ask questions and seek support in the Discussions section
+  - name: LibreELEC Forums
+    url: https://forum.libreelec.tv/
+    about: For general LibreELEC questions not specific to this addon
+  - name: Kodi Forums
+    url: https://forum.kodi.tv/
+    about: For general Kodi questions not specific to this addon 

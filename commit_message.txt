@@ -1,0 +1,28 @@
+Add GitHub templates for issues, PRs, and wiki documentation
+
+This commit adds a comprehensive set of GitHub templates to improve project collaboration:
+
+- Issue templates:
+  - Bug report template with detailed environment and reproduction steps
+  - Feature request template with problem statement and priority levels
+  - Documentation improvement template for wiki and README enhancements
+  - Configuration file to direct users to appropriate support channels
+
+- Pull request templates:
+  - Default PR template with type of change, testing details, and checklist
+  - Structured template in PULL_REQUEST_TEMPLATE directory
+
+- Wiki templates:
+  - Feature documentation template with status badges and testing info
+  - Installation guide template with hardware/software requirements
+  - Troubleshooting guide template with symptoms, causes, and solutions
+  - Home page template with navigation structure
+
+- Helper scripts:
+  - PowerShell script (setup-templates.ps1) for Windows users
+  - Bash script (setup-templates.sh) for Linux/macOS users
+  - Both scripts verify GitHub CLI installation and can publish wiki pages
+
+These templates will help maintain consistency in contributions, improve documentation quality, and streamline the issue reporting and PR review processes.
+
+Closes #XX 
