@@ -120,8 +120,11 @@ This addon is licensed under the GPL-2.0-or-later license.
 - 🔧 Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus)
 
 ### v1.0.1 (2024-03-10)
-- ✅ Added repository-specific backup functionality
-- ✅ Added backup verification feature
-- ✅ Improved sources backup handling
-- 🔧 Fixed backup naming to reflect selected items
-- 📝 Updated documentation for tested features 
+- ✨ Enhanced backup functionality with repository support
+- 🔍 Added backup verification features
+- 🔧 Improved config.txt restoration with enhanced logging
+- 📝 Streamlined configuration backup handling
+- 🏷️ Enhanced backup naming and date extraction
+- 💾 Added comprehensive addon data backup support
+- 👤 Improved user data backup functionality
+- 📋 Removed [UNTESTED] labels from verified features 
