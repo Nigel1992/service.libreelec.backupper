@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%20(Nexus)-green.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-12.0.2-red.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="service.libreelec.backupper" 
        name="LibreELEC Backupper"
-       version="1.0.0" 
+       version="1.0.1" 
        provider-name="Nigel1992">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
@@ -31,11 +31,18 @@ Credits:
 - Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html</description>
     <platform>linux</platform>
     <license>GPL-2.0-or-later</license>
-    <news>v1.0.0 (2024-03-09)
+    <news>v1.0.1 (2024-03-10)
+- Added repository-specific backup functionality
+- Added backup verification feature
+- Improved sources backup handling
+- Fixed backup naming to reflect selected items
+- Updated documentation for tested features
+
+v1.0.0 (2024-03-09)
 - Initial release
 - Full backup and restore functionality
 - Automated scheduling support
-- Compatible with LibreELEC 11.0 and Kodi 20 (Nexus)</news>
+- Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus)</news>
     <assets>
       <icon>resources/icon.png</icon>
       <fanart>resources/fanart.jpg</fanart>
