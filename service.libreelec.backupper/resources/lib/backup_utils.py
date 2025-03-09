@@ -309,26 +309,45 @@ class BackupManager:
         """Restore a single file with special handling for config.txt"""
         try:
             if extract_path == '/flash/config.txt':
+                xbmc.log("Preparing to restore config.txt...", xbmc.LOGINFO)
+                
                 # Mount /flash in read-write mode
                 if not self.mount_flash_rw():
+                    xbmc.log("Failed to mount /flash in read-write mode", xbmc.LOGERROR)
                     return False, "Failed to mount /flash in read-write mode"
+                
+                xbmc.log("/flash mounted in read-write mode", xbmc.LOGINFO)
+                restore_success = False
                 
                 try:
                     # Extract config.txt
                     zip_file.extract(file_info, '/')
+                    xbmc.log("config.txt extracted successfully", xbmc.LOGINFO)
                     
                     # Ensure proper permissions
                     os.chmod('/flash/config.txt', 0o644)
+                    xbmc.log("config.txt permissions set to 644", xbmc.LOGINFO)
                     
-                    # Mount /flash back in read-only mode
-                    if not self.mount_flash_ro():
-                        xbmc.log("Warning: Failed to remount /flash as read-only", xbmc.LOGWARNING)
-                    
-                    return True, None
+                    restore_success = True
                 except Exception as e:
-                    # Try to remount as read-only even if we failed
-                    self.mount_flash_ro()
+                    xbmc.log(f"Error during config.txt restore: {str(e)}", xbmc.LOGERROR)
                     raise e
+                finally:
+                    # Always try to remount as read-only
+                    xbmc.log("Attempting to remount /flash as read-only", xbmc.LOGINFO)
+                    if not self.mount_flash_ro():
+                        error_msg = "Warning: Failed to remount /flash as read-only"
+                        xbmc.log(error_msg, xbmc.LOGWARNING)
+                        # If restore was successful but remount failed, still warn the user
+                        if restore_success:
+                            self.notify(error_msg)
+                    else:
+                        xbmc.log("/flash remounted as read-only", xbmc.LOGINFO)
+                    
+                    if not restore_success:
+                        return False, "Failed to restore config.txt"
+                
+                return True, None
             else:
                 # Normal file extraction
                 zip_file.extract(file_info, '/')
