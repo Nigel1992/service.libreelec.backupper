@@ -214,7 +214,17 @@ class BackupManager:
                 'paths': paths
             }
             
-            # Create zip file
+            def sanitize_filename(filename):
+                """Sanitize filename to handle encoding issues"""
+                try:
+                    # Try to encode and decode to check for surrogate issues
+                    filename.encode('utf-8').decode('utf-8')
+                    return filename
+                except UnicodeEncodeError:
+                    # If encoding fails, replace problematic characters
+                    return filename.encode('ascii', 'replace').decode('ascii')
+            
+            # Create zip file with UTF-8 encoding error handling
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 # Add manifest
                 zipf.writestr('manifest.json', json.dumps(manifest, indent=4))
@@ -230,19 +240,43 @@ class BackupManager:
                         if os.path.exists(path):
                             if os.path.isfile(path):
                                 # For single files, maintain the full path structure
-                                arcname = os.path.relpath(path, '/')
-                                zipf.write(path, arcname)
+                                try:
+                                    arcname = sanitize_filename(os.path.relpath(path, '/'))
+                                    zipf.write(path, arcname)
+                                    xbmc.log(f"Successfully backed up file: {path}", xbmc.LOGINFO)
+                                except Exception as e:
+                                    xbmc.log(f"Failed to backup file {path}: {str(e)}", xbmc.LOGERROR)
+                                    raise
                             else:
                                 # For directories, walk through and maintain structure
-                                for root, _, files in os.walk(path):
-                                    for file in files:
-                                        file_path = os.path.join(root, file)
-                                        # Maintain full path structure by using relpath from root
-                                        arcname = os.path.relpath(file_path, '/')
-                                        zipf.write(file_path, arcname)
+                                try:
+                                    for root, _, files in os.walk(path):
+                                        for file in files:
+                                            file_path = os.path.join(root, file)
+                                            try:
+                                                # Use a more reliable path handling for special paths
+                                                if 'userdata' in root or 'addon_data' in root:
+                                                    # Keep the userdata/addon_data structure
+                                                    arcname = sanitize_filename(os.path.join('userdata', os.path.relpath(file_path, self.kodi_userdata)))
+                                                else:
+                                                    arcname = sanitize_filename(os.path.relpath(file_path, '/'))
+                                                
+                                                zipf.write(file_path, arcname)
+                                                xbmc.log(f"Successfully backed up: {file_path}", xbmc.LOGDEBUG)
+                                            except Exception as e:
+                                                xbmc.log(f"Failed to backup {file_path}: {str(e)}", xbmc.LOGERROR)
+                                                # Continue with next file instead of raising
+                                                continue
+                                except Exception as e:
+                                    xbmc.log(f"Error walking directory {path}: {str(e)}", xbmc.LOGERROR)
+                                    raise
+                        else:
+                            xbmc.log(f"Path does not exist: {path}", xbmc.LOGWARNING)
                     except Exception as e:
                         xbmc.log(f"Error backing up {item_name}: {str(e)}", xbmc.LOGERROR)
                         self.notify(f"Error backing up", item_name)
+                        # Continue with next item instead of failing completely
+                        continue
             
             # Update last backup time
             self.addon.setSetting('last_backup', datetime.now().strftime('%Y-%m-%d %H:%M'))
@@ -450,31 +484,50 @@ class BackupManager:
                 except Exception as e:
                     return False, f"Invalid or missing manifest: {str(e)}"
 
+                # Log what's being verified
+                xbmc.log(f"Verifying backup: {backup_file}", xbmc.LOGINFO)
+                xbmc.log(f"Manifest items: {', '.join(manifest['items'])}", xbmc.LOGINFO)
+
                 # Get list of all files in the ZIP
                 zip_files = set(zipf.namelist())
                 zip_files.remove('manifest.json')  # Remove manifest from comparison
 
                 # Get list of files that should be in the backup according to manifest
                 manifest_files = set()
-                for path in manifest['paths'].values():
+                for item_name, path in manifest['paths'].items():
+                    xbmc.log(f"Verifying item: {item_name} ({path})", xbmc.LOGINFO)
                     if os.path.isfile(path):
-                        manifest_files.add(os.path.relpath(path, '/'))
+                        rel_path = os.path.relpath(path, '/')
+                        manifest_files.add(rel_path)
+                        xbmc.log(f"Added file to verify: {rel_path}", xbmc.LOGDEBUG)
                     elif os.path.isdir(path):
                         # For directories, add all files that existed at backup time
                         for root, _, files in os.walk(path):
                             for file in files:
                                 file_path = os.path.join(root, file)
-                                manifest_files.add(os.path.relpath(file_path, '/'))
+                                if 'userdata' in root or 'addon_data' in root:
+                                    rel_path = os.path.join('userdata', os.path.relpath(file_path, self.kodi_userdata))
+                                else:
+                                    rel_path = os.path.relpath(file_path, '/')
+                                manifest_files.add(rel_path)
+                                xbmc.log(f"Added file to verify: {rel_path}", xbmc.LOGDEBUG)
 
                 # Compare files in ZIP vs manifest
                 missing_files = manifest_files - zip_files
+                extra_files = zip_files - manifest_files
+
                 if missing_files:
+                    xbmc.log(f"Missing files in backup: {', '.join(sorted(missing_files))}", xbmc.LOGERROR)
                     return False, f"Missing files in backup: {', '.join(sorted(missing_files)[:5])}..."
 
-                # If verification is successful
+                if extra_files:
+                    # Just log extra files but don't fail verification
+                    xbmc.log(f"Extra files in backup (not in manifest): {', '.join(sorted(extra_files))}", xbmc.LOGWARNING)
+
+                xbmc.log("Backup verification completed successfully", xbmc.LOGINFO)
                 return True, "Backup verified successfully"
 
-        except zipfile.BadZipFile:
-            return False, "Invalid or corrupt ZIP file"
         except Exception as e:
-            return False, f"Error verifying backup: {str(e)}" 
+            error_msg = f"Error verifying backup: {str(e)}"
+            xbmc.log(error_msg, xbmc.LOGERROR)
+            return False, error_msg 
