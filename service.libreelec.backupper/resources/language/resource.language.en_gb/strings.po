@@ -1,0 +1,363 @@
+# Kodi Media Center language file
+# Addon Name: LibreELEC Config Backupper
+# Addon id: service.libreelec.backupper
+# Addon Provider: LibreELEC User
+msgid ""
+msgstr ""
+"Project-Id-Version: LibreELEC Config Backupper\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-03-08 00:00+0000\n"
+"PO-Revision-Date: 2024-03-08 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Categories
+msgctxt "#32001"
+msgid "General Settings"
+msgstr "General Settings"
+
+msgctxt "#32002"
+msgid "Schedule Settings"
+msgstr "Schedule Settings"
+
+msgctxt "#32003"
+msgid "Backup Items"
+msgstr "Backup Items"
+
+msgctxt "#32004"
+msgid "Actions"
+msgstr "Actions"
+
+msgctxt "#32005"
+msgid "Credits"
+msgstr "Credits"
+
+msgctxt "#32006"
+msgid "Network Settings"
+msgstr "Network Settings"
+
+msgctxt "#32007"
+msgid "Security Settings"
+msgstr "Security Settings"
+
+msgctxt "#32008"
+msgid "Custom Content"
+msgstr "Custom Content"
+
+msgctxt "#32009"
+msgid "Advanced Options"
+msgstr "Advanced Options"
+
+# General Settings
+msgctxt "#32010"
+msgid "Backup Location"
+msgstr "Backup Location"
+
+msgctxt "#32011"
+msgid "Show Notifications"
+msgstr "Show Notifications"
+
+msgctxt "#32012"
+msgid "Show Detailed Progress"
+msgstr "Show Detailed Progress"
+
+msgctxt "#32013"
+msgid "Maximum Backups to Keep"
+msgstr "Maximum Backups to Keep"
+
+msgctxt "#32014"
+msgid "Compression Level"
+msgstr "Compression Level"
+
+msgctxt "#32015"
+msgid "Backup Naming Format"
+msgstr "Backup Naming Format"
+
+# Schedule Settings
+msgctxt "#32020"
+msgid "Enable Scheduled Backups"
+msgstr "Enable Scheduled Backups"
+
+msgctxt "#32021"
+msgid "Backup Frequency"
+msgstr "Backup Frequency"
+
+msgctxt "#32022"
+msgid "Backup Time"
+msgstr "Backup Time"
+
+msgctxt "#32023"
+msgid "Backup Day"
+msgstr "Backup Day"
+
+msgctxt "#32024"
+msgid "Last Backup"
+msgstr "Last Backup"
+
+msgctxt "#32025"
+msgid "Next Scheduled Backup"
+msgstr "Next Scheduled Backup"
+
+# Backup Items - System
+msgctxt "#32030"
+msgid "System"
+msgstr "System"
+
+msgctxt "#32031"
+msgid "Config.txt"
+msgstr "Config.txt"
+
+msgctxt "#32032"
+msgid "Configuration Files"
+msgstr "Configuration Files"
+
+msgctxt "#32033"
+msgid "FSTAB (Mount Points)"
+msgstr "FSTAB (Mount Points)"
+
+msgctxt "#32034"
+msgid "Bootloader Settings"
+msgstr "Bootloader Settings"
+
+# Backup Items - Add-ons
+msgctxt "#32040"
+msgid "Add-ons"
+msgstr "Add-ons"
+
+msgctxt "#32041"
+msgid "Installed Add-ons"
+msgstr "Installed Add-ons"
+
+msgctxt "#32042"
+msgid "Add-on User Data"
+msgstr "Add-on User Data"
+
+msgctxt "#32043"
+msgid "Add-on Settings"
+msgstr "Add-on Settings"
+
+msgctxt "#32044"
+msgid "Repositories"
+msgstr "Repositories"
+
+# Backup Items - Media
+msgctxt "#32050"
+msgid "Media"
+msgstr "Media"
+
+msgctxt "#32051"
+msgid "Sources"
+msgstr "Sources"
+
+msgctxt "#32052"
+msgid "Playlists"
+msgstr "Playlists"
+
+msgctxt "#32053"
+msgid "Thumbnails/Fanart"
+msgstr "Thumbnails/Fanart"
+
+msgctxt "#32054"
+msgid "Media Database"
+msgstr "Media Database"
+
+# Backup Items - User Data
+msgctxt "#32060"
+msgid "User Data"
+msgstr "User Data"
+
+msgctxt "#32061"
+msgid "Profiles"
+msgstr "Profiles"
+
+msgctxt "#32062"
+msgid "Game Saves"
+msgstr "Game Saves"
+
+msgctxt "#32063"
+msgid "Skins"
+msgstr "Skins"
+
+msgctxt "#32064"
+msgid "Favourites"
+msgstr "Favourites"
+
+msgctxt "#32065"
+msgid "Keyboard Mappings"
+msgstr "Keyboard Mappings"
+
+# Actions
+msgctxt "#32070"
+msgid "Backup Now"
+msgstr "Backup Now"
+
+msgctxt "#32071"
+msgid "Restore Backup"
+msgstr "Restore Backup"
+
+msgctxt "#32072"
+msgid "View Backups"
+msgstr "View Backups"
+
+msgctxt "#32073"
+msgid "Export Settings"
+msgstr "Export Settings"
+
+msgctxt "#32074"
+msgid "Import Settings"
+msgstr "Import Settings"
+
+# Credits
+msgctxt "#32080"
+msgid "Image Credits"
+msgstr "Image Credits"
+
+# Network Settings
+msgctxt "#32090"
+msgid "Network Configuration"
+msgstr "Network Configuration"
+
+msgctxt "#32091"
+msgid "Network Settings"
+msgstr "Network Settings"
+
+msgctxt "#32092"
+msgid "WiFi Configuration"
+msgstr "WiFi Configuration"
+
+msgctxt "#32093"
+msgid "Hosts File"
+msgstr "Hosts File"
+
+msgctxt "#32094"
+msgid "Samba Settings"
+msgstr "Samba Settings"
+
+msgctxt "#32095"
+msgid "VPN Configuration"
+msgstr "VPN Configuration"
+
+msgctxt "#32096"
+msgid "SSH Configuration"
+msgstr "SSH Configuration"
+
+# Security Settings
+msgctxt "#32110"
+msgid "Security Configuration"
+msgstr "Security Configuration"
+
+msgctxt "#32111"
+msgid "Password Files"
+msgstr "Password Files"
+
+msgctxt "#32112"
+msgid "SSL Certificates"
+msgstr "SSL Certificates"
+
+msgctxt "#32113"
+msgid "SSH Keys"
+msgstr "SSH Keys"
+
+msgctxt "#32114"
+msgid "Encrypt Backup"
+msgstr "Encrypt Backup"
+
+msgctxt "#32115"
+msgid "Encryption Key"
+msgstr "Encryption Key"
+
+# Custom Content
+msgctxt "#32120"
+msgid "Custom Scripts and Data"
+msgstr "Custom Scripts and Data"
+
+msgctxt "#32121"
+msgid "Backup Custom Scripts"
+msgstr "Backup Custom Scripts"
+
+msgctxt "#32122"
+msgid "Custom Scripts Location"
+msgstr "Custom Scripts Location"
+
+msgctxt "#32123"
+msgid "Backup Custom Configs"
+msgstr "Backup Custom Configs"
+
+msgctxt "#32124"
+msgid "Custom Configs Location"
+msgstr "Custom Configs Location"
+
+# Advanced Options
+msgctxt "#32130"
+msgid "Advanced Settings"
+msgstr "Advanced Settings"
+
+msgctxt "#32131"
+msgid "System Logs"
+msgstr "System Logs"
+
+msgctxt "#32132"
+msgid "Crash Logs"
+msgstr "Crash Logs"
+
+msgctxt "#32133"
+msgid "Temporary Files"
+msgstr "Temporary Files"
+
+msgctxt "#32134"
+msgid "Verify Backup Integrity"
+msgstr "Verify Backup Integrity"
+
+msgctxt "#32135"
+msgid "Notification Method"
+msgstr "Notification Method"
+
+msgctxt "#32136"
+msgid "Configure Email Settings"
+msgstr "Configure Email Settings"
+
+# Messages
+msgctxt "#32100"
+msgid "Starting backup..."
+msgstr "Starting backup..."
+
+msgctxt "#32101"
+msgid "Backup completed successfully"
+msgstr "Backup completed successfully"
+
+msgctxt "#32102"
+msgid "Backup failed"
+msgstr "Backup failed"
+
+msgctxt "#32103"
+msgid "Starting restore..."
+msgstr "Starting restore..."
+
+msgctxt "#32104"
+msgid "Restore completed successfully"
+msgstr "Restore completed successfully"
+
+msgctxt "#32105"
+msgid "Restore failed"
+msgstr "Restore failed"
+
+msgctxt "#32106"
+msgid "No backups found"
+msgstr "No backups found"
+
+msgctxt "#32107"
+msgid "Previous skin detected"
+msgstr "Previous skin detected"
+
+msgctxt "#32108"
+msgid "Would you like to switch to the restored skin: %s?"
+msgstr "Would you like to switch to the restored skin: %s?"
+
+msgctxt "#32109"
+msgid "Switching to skin: %s"
+msgstr "Switching to skin: %s?" 
