@@ -383,7 +383,7 @@ class BackupManager:
         """Get a list of all backup files"""
         # Update backup location in case it changed
         self.update_backup_location()
-        backup_pattern = os.path.join(self.backup_dir, 'kodi_backup_*.zip')
+        backup_pattern = os.path.join(self.backup_dir, 'backup_*.zip')
         return sorted(glob.glob(backup_pattern), reverse=True)
     
     def cleanup_old_backups(self, max_backups=10):
