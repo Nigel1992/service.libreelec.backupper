@@ -1,73 +1,103 @@
-# Installation Guide for [Platform/Device]
+# 📥 Installation Guide
 
-![Compatibility](https://img.shields.io/badge/compatible-yes-green.svg) <!-- Options: yes, partial, no -->
+## System Requirements
 
-## Hardware Requirements
-<!-- Minimum and recommended hardware specifications -->
-- **Minimum**: <!-- e.g., Raspberry Pi 3B+ -->
-- **Recommended**: <!-- e.g., Raspberry Pi 4 (4GB) -->
-- **Storage**: <!-- e.g., 16GB+ SD card or USB drive -->
-- **Other**: <!-- Any other hardware requirements -->
+### Minimum Requirements
+- LibreELEC 12.0 or higher
+- Kodi 20 (Nexus)
+- 50MB free storage space for the addon
+- Additional space for backups (varies based on configuration)
 
-## Software Requirements
-- **LibreELEC Version**: <!-- e.g., 12.0.2 or later -->
-- **Kodi Version**: <!-- e.g., 20 (Nexus) -->
-- **Dependencies**: <!-- Any other software dependencies -->
-
-## Pre-Installation Steps
-<!-- Any preparation needed before installation -->
-1. 
-2. 
-3. 
+### Recommended
+- 1GB+ free storage space for backups
+- Stable network connection for remote backups
+- External storage device for backup redundancy
 
 ## Installation Methods
 
-### Method 1: Installation via Kodi
-1. Download the addon zip file from [releases page](https://github.com/username/LibreELEC-Backupper/releases)
-2. In Kodi, go to Add-ons > Install from zip file
-3. Navigate to the downloaded zip file and select it
-4. Wait for the "Add-on installed" notification
+### Method 1: Direct Installation
+1. Download the latest release from the [Releases page](../../releases)
+2. Open Kodi on your LibreELEC system
+3. Navigate to Add-ons → Install from zip file
+4. If prompted, enable "Unknown sources" in Settings → System → Add-ons
+5. Browse to the downloaded zip file
+6. Select the file to begin installation
+7. Wait for the "Add-on installed" notification
 
-### Method 2: Manual Installation
-1. 
-2. 
-3. 
+### Method 2: Repository Installation (Coming Soon)
+1. Add the repository source to Kodi
+2. Install from the repository
+3. Automatic updates will be available
 
-## Post-Installation Configuration
-<!-- Essential configuration steps after installation -->
-1. 
-2. 
-3. 
+## First-Time Setup
 
-## Verification
-<!-- How to verify the installation was successful -->
-1. 
-2. 
-3. 
+### Initial Configuration
+1. Go to Add-ons → Program add-ons
+2. Find LibreELEC Backupper
+3. Select Configure
+4. Set up the following:
+   - Backup location
+   - Schedule (if desired)
+   - Backup retention
+   - Notification preferences
 
-## Troubleshooting
-<!-- Common installation issues and solutions -->
+### Backup Location Setup
+1. Choose a backup location:
+   - Default: `/storage/backup`
+   - External drive: `/storage/[device_name]/backup`
+   - Network share: `smb://[path]/backup`
+2. Ensure write permissions
+3. Verify sufficient space
 
-### Common Issues
-1. **Issue**: [Problem description]
-   **Solution**: [Solution steps]
+### Schedule Configuration
+1. Enable scheduling if desired
+2. Choose backup frequency:
+   - Hourly
+   - Daily
+   - Weekly
+3. Set preferred time
+4. Configure retention policy
 
-2. **Issue**: [Problem description]
-   **Solution**: [Solution steps]
+## Post-Installation Steps
 
-## Upgrading
-<!-- Instructions for upgrading from previous versions -->
-1. 
-2. 
-3. 
+### Verify Installation
+1. Check addon status in Kodi
+2. Verify settings are saved
+3. Test backup location access
+4. Run a test backup
 
-## Uninstallation
-<!-- How to completely remove the addon if needed -->
-1. 
-2. 
-3. 
+### Security Considerations
+- Review backup location permissions
+- Secure network shares if used
+- Consider backup encryption for sensitive data
+- Set up backup redundancy if needed
 
-## Additional Resources
-<!-- Links to related documentation or external resources -->
-- [Link description](URL)
-- [Link description](URL) 
+### Troubleshooting
+If you encounter issues:
+1. Check Kodi log for errors
+2. Verify system requirements
+3. Test write permissions
+4. Consult the [FAQ](FAQ) page
+5. Report issues on [GitHub](../../issues)
+
+## Updating
+
+### Manual Update
+1. Download new version
+2. Uninstall existing version (settings are preserved)
+3. Install new version from zip
+4. Verify settings after update
+
+### Automatic Updates (Future)
+- Enable automatic updates in Kodi
+- Updates will install automatically
+- Backup schedule continues uninterrupted
+
+## Next Steps
+
+After installation:
+1. Review the [FAQ](FAQ) for common questions
+2. Configure backup settings
+3. Set up automated schedules
+4. Test backup and restore functionality
+5. Join the [community discussions](../../discussions) 
