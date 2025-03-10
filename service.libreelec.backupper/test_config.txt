@@ -1,3 +1,0 @@
-# This is a test config.txt file
-test_setting=value
-another_setting=123
