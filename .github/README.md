@@ -1,71 +1,93 @@
-# GitHub Templates for LibreELEC Backupper
+# LibreELEC Backupper
 
-This directory contains templates for GitHub issues, pull requests, and wiki pages to maintain consistency and quality in project contributions.
+<div align="center">
 
-## Directory Structure
+![icon](https://github.com/user-attachments/assets/33a4f539-e297-44c6-ab05-928501535942)
+
+*A powerful backup solution for your LibreELEC system*
+
+[![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
+[![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-green.svg)](https://libreelec.tv)
+[![Kodi Add-on](https://img.shields.io/badge/Kodi-Add--on-orange.svg)](https://kodi.tv)
+
+</div>
+
+## Repository Structure
 
 ```
-.github/
-├── ISSUE_TEMPLATE/           # Issue templates
-│   ├── bug_report.md         # Template for bug reports
-│   ├── feature_request.md    # Template for feature requests
-│   ├── documentation.md      # Template for documentation improvements
-│   └── config.yml            # Configuration for issue templates
-├── PULL_REQUEST_TEMPLATE/    # Pull request templates
-│   └── pull_request_template.md  # Template for pull requests
-├── pull_request_template.md  # Default pull request template
-└── wiki-templates/           # Wiki page templates
-    ├── feature_documentation.md  # Template for documenting features
-    ├── installation_guide.md     # Template for installation guides
-    ├── troubleshooting_guide.md  # Template for troubleshooting guides
-    └── home.md                   # Template for wiki home page
+.
+├── .github/                    # GitHub templates and workflows
+├── service.libreelec.backupper/# Main addon directory
+│   ├── resources/             # Addon resources
+│   │   ├── lib/              # Core functionality
+│   │   ├── language/         # Translations
+│   │   └── settings.xml      # Addon settings
+│   ├── addon.xml             # Addon metadata
+│   └── README.md             # Addon documentation
+├── LICENSE                    # GPL-2.0 license
+└── README.md                  # This file
 ```
 
-## Using Issue Templates
+## About
 
-When creating a new issue on GitHub, you'll be prompted to choose a template:
-- **Bug Report**: Use for reporting bugs or unexpected behavior
-- **Feature Request**: Use for suggesting new features or enhancements
-- **Documentation Improvement**: Use for suggesting documentation changes
+LibreELEC Config Backupper is a comprehensive backup solution for LibreELEC systems, offering automated scheduling and intelligent backup management. The addon provides a user-friendly interface for backing up and restoring system configurations, add-ons, and user data.
 
-## Using Pull Request Templates
+## Key Features
 
-When creating a new pull request, the default template will be automatically applied. Fill in the sections to provide clear information about your changes.
+- **System Configuration Backup**
+  - Essential system files
+  - Add-on configurations
+  - User settings
+  
+- **Smart Backup Management**
+  - Automated scheduling
+  - Backup verification
+  - Resource optimization
+  
+- **User-Friendly Interface**
+  - Progress notifications
+  - Easy restore options
+  - Detailed status updates
 
-## Using Wiki Templates
+## Installation
 
-The `wiki-templates` directory contains templates for common wiki pages. To use these templates:
+1. Download the latest release
+2. Open Kodi
+3. Navigate to Add-ons → Install from zip file
+4. Select the downloaded zip file
+5. Configure backup settings
 
-1. Navigate to the wiki section of the GitHub repository
-2. Create a new page or edit an existing page
-3. Copy the content from the appropriate template
-4. Customize the content for your specific needs
+## Development
 
-## Customizing Templates
+### Requirements
+- Python 3.x
+- Kodi 20 (Nexus)
+- LibreELEC 12.0+
 
-Feel free to customize these templates to better suit the project's needs:
+### Contributing
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-1. Edit the template files directly
-2. Commit and push your changes
-3. The updated templates will be immediately available
+## Documentation
 
-## GitHub CLI Commands for Templates
+For detailed documentation, please see:
+- [Addon README](service.libreelec.backupper/README.md) - Complete feature documentation
+- [Wiki](../../wiki) - Usage guides and tutorials
+- [Issues](../../issues) - Bug reports and feature requests
 
-You can use GitHub CLI to work with these templates:
+## License
 
-```bash
-# Create a new issue using a template
-gh issue create --template "bug_report.md"
+This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](LICENSE) file for details.
 
-# Create a pull request with the default template
-gh pr create
+---
 
-# List available issue templates
-gh issue create --list-templates
-```
+<div align="center">
 
-## Additional Resources
+**Made with ❤️ for the LibreELEC Community**
 
-- [GitHub Docs: Issue Templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository)
-- [GitHub Docs: Pull Request Templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository)
-- [GitHub CLI Documentation](https://cli.github.com/manual/) 
+[Report Bug](../../issues) · [Request Feature](../../issues) · [Get Support](../../discussions)
+
+</div>
