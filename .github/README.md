@@ -1,4 +1,4 @@
-# LibreELEC Config Backupper
+# LibreELEC Backupper
 
 <div align="center">
 
