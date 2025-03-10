@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import zipfile
 import json
 import time
+import gc  # Add garbage collector import
 
 class BackupManager:
     """Utility class to manage config backups"""
@@ -19,6 +20,7 @@ class BackupManager:
     def __init__(self, addon=None):
         self.addon = addon or xbmcaddon.Addon()
         self.update_backup_location()
+        self._temp_files = set()  # Track temporary files
     
     def update_backup_location(self):
         """Update backup location from settings"""
@@ -92,12 +94,15 @@ class BackupManager:
         
         return datetime.now() >= next_backup
     
-    def notify(self, message, detailed_info=""):
+    def notify(self, message, detailed_info="", persistent=False):
         """Show notification if enabled"""
         if self.addon.getSettingBool('show_notifications'):
             if self.addon.getSettingBool('detailed_notifications') and detailed_info:
                 message = f"{message} - {detailed_info}"
-            xbmc.executebuiltin(f'Notification({self.addon.getAddonInfo("name")}, {message}, 3000)')
+            # For persistent notifications, use a longer timeout (30 seconds)
+            # For non-persistent, use the default 3 seconds
+            timeout = 30000 if persistent else 3000
+            xbmc.executebuiltin(f'Notification({self.addon.getAddonInfo("name")}, {message}, {timeout})')
     
     def get_repository_paths(self):
         """Get all repository addon paths"""
@@ -169,184 +174,210 @@ class BackupManager:
         
         return paths
     
+    def cleanup_resources(self):
+        """Clean up any temporary resources and force garbage collection"""
+        try:
+            # Clean up any temporary files we created
+            for temp_file in self._temp_files:
+                try:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                except Exception as e:
+                    xbmc.log(f"Error removing temp file {temp_file}: {str(e)}", xbmc.LOGWARNING)
+            
+            self._temp_files.clear()
+            
+            # Force garbage collection
+            gc.collect()
+            
+            # Small sleep to allow system to stabilize
+            xbmc.sleep(500)
+            
+        except Exception as e:
+            xbmc.log(f"Error during cleanup: {str(e)}", xbmc.LOGWARNING)
+
     def create_backup(self):
         """Create a backup of all selected items"""
-        # Update backup location in case it changed
-        self.update_backup_location()
-        
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        
-        # Get paths to backup
-        paths = self.get_backup_paths()
-        
-        # Create backup name with included items
-        backup_items = []
-        if self.addon.getSettingBool('backup_configs'):
-            backup_items.append('conf')
-        if self.addon.getSettingBool('backup_addons'):
-            backup_items.append('addons')
-        if self.addon.getSettingBool('backup_repositories'):
-            backup_items.append('repos')
-        if self.addon.getSettingBool('backup_userdata'):
-            backup_items.append('data')
-        if self.addon.getSettingBool('backup_sources'):
-            backup_items.append('src')
-        
-        # Add items to backup name
-        items_str = '-'.join(backup_items) if backup_items else 'empty'
-        backup_name = f'backup_{items_str}_{timestamp}'
-        zip_path = os.path.join(self.backup_dir, f'{backup_name}.zip')
-        
         try:
-            total_items = len(paths)
-            current_item = 0
+            # Update backup location in case it changed
+            self.update_backup_location()
             
-            # Don't create empty backups
-            if total_items == 0:
-                return False, "No items selected for backup"
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             
-            # Check available space
+            # Get paths to backup
+            paths = self.get_backup_paths()
+            
+            # Create backup name with included items
+            backup_items = []
+            if self.addon.getSettingBool('backup_configs'):
+                backup_items.append('conf')
+            if self.addon.getSettingBool('backup_addons'):
+                backup_items.append('addons')
+            if self.addon.getSettingBool('backup_repositories'):
+                backup_items.append('repos')
+            if self.addon.getSettingBool('backup_userdata'):
+                backup_items.append('data')
+            if self.addon.getSettingBool('backup_sources'):
+                backup_items.append('src')
+            
+            # Add items to backup name
+            items_str = '-'.join(backup_items) if backup_items else 'empty'
+            backup_name = f'backup_{items_str}_{timestamp}'
+            zip_path = os.path.join(self.backup_dir, f'{backup_name}.zip')
+            
             try:
-                total_size = 0
-                for _, path in paths.items():
-                    if os.path.exists(path):
-                        if os.path.isfile(path):
-                            total_size += os.path.getsize(path)
-                        else:
-                            for root, _, files in os.walk(path):
-                                for file in files:
-                                    try:
-                                        total_size += os.path.getsize(os.path.join(root, file))
-                                    except OSError:
-                                        continue
+                total_items = len(paths)
+                current_item = 0
                 
-                # Get available space in backup directory
-                stat = os.statvfs(self.backup_dir)
-                available_space = stat.f_frsize * stat.f_bavail
+                # Don't create empty backups
+                if total_items == 0:
+                    return False, "No items selected for backup"
                 
-                # Check if we have enough space (total size + 10% buffer)
-                if total_size * 1.1 > available_space:
-                    return False, f"Not enough space for backup. Need {total_size/1024/1024:.1f}MB but only {available_space/1024/1024:.1f}MB available"
-            except Exception as e:
-                xbmc.log(f"Error checking space: {str(e)}", xbmc.LOGWARNING)
-            
-            self.notify(self.addon.getLocalizedString(32100))  # Starting backup...
-            
-            # Track what files we actually backed up
-            backed_up_files = set()
-            
-            # Create manifest
-            manifest = {
-                'timestamp': timestamp,
-                'items': list(paths.keys()),
-                'paths': paths,
-                'backed_up_files': []  # Will be populated during backup
-            }
-            
-            # Create zip file with UTF-8 encoding error handling
-            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zipf:
-                # Backup each item
-                for item_name, path in paths.items():
-                    current_item += 1
-                    progress = int((current_item / total_items) * 100)
-                    
-                    try:
-                        self.notify(f"{self.addon.getLocalizedString(32100)} ({progress}%)", item_name)
-                        
+                # Check available space
+                try:
+                    total_size = 0
+                    for _, path in paths.items():
                         if os.path.exists(path):
                             if os.path.isfile(path):
-                                # For single files, maintain the full path structure
-                                try:
-                                    if not os.path.islink(path):  # Skip symbolic links
-                                        arcname = self.sanitize_filename(os.path.relpath(path, '/'))
-                                        zipf.write(path, arcname)
-                                        backed_up_files.add(arcname)
-                                        xbmc.log(f"Successfully backed up file: {path}", xbmc.LOGINFO)
-                                except Exception as e:
-                                    xbmc.log(f"Failed to backup file {path}: {str(e)}", xbmc.LOGERROR)
-                                    continue
+                                total_size += os.path.getsize(path)
                             else:
-                                # For directories, walk through and maintain structure
-                                try:
-                                    for root, _, files in os.walk(path):
-                                        for file in files:
-                                            file_path = os.path.join(root, file)
-                                            try:
-                                                if os.path.islink(file_path):  # Skip symbolic links
-                                                    continue
-                                                    
-                                                # Use a more reliable path handling for special paths
-                                                if 'userdata' in root or 'addon_data' in root:
-                                                    # Keep the userdata/addon_data structure
-                                                    arcname = self.sanitize_filename(os.path.join('userdata', os.path.relpath(file_path, self.kodi_userdata)))
-                                                else:
-                                                    arcname = self.sanitize_filename(os.path.relpath(file_path, '/'))
-                                                
-                                                # Skip problematic files
-                                                if any(x in file_path.lower() for x in ['.sock', '.socket', '.lock', '.pid']):
-                                                    continue
-                                                    
+                                for root, _, files in os.walk(path):
+                                    for file in files:
+                                        try:
+                                            total_size += os.path.getsize(os.path.join(root, file))
+                                        except OSError:
+                                            continue
+                
+                    # Get available space in backup directory
+                    stat = os.statvfs(self.backup_dir)
+                    available_space = stat.f_frsize * stat.f_bavail
+                    
+                    # Check if we have enough space (total size + 10% buffer)
+                    if total_size * 1.1 > available_space:
+                        return False, f"Not enough space for backup. Need {total_size/1024/1024:.1f}MB but only {available_space/1024/1024:.1f}MB available"
+                except Exception as e:
+                    xbmc.log(f"Error checking space: {str(e)}", xbmc.LOGWARNING)
+                
+                self.notify(self.addon.getLocalizedString(32100), "", True)  # Starting backup... (persistent)
+                
+                # Track what files we actually backed up
+                backed_up_files = set()
+                
+                # Create manifest
+                manifest = {
+                    'timestamp': timestamp,
+                    'items': list(paths.keys()),
+                    'paths': paths,
+                    'backed_up_files': []  # Will be populated during backup
+                }
+                
+                # Create zip file with UTF-8 encoding error handling
+                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zipf:
+                    # Backup each item
+                    for item_name, path in paths.items():
+                        current_item += 1
+                        progress = int((current_item / total_items) * 100)
+                        
+                        try:
+                            self.notify(f"{self.addon.getLocalizedString(32100)} ({progress}%)", item_name, True)
+                            
+                            if os.path.exists(path):
+                                if os.path.isfile(path):
+                                    # For single files, maintain the full path structure
+                                    try:
+                                        if not os.path.islink(path):  # Skip symbolic links
+                                            arcname = self.sanitize_filename(os.path.relpath(path, '/'))
+                                            zipf.write(path, arcname)
+                                            backed_up_files.add(arcname)
+                                            xbmc.log(f"Successfully backed up file: {path}", xbmc.LOGINFO)
+                                    except Exception as e:
+                                        xbmc.log(f"Failed to backup file {path}: {str(e)}", xbmc.LOGERROR)
+                                        continue
+                                else:
+                                    # For directories, walk through and maintain structure
+                                    try:
+                                        for root, _, files in os.walk(path):
+                                            for file in files:
+                                                file_path = os.path.join(root, file)
                                                 try:
-                                                    # Try to open file first to check if readable
-                                                    with open(file_path, 'rb') as f:
-                                                        zipf.writestr(arcname, f.read())
-                                                        backed_up_files.add(arcname)
-                                                    xbmc.log(f"Successfully backed up: {file_path}", xbmc.LOGDEBUG)
-                                                except (IOError, OSError) as e:
-                                                    xbmc.log(f"Cannot read file {file_path}: {str(e)}", xbmc.LOGWARNING)
+                                                    if os.path.islink(file_path):  # Skip symbolic links
+                                                        continue
+                                                        
+                                                    # Use a more reliable path handling for special paths
+                                                    if 'userdata' in root or 'addon_data' in root:
+                                                        # Keep the userdata/addon_data structure
+                                                        arcname = self.sanitize_filename(os.path.join('userdata', os.path.relpath(file_path, self.kodi_userdata)))
+                                                    else:
+                                                        arcname = self.sanitize_filename(os.path.relpath(file_path, '/'))
+                                                    
+                                                    # Skip problematic files
+                                                    if any(x in file_path.lower() for x in ['.sock', '.socket', '.lock', '.pid']):
+                                                        continue
+                                                    
+                                                    try:
+                                                        # Try to open file first to check if readable
+                                                        with open(file_path, 'rb') as f:
+                                                            zipf.writestr(arcname, f.read())
+                                                            backed_up_files.add(arcname)
+                                                        xbmc.log(f"Successfully backed up: {file_path}", xbmc.LOGDEBUG)
+                                                    except (IOError, OSError) as e:
+                                                        xbmc.log(f"Cannot read file {file_path}: {str(e)}", xbmc.LOGWARNING)
+                                                        continue
+                                                except Exception as e:
+                                                    xbmc.log(f"Failed to backup {file_path}: {str(e)}", xbmc.LOGERROR)
                                                     continue
-                                            except Exception as e:
-                                                xbmc.log(f"Failed to backup {file_path}: {str(e)}", xbmc.LOGERROR)
-                                                continue
-                                except Exception as e:
-                                    xbmc.log(f"Error walking directory {path}: {str(e)}", xbmc.LOGERROR)
-                                    continue
-                        else:
-                            xbmc.log(f"Path does not exist: {path}", xbmc.LOGWARNING)
-                    except Exception as e:
-                        xbmc.log(f"Error backing up {item_name}: {str(e)}", xbmc.LOGERROR)
-                        self.notify(f"Error backing up", item_name)
-                        continue
+                                    except Exception as e:
+                                        xbmc.log(f"Error walking directory {path}: {str(e)}", xbmc.LOGERROR)
+                                        continue
+                            else:
+                                xbmc.log(f"Path does not exist: {path}", xbmc.LOGWARNING)
+                        except Exception as e:
+                            xbmc.log(f"Error backing up {item_name}: {str(e)}", xbmc.LOGERROR)
+                            self.notify(f"Error backing up", item_name)
+                            continue
+                    
+                    # Update manifest with actual backed up files
+                    manifest['backed_up_files'] = list(backed_up_files)
+                    zipf.writestr('manifest.json', json.dumps(manifest, indent=4))
                 
-                # Update manifest with actual backed up files
-                manifest['backed_up_files'] = list(backed_up_files)
-                zipf.writestr('manifest.json', json.dumps(manifest, indent=4))
-            
-            # Update last backup time
-            self.addon.setSetting('last_backup', datetime.now().strftime('%Y-%m-%d %H:%M'))
-            self.update_schedule_info()
-            
-            # Clean up old backups
-            self.cleanup_old_backups(int(self.addon.getSetting('max_backups')))
-            
-            # Verify backup if enabled
-            if self.addon.getSettingBool('verify_backup'):
-                self.notify("Verifying Backup", "Starting verification process...")
-                xbmc.sleep(2000)  # Wait 2 seconds before starting verification
+                # Update last backup time
+                self.addon.setSetting('last_backup', datetime.now().strftime('%Y-%m-%d %H:%M'))
+                self.update_schedule_info()
                 
-                success, message = self.verify_backup(zip_path)
-                if not success:
-                    raise Exception(f"Backup verification failed: {message}")
+                # Clean up old backups
+                self.cleanup_old_backups(int(self.addon.getSetting('max_backups')))
                 
-                xbmc.sleep(2000)  # Wait 2 seconds before showing success
-                self.notify("Verification Complete", "Backup verified successfully")
-                xbmc.sleep(1000)  # Wait 1 second before final backup success message
+                # Verify backup if enabled
+                if self.addon.getSettingBool('verify_backup'):
+                    self.notify("Verifying Backup", "Starting verification process...", True)
+                    xbmc.sleep(2000)  # Wait 2 seconds before starting verification
+                    
+                    success, message = self.verify_backup(zip_path)
+                    if not success:
+                        raise Exception(f"Backup verification failed: {message}")
+                    
+                    xbmc.sleep(2000)  # Wait 2 seconds before showing success
+                    self.notify("Verification Complete", "Backup verified successfully", True)
+                    xbmc.sleep(1000)  # Wait 1 second before final backup success message
+                    
+                    self.notify(self.addon.getLocalizedString(32101))  # Backup completed successfully (non-persistent)
+                else:
+                    self.notify(self.addon.getLocalizedString(32101))  # Backup completed successfully (non-persistent)
                 
-                self.notify(self.addon.getLocalizedString(32101))  # Backup completed successfully
-            else:
-                self.notify(self.addon.getLocalizedString(32101))  # Backup completed successfully
-            
-            return True, "Backup created successfully"
-        except Exception as e:
-            error_msg = f"Error creating backup: {str(e)}"
-            self.notify(self.addon.getLocalizedString(32102), str(e))  # Backup failed
-            # Try to clean up failed backup
-            if os.path.exists(zip_path):
-                try:
-                    os.remove(zip_path)
-                except:
-                    pass
-            return False, error_msg
+                return True, "Backup created successfully"
+            except Exception as e:
+                error_msg = f"Error creating backup: {str(e)}"
+                self.notify(self.addon.getLocalizedString(32102), str(e))  # Backup failed (non-persistent)
+                # Try to clean up failed backup
+                if os.path.exists(zip_path):
+                    try:
+                        os.remove(zip_path)
+                    except:
+                        pass
+                return False, error_msg
+        finally:
+            # Always clean up resources, even if backup fails
+            self.cleanup_resources()
     
     def get_all_backups(self):
         """Get a list of all backup files"""
@@ -357,17 +388,21 @@ class BackupManager:
     
     def cleanup_old_backups(self, max_backups=10):
         """Remove old backups, keeping only the specified number"""
-        backups = self.get_all_backups()
-        
-        # If we have more backups than the maximum allowed
-        if len(backups) > max_backups:
-            # Remove the oldest backups (they're sorted newest first)
-            for old_backup in backups[max_backups:]:
-                try:
-                    os.remove(old_backup)
-                    xbmc.log(f"Removed old backup: {old_backup}", xbmc.LOGINFO)
-                except Exception as e:
-                    xbmc.log(f"Failed to remove old backup {old_backup}: {str(e)}", xbmc.LOGERROR)
+        try:
+            backups = self.get_all_backups()
+            
+            # If we have more backups than the maximum allowed
+            if len(backups) > max_backups:
+                # Remove the oldest backups (they're sorted newest first)
+                for old_backup in backups[max_backups:]:
+                    try:
+                        os.remove(old_backup)
+                        xbmc.log(f"Removed old backup: {old_backup}", xbmc.LOGINFO)
+                    except Exception as e:
+                        xbmc.log(f"Failed to remove old backup {old_backup}: {str(e)}", xbmc.LOGERROR)
+        finally:
+            # Clean up after removing old backups
+            self.cleanup_resources()
     
     def mount_flash_rw(self):
         """Mount /flash in read-write mode"""
@@ -580,4 +615,8 @@ class BackupManager:
         except Exception as e:
             error_msg = f"Error verifying backup: {str(e)}"
             xbmc.log(error_msg, xbmc.LOGERROR)
-            return False, error_msg 
+            return False, error_msg
+            
+        finally:
+            # Clean up after verification
+            self.cleanup_resources() 
