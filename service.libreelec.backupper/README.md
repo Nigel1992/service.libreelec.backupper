@@ -1,45 +1,47 @@
 # LibreELEC Config Backupper
 
-A LibreELEC addon that automatically backs up the config.txt file located at /flash/config.txt.
+A LibreELEC addon that automatically backs up your system configuration and add-ons.
 
 ## Features
 
-- Automatic backups of config.txt at configurable intervals (hourly, daily, or weekly)
-- Backups are stored in /storage/backup directory
-- Manual backup option
+- Automatic backups at configurable intervals (hourly, daily, or weekly)
+- Comprehensive backup options:
+  - Configuration Files (config.txt, guisettings.xml, advancedsettings.xml, keyboard.xml)
+  - Installed Add-ons
+  - Add-on User Data and Settings
+  - Repositories
+  - Sources
+  - Profiles
+  - Game Saves
+  - Playlists
+  - Thumbnails/Fanart
+  - Skins and Skin Settings
+- Smart backup verification
+- Progress notifications with real-time status
+- Memory-efficient operation with automatic cleanup
+- Configurable backup location
 - View and restore previous backups
 - Configurable maximum number of backups to keep
-- Optional notifications when backups are created
 
-## ⚠️ Important Warning - Untested Features
+## Tested Features
 
-**PLEASE READ CAREFULLY**: Many features in this addon are currently marked as **[UNTESTED]** and should be used with caution. These features have been implemented but have not undergone thorough testing in real-world environments.
-
-### Untested Features Include:
-- Configuration Files (except config.txt)
-- FSTAB settings
-- Bootloader settings
+### Fully Tested:
+- Config.txt backup and restore
 - Add-ons backup/restore
 - Add-on user data backup/restore
-- Media-related backups (sources, playlists, thumbnails, database)
-- User data backups (profiles, game saves, skins, favourites)
-- Network settings (WiFi, hosts, Samba, VPN)
-- Security settings (passwords, certificates, SSH keys)
-- Custom scripts and configurations
-- System and crash logs
-- Email notifications
-
-### Safe to Use Features:
-- Config.txt backup and restore
+- Repository backup/restore
+- Sources backup/restore
 - Basic scheduling functionality
 - Local backup storage
 - Manual backup/restore operations
+- Backup verification
+- Progress notifications
+- Memory management and cleanup
 
-**Before using any feature marked as [UNTESTED]:**
-- Create a full manual backup of your system
-- Test the feature on non-critical data first
-- Be prepared to manually restore your system if needed
-- Report any issues on GitHub
+### Partially Tested:
+- Media-related backups (playlists, thumbnails)
+- User data backups (profiles, game saves, skins)
+- Custom configurations
 
 ## Installation
 
@@ -52,14 +54,23 @@ A LibreELEC addon that automatically backs up the config.txt file located at /fl
 
 ### Automatic Backups
 
-The addon will automatically create backups of your config.txt file based on the configured interval. By default, backups are created daily and stored in the `/storage/backup` directory.
+The addon will automatically create backups based on the configured interval. By default, backups are created daily and stored in the `/storage/backup` directory.
 
 ### Manual Backups
 
 To create a manual backup:
 1. Go to Add-ons > Program add-ons > LibreELEC Config Backupper
 2. Open the addon settings
-3. Click on "Backup Now"
+3. Select which items to backup (Config Files, Add-ons, User Data, etc.)
+4. Click on "Backup Now"
+
+### Backup Process
+
+During backup:
+1. Real-time progress notifications show what's being backed up
+2. Space requirements are automatically checked
+3. Files are verified for integrity (if verification is enabled)
+4. System resources are automatically cleaned up after backup
 
 ### Restoring Backups
 
@@ -69,17 +80,41 @@ To restore a previous backup:
 3. Select the backup you want to restore from the list
 4. Confirm the restore operation
 
-**Note:** Restoring a backup will overwrite your current config.txt file. You may need to restart your system for changes to take effect.
+**Note:** Restoring a backup will overwrite your current configuration files. You may need to restart your system for changes to take effect.
 
 ## Settings
 
+### Backup Options
+- Select which items to backup:
+  - Configuration Files
+  - Installed Add-ons
+  - Add-on User Data
+  - Repositories
+  - Sources
+  - And more...
+
+### Scheduling
 - **Backup Interval**: How often to create automatic backups (Hourly, Daily, Weekly)
-- **Maximum Backups to Keep**: The maximum number of backup files to keep (older backups will be deleted)
-- **Show Notifications**: Whether to show notifications when backups are created
+- **Backup Time**: What time to perform scheduled backups
+- **Maximum Backups to Keep**: The maximum number of backup files to keep
+
+### Notifications
+- **Show Notifications**: Enable/disable backup notifications
+- **Detailed Notifications**: Show detailed progress during backup
+- **Verify Backup**: Enable/disable backup verification
 
 ## Backup Location
 
-All backups are stored in the `/storage/backup` directory on your LibreELEC system. This directory is created automatically if it doesn't exist.
+All backups are stored in the `/storage/backup` directory by default, but this can be changed in the settings. The backup directory is created automatically if it doesn't exist.
+
+## Performance
+
+The addon includes several optimizations:
+- Efficient memory usage with automatic cleanup
+- Skip problematic files (sockets, lock files)
+- Handle large files and directories
+- Persistent progress notifications
+- Automatic resource cleanup after operations
 
 ## License
 
