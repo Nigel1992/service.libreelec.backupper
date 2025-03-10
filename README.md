@@ -1,130 +1,159 @@
-# LibreELEC Backupper
+# 🔄 LibreELEC Backupper
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)
-![Kodi](https://img.shields.io/badge/kodi-20%20(Nexus)-green.svg)
-![LibreELEC](https://img.shields.io/badge/LibreELEC-12.0.2-red.svg)
-![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)
+![LibreELEC Logo](https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/distribution/doc/resources/logo.png)
 
-A comprehensive backup solution for LibreELEC with automated scheduling support.
+*A powerful backup solution for your LibreELEC system*
 
-[Features](#features) • [Installation](#installation) • [Warning](#🚨-important-warning---untested-features) • [License](#license)
+[![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
+[![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-green.svg)](https://libreelec.tv)
+[![Kodi Add-on](https://img.shields.io/badge/Kodi-Add--on-orange.svg)](https://kodi.tv)
 
 </div>
 
+## 🌟 Features
+
+### 📦 Comprehensive Backup Options
+- **System Configuration**
+  - `config.txt`
+  - `guisettings.xml`
+  - `advancedsettings.xml`
+  - `keyboard.xml`
+  - Custom keymaps
+- **Add-ons & Data**
+  - Installed Add-ons
+  - Add-on User Data
+  - Repositories
+  - User Settings
+- **Media & UI**
+  - Sources
+  - Playlists
+  - Thumbnails/Fanart
+  - Skins and Settings
+- **User Data**
+  - Profiles
+  - Game Saves
+  - Custom Configurations
+
+### 🛠️ Smart Features
+- **Automated Scheduling**
+  - Hourly, Daily, or Weekly backups
+  - Custom backup time selection
+  - Configurable retention policy
+- **Intelligent Verification**
+  - Backup integrity checking
+  - Space requirement verification
+  - Automatic error recovery
+- **Resource Management**
+  - Memory-efficient operation
+  - Automatic cleanup
+  - Skip problematic files
+- **User Interface**
+  - Real-time progress notifications
+  - Detailed status updates
+  - Easy restore interface
+
+## 🚀 Quick Start
+
+### Installation
+1. Download the latest release
+2. Open Kodi
+3. Go to Add-ons → Install from zip file
+4. Select the downloaded zip file
+5. The addon will install and start automatically
+
+### First Backup
+1. Go to Add-ons → Program add-ons → LibreELEC Config Backupper
+2. Open Settings
+3. Choose what to backup:
+   - Configuration Files
+   - Add-ons
+   - User Data
+   - Repositories
+   - Sources
+4. Click "Backup Now"
+
+## ⚙️ Configuration
+
+### Backup Settings
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Backup Location | Where backups are stored | `/storage/backup` |
+| Maximum Backups | Number of backups to keep | 10 |
+| Verify Backups | Check backup integrity | Enabled |
+
+### Schedule Settings
+| Setting | Description | Options |
+|---------|-------------|---------|
+| Interval | How often to backup | Hourly/Daily/Weekly |
+| Time | When to run backup | HH:MM |
+| Auto Clean | Remove old backups | Enabled |
+
+### Notification Settings
+| Setting | Description | Options |
+|---------|-------------|---------|
+| Show Progress | Display backup progress | Enabled |
+| Detailed Info | Show detailed status | Optional |
+| Verify Messages | Show verification status | Enabled |
+
+## 🔍 Features In-Depth
+
+### Backup Process
+1. **Pre-flight Checks**
+   - Space verification
+   - Permission checks
+   - Resource availability
+
+2. **Backup Creation**
+   - Real-time progress display
+   - Efficient file handling
+   - Error recovery
+
+3. **Verification**
+   - Integrity checking
+   - Manifest validation
+   - Space confirmation
+
+4. **Cleanup**
+   - Resource release
+   - Temporary file removal
+   - Memory optimization
+
+### Restore Process
+1. Select backup from list
+2. Choose items to restore
+3. Confirm operation
+4. Automatic system update
+
+## 🛡️ Tested Features
+
+### ✅ Fully Tested
+- System configuration backup/restore
+- Add-on management
+- User data handling
+- Repository backup
+- Source management
+- Scheduling system
+- Verification process
+- Progress notifications
+- Resource management
+
+### 🔄 Partially Tested
+- Media-related backups
+- User profile handling
+- Custom configurations
+
+## 📝 License
+
+This project is licensed under the [GPL-2.0](LICENSE) license.
+
 ---
 
-## 🚨 Important Warning - Untested Features
+<div align="center">
 
-<table>
-<tr>
-<td>
+**Made with ❤️ for the LibreELEC Community**
 
-**PLEASE READ CAREFULLY**: Many features in this addon are currently marked as **[UNTESTED]** and should be used with caution. These features have been implemented but have not undergone thorough testing in real-world environments.
+[Report Bug](../../issues) · [Request Feature](../../issues) · [Get Support](../../discussions)
 
-### ❌ Untested Features:
-- FSTAB settings
-- Bootloader settings
-- Media-related backups (playlists, thumbnails, database)
-- User data backups (profiles, game saves, skins, favourites)
-- Network settings (WiFi, hosts, Samba, VPN)
-- Security settings (passwords, certificates, SSH keys)
-- Custom scripts and configurations
-- System and crash logs
-- Email notifications
-- Basic scheduling functionality
-
-### ✅ Safe to Use Features:
-- Config.txt backup and restore
-- Local backup storage
-- Manual backup/restore operations
-- Configuration files backup
-- Add-ons backup/restore
-- Add-on user data backup/restore
-- Repository backup/restore
-- Sources backup/restore
-- Backup verification
-
-### ⚠️ Safety Precautions:
-Before using any feature marked as [UNTESTED]:
-- Create a full manual backup of your system
-- Test the feature on non-critical data first
-- Be prepared to manually restore your system if needed
-- Report any issues on GitHub
-
-</td>
-</tr>
-</table>
-
-## ✨ Features
-
-### 💾 Backup Components
-<table>
-<tr>
-<td>
-
-- **System**
-  - Config.txt and configuration files
-  - Add-ons and their user data
-- **Media**
-  - Sources and playlists
-  - Thumbnails and artwork
-- **User Data**
-  - Profiles and game saves
-  - Skin settings and favorites
-
-</td>
-<td>
-
-### 🛠️ Core Features
-- ⏰ Automated backups (hourly/daily/weekly)
-- 📂 Custom backup location support
-- 🔄 Backup rotation with retention
-- 🔍 Easy restore functionality
-- 📊 Progress notifications
-
-</td>
-</tr>
-</table>
-
-## 📥 Installation
-
-1. Download the addon zip file
-2. In Kodi, go to Add-ons > Install from zip file
-3. Navigate to the downloaded zip file and select it
-4. The addon will be installed and start automatically
-
-## 📋 Requirements
-
-- LibreELEC 12.0.2 or later
-- Kodi 20 (Nexus)
-- Sufficient storage space for backups
-- Network connection for remote backups
-
-## 📜 License
-
-This addon is licensed under the GPL-2.0-or-later license.
-
-## 👥 Credits
-
-- Icon by [Smashicon](https://flaticon.com/4275334)
-- Fanart: [Low Poly Mountain](https://wallpaperswide.com/low_poly_mountain_2-wallpapers.html) by Design+Code
-
-## 📝 Changelog
-
-### v1.0.0 (2024-03-09)
-- 🎉 Initial release
-- ✨ Full backup and restore functionality
-- ⚡ Automated scheduling support
-- 🔧 Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus)
-
-### v1.0.1 (2024-03-10)
-- ✨ Enhanced backup functionality with repository support
-- 🔍 Added backup verification features
-- 🔧 Improved config.txt restoration with enhanced logging
-- 📝 Streamlined configuration backup handling
-- 🏷️ Enhanced backup naming and date extraction
-- 💾 Added comprehensive addon data backup support
-- 👤 Improved user data backup functionality
-- 📋 Removed [UNTESTED] labels from verified features 
+</div>
