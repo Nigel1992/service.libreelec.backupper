@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![LibreELEC Logo](https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/distribution/doc/resources/logo.png)
+![icon](https://github.com/user-attachments/assets/33a4f539-e297-44c6-ab05-928501535942)
 
 *A powerful backup solution for your LibreELEC system*
 
