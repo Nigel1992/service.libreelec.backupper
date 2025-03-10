@@ -16,7 +16,7 @@
 ## Installation Methods
 
 ### Method 1: Direct Installation
-1. Download the latest release from the [Releases page](../../releases)
+1. Download the latest release from the [Releases page](https://github.com/Nigel1992/service.libreelec.backupper/releases)
 2. Open Kodi on your LibreELEC system
 3. Navigate to Add-ons → Install from zip file
 4. If prompted, enable "Unknown sources" in Settings → System → Add-ons
@@ -78,7 +78,7 @@ If you encounter issues:
 2. Verify system requirements
 3. Test write permissions
 4. Consult the [FAQ](FAQ) page
-5. Report issues on [GitHub](../../issues)
+5. Report issues on [GitHub](https://github.com/Nigel1992/service.libreelec.backupper/issues)
 
 ## Updating
 
@@ -100,4 +100,4 @@ After installation:
 2. Configure backup settings
 3. Set up automated schedules
 4. Test backup and restore functionality
-5. Join the [community discussions](../../discussions) 
+5. Join the [community discussions](https://github.com/Nigel1992/service.libreelec.backupper/discussions) 

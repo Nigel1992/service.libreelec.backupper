@@ -80,10 +80,10 @@ By default, the addon keeps 10 most recent backups. You can adjust this in setti
 ## Support
 
 ### Where can I get help?
-- [Report issues on GitHub](../../issues)
-- [Request features](../../issues)
-- [Join discussions](../../discussions)
-- Review documentation in [Wiki](../../wiki)
+- [Report issues on GitHub](https://github.com/Nigel1992/service.libreelec.backupper/issues)
+- [Request features](https://github.com/Nigel1992/service.libreelec.backupper/issues)
+- [Join discussions](https://github.com/Nigel1992/service.libreelec.backupper/discussions)
+- Review documentation in [Wiki](https://github.com/Nigel1992/service.libreelec.backupper/wiki)
 
 ### How can I contribute?
 - Submit bug reports

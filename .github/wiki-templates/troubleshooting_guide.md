@@ -156,8 +156,8 @@
 ### 📢 Support Resources
 
 1. Community Support:
-   - [GitHub Issues](../../issues)
-   - [Discussions](../../discussions)
+   - [GitHub Issues](https://github.com/Nigel1992/service.libreelec.backupper/issues)
+   - [Discussions](https://github.com/Nigel1992/service.libreelec.backupper/discussions)
    - [FAQ](FAQ)
 
 2. Documentation:
