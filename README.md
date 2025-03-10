@@ -1,4 +1,4 @@
-# 🔄 LibreELEC Backupper
+# LibreELEC Config Backupper
 
 <div align="center">
 
@@ -12,141 +12,75 @@
 
 </div>
 
-## 🌟 Features
+## Repository Structure
 
-### 📦 Comprehensive Backup Options
-- **System Configuration**
-  - `config.txt`
-  - `guisettings.xml`
-  - `advancedsettings.xml`
-  - `keyboard.xml`
-  - Custom keymaps
-- **Add-ons & Data**
-  - Installed Add-ons
-  - Add-on User Data
-  - Repositories
-  - User Settings
-- **Media & UI**
-  - Sources
-  - Playlists
-  - Thumbnails/Fanart
-  - Skins and Settings
-- **User Data**
-  - Profiles
-  - Game Saves
-  - Custom Configurations
+```
+.
+├── .github/                    # GitHub templates and workflows
+├── service.libreelec.backupper/# Main addon directory
+│   ├── resources/             # Addon resources
+│   │   ├── lib/              # Core functionality
+│   │   ├── language/         # Translations
+│   │   └── settings.xml      # Addon settings
+│   ├── addon.xml             # Addon metadata
+│   └── README.md             # Addon documentation
+├── LICENSE                    # GPL-2.0 license
+└── README.md                  # This file
+```
 
-### 🛠️ Smart Features
-- **Automated Scheduling**
-  - Hourly, Daily, or Weekly backups
-  - Custom backup time selection
-  - Configurable retention policy
-- **Intelligent Verification**
-  - Backup integrity checking
-  - Space requirement verification
-  - Automatic error recovery
-- **Resource Management**
-  - Memory-efficient operation
-  - Automatic cleanup
-  - Skip problematic files
-- **User Interface**
-  - Real-time progress notifications
+## About
+
+LibreELEC Config Backupper is a comprehensive backup solution for LibreELEC systems, offering automated scheduling and intelligent backup management. The addon provides a user-friendly interface for backing up and restoring system configurations, add-ons, and user data.
+
+## Key Features
+
+- **System Configuration Backup**
+  - Essential system files
+  - Add-on configurations
+  - User settings
+  
+- **Smart Backup Management**
+  - Automated scheduling
+  - Backup verification
+  - Resource optimization
+  
+- **User-Friendly Interface**
+  - Progress notifications
+  - Easy restore options
   - Detailed status updates
-  - Easy restore interface
 
-## 🚀 Quick Start
+## Installation
 
-### Installation
 1. Download the latest release
 2. Open Kodi
-3. Go to Add-ons → Install from zip file
+3. Navigate to Add-ons → Install from zip file
 4. Select the downloaded zip file
-5. The addon will install and start automatically
+5. Configure backup settings
 
-### First Backup
-1. Go to Add-ons → Program add-ons → LibreELEC Config Backupper
-2. Open Settings
-3. Choose what to backup:
-   - Configuration Files
-   - Add-ons
-   - User Data
-   - Repositories
-   - Sources
-4. Click "Backup Now"
+## Development
 
-## ⚙️ Configuration
+### Requirements
+- Python 3.x
+- Kodi 20 (Nexus)
+- LibreELEC 12.0+
 
-### Backup Settings
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Backup Location | Where backups are stored | `/storage/backup` |
-| Maximum Backups | Number of backups to keep | 10 |
-| Verify Backups | Check backup integrity | Enabled |
+### Contributing
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-### Schedule Settings
-| Setting | Description | Options |
-|---------|-------------|---------|
-| Interval | How often to backup | Hourly/Daily/Weekly |
-| Time | When to run backup | HH:MM |
-| Auto Clean | Remove old backups | Enabled |
+## Documentation
 
-### Notification Settings
-| Setting | Description | Options |
-|---------|-------------|---------|
-| Show Progress | Display backup progress | Enabled |
-| Detailed Info | Show detailed status | Optional |
-| Verify Messages | Show verification status | Enabled |
+For detailed documentation, please see:
+- [Addon README](service.libreelec.backupper/README.md) - Complete feature documentation
+- [Wiki](../../wiki) - Usage guides and tutorials
+- [Issues](../../issues) - Bug reports and feature requests
 
-## 🔍 Features In-Depth
+## License
 
-### Backup Process
-1. **Pre-flight Checks**
-   - Space verification
-   - Permission checks
-   - Resource availability
-
-2. **Backup Creation**
-   - Real-time progress display
-   - Efficient file handling
-   - Error recovery
-
-3. **Verification**
-   - Integrity checking
-   - Manifest validation
-   - Space confirmation
-
-4. **Cleanup**
-   - Resource release
-   - Temporary file removal
-   - Memory optimization
-
-### Restore Process
-1. Select backup from list
-2. Choose items to restore
-3. Confirm operation
-4. Automatic system update
-
-## 🛡️ Tested Features
-
-### ✅ Fully Tested
-- System configuration backup/restore
-- Add-on management
-- User data handling
-- Repository backup
-- Source management
-- Scheduling system
-- Verification process
-- Progress notifications
-- Resource management
-
-### 🔄 Partially Tested
-- Media-related backups
-- User profile handling
-- Custom configurations
-
-## 📝 License
-
-This project is licensed under the [GPL-2.0](LICENSE) license.
+This project is licensed under the GNU General Public License v2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
 
