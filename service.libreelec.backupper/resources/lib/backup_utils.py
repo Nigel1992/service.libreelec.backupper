@@ -18,9 +18,77 @@ class BackupManager:
     """Utility class to manage config backups"""
     
     def __init__(self, addon=None):
+        """Initialize the backup manager"""
         self.addon = addon or xbmcaddon.Addon()
+        self.ensure_settings_exist()
         self.update_backup_location()
         self._temp_files = set()  # Track temporary files
+    
+    def ensure_settings_exist(self):
+        """Ensure the addon's settings.xml exists and has default values"""
+        try:
+            # Get the addon's userdata directory
+            addon_id = self.addon.getAddonInfo('id')
+            userdata_path = xbmcvfs.translatePath('special://userdata')
+            addon_data_dir = os.path.join(userdata_path, 'addon_data', addon_id)
+            settings_file = os.path.join(addon_data_dir, 'settings.xml')
+
+            # Create addon_data directory if it doesn't exist
+            if not os.path.exists(addon_data_dir):
+                os.makedirs(addon_data_dir, mode=0o755)
+
+            # Check if settings.xml exists and has content
+            needs_defaults = False
+            if not os.path.exists(settings_file):
+                needs_defaults = True
+            else:
+                # Check if file is empty or corrupted
+                try:
+                    with open(settings_file, 'r') as f:
+                        content = f.read().strip()
+                    if not content or not content.startswith('<?xml'):
+                        needs_defaults = True
+                except:
+                    needs_defaults = True
+
+            if needs_defaults:
+                # Create default settings.xml
+                default_settings = '''<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <setting id="backup_location" value="/storage/backup"/>
+    <setting id="show_notifications" value="true"/>
+    <setting id="detailed_notifications" value="false"/>
+    <setting id="max_backups" value="10"/>
+    <setting id="compression_level" value="1"/>
+    <setting id="backup_naming" value="0"/>
+    <setting id="enable_schedule" value="false"/>
+    <setting id="backup_interval" value="0"/>
+    <setting id="backup_time" value="03:00"/>
+    <setting id="backup_day" value="0"/>
+    <setting id="backup_configs" value="false"/>
+    <setting id="backup_addons" value="false"/>
+    <setting id="backup_userdata" value="false"/>
+    <setting id="backup_repositories" value="false"/>
+    <setting id="backup_sources" value="false"/>
+    <setting id="backup_playlists" value="false"/>
+    <setting id="backup_thumbnails" value="false"/>
+    <setting id="backup_profiles" value="false"/>
+    <setting id="backup_gamesaves" value="false"/>
+    <setting id="backup_skins" value="false"/>
+    <setting id="verify_backup" value="true"/>
+</settings>'''
+                
+                # Write default settings
+                with open(settings_file, 'w') as f:
+                    f.write(default_settings)
+                
+                # Set file permissions
+                os.chmod(settings_file, 0o644)
+                
+                xbmc.log(f"Created default settings.xml for {addon_id}", xbmc.LOGINFO)
+
+        except Exception as e:
+            xbmc.log(f"Error ensuring settings exist: {str(e)}", xbmc.LOGERROR)
     
     def update_backup_location(self):
         """Update backup location from settings"""
