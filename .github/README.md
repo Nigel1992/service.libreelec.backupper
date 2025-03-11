@@ -25,15 +25,15 @@
 
 ## 🌟 Overview
 
-LibreELEC Config Backupper is your comprehensive backup solution for LibreELEC systems. With intelligent scheduling, automated management, and a user-friendly interface, it ensures your system configurations, add-ons, and personal data are always protected.
+LibreELEC Config Backupper is your comprehensive backup solution for LibreELEC systems. With a user-friendly interface and reliable backup management, it ensures your system configurations, add-ons, and personal data are always protected. (Note: Automated scheduling is planned for a future update)
 
 <div align="center">
 
 ### 🎯 Key Benefits
 
-| 🔒 Reliable | 🚀 Fast | 🎮 User-Friendly | 🤖 Automated |
-|:----------:|:-------:|:----------------:|:------------:|
-| Verified backups | Optimized performance | Intuitive interface | Scheduled backups |
+| 🔒 Reliable | 🚀 Fast | 🎮 User-Friendly | 🔄 Manual Backups |
+|:----------:|:-------:|:----------------:|:----------------:|
+| Verified backups | Optimized performance | Intuitive interface | Easy to create |
 
 </div>
 
@@ -51,10 +51,11 @@ LibreELEC Config Backupper is your comprehensive backup solution for LibreELEC s
 <details>
 <summary><b>🔄 Smart Management</b></summary>
 
-- Automated backup scheduling
+- Manual backup creation
 - Intelligent verification system
 - Resource optimization
 - Automatic cleanup routines
+- Automated scheduling (Coming Soon)
 </details>
 
 <details>
@@ -85,12 +86,12 @@ LibreELEC Config Backupper is your comprehensive backup solution for LibreELEC s
 | 🔢 Retention | Maximum backups to keep | 10 |
 | ✅ Verify | Integrity checking | Enabled |
 
-### Schedule Options
-| Setting | Description | Choices |
+### Future Features (Coming Soon)
+| Setting | Description | Status |
 |:--------|:------------|:--------|
-| ⏰ Interval | Backup frequency | Hourly/Daily/Weekly |
-| 🕒 Time | Execution time | HH:MM |
-| 🧹 Auto-clean | Remove old backups | Enabled |
+| ⏰ Scheduling | Automated backup scheduling | Planned |
+| 🕒 Time | Execution time selection | Planned |
+| 🧹 Auto-clean | Automatic old backup removal | Planned |
 
 ## 🔧 Development
 
@@ -147,3 +148,4 @@ This project is protected under the [GNU General Public License v2.0](LICENSE).
 **Made with ❤️ for the LibreELEC Community**
 
 </div>
+
