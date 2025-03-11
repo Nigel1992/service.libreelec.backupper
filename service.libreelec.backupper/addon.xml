@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="service.libreelec.backupper" 
+       name="LibreELEC Backupper"
+       version="1.0.1" 
+       provider-name="Nigel1992">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+  </requires>
+  <extension point="xbmc.python.script" library="addon.py">
+    <provides>executable</provides>
+  </extension>
+  <extension point="xbmc.service" library="service.py" start="login"/>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Comprehensive LibreELEC Backup Solution</summary>
+    <description lang="en_GB">Complete backup solution for LibreELEC with automated scheduling support. Backup options include:
+
+• System: config.txt and configuration files
+• Add-ons: installed add-ons and their user data
+• Media: sources, playlists, and thumbnails
+• User Data: profiles, game saves, and skin settings
+
+Features:
+- Automated backups (hourly/daily/weekly)
+- Custom backup location support
+- Backup rotation with configurable retention
+- Easy restore functionality
+- Progress notifications
+
+Credits:
+- Icon by Smashicon @ flaticon.com/4275334
+- Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html</description>
+    <platform>linux</platform>
+    <license>GPL-2.0-or-later</license>
+    <news>v1.0.1 (2024-03-10)
+- Enhanced backup functionality with repository support
+- Added backup verification features
+- Improved config.txt restoration with enhanced logging
+- Streamlined configuration backup handling
+- Enhanced backup naming and date extraction
+- Added comprehensive addon data backup support
+- Improved user data backup functionality
+- Removed [UNTESTED] labels from verified features
+
+v1.0.0 (2024-03-09)
+- Initial release
+- Full backup and restore functionality
+- Automated scheduling support
+- Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus)</news>
+    <assets>
+      <icon>resources/icon.png</icon>
+      <fanart>resources/fanart.jpg</fanart>
+    </assets>
+  </extension>
+</addon> 
