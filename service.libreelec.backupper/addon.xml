@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.1.0" provider-name="Nigel Horne">
+<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.1.0" provider-name="Nigel1992">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
     </requires>
-    <extension point="xbmc.service" library="service.py">
-        <provides>executable</provides>
-    </extension>
-    <extension point="xbmc.python.script" library="addon.py">
-        <provides>executable</provides>
-    </extension>
+    <extension point="xbmc.service" library="service.py"/>
+    <extension point="xbmc.python.script" library="addon.py"/>
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
         <summary lang="en_GB">Backup LibreELEC system to local or remote storage</summary>
         <description lang="en_GB">Automatically backup your LibreELEC system to local or remote storage (SMB, NFS, FTP, SFTP, WebDAV). Configurable backup schedule, compression level, and retention policy.</description>
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
-        <source>https://github.com/njfaria/service.libreelec.backupper</source>
+        <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
         <news>v1.1.0 (2025-03-13)
 - Major update with enhanced UI and notifications
 - Added file size information in backup/restore notifications with icon
