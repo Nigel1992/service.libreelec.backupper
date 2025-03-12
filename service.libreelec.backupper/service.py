@@ -3,66 +3,55 @@
 
 import os
 import sys
-import time
 import xbmc
 import xbmcaddon
 import xbmcvfs
+from resources.lib.backup_utils import BackupManager
 
-# Add resources directory to path
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
+ADDON_NAME = ADDON.getAddonInfo('name')
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 
-sys.path.insert(0, os.path.join(ADDON_PATH, 'resources', 'lib'))
-from backup_utils import BackupManager
-
+# Log function
 def log(message, level=xbmc.LOGINFO):
     xbmc.log(f'{ADDON_ID}: {message}', level)
 
-class BackupService(xbmc.Monitor):
-    def __init__(self):
-        super(BackupService, self).__init__()
-        self.backup_manager = BackupManager(ADDON)
-        self.last_check = 0
-        log("Backup service started")
-        
-        # Initialize schedule info
-        self.backup_manager.update_schedule_info()
+def main():
+    """Main service function - runs in the background"""
+    # Initialize the backup manager
+    backup_manager = BackupManager()
     
-    def onSettingsChanged(self):
-        """Called when addon settings are changed"""
-        log("Settings changed")
-        # Update schedule info when settings change
-        self.backup_manager.update_schedule_info()
+    # Main service loop
+    monitor = xbmc.Monitor()
     
-    def check_backup(self):
-        """Check if it's time for a backup"""
-        current_time = time.time()
-        
-        # Only check every minute
-        if (current_time - self.last_check) < 60:
-            return
-        
-        self.last_check = current_time
-        
-        if self.backup_manager.should_run_backup():
-            log("Starting scheduled backup")
-            success, message = self.backup_manager.create_backup()
-            log(f"Scheduled backup completed: {message}")
+    # Update schedule info at startup
+    backup_manager.update_schedule_info()
+    
+    # Log service start
+    log("Service started", xbmc.LOGINFO)
+    
+    # Main loop
+    while not monitor.abortRequested():
+        # Check if it's time to run a scheduled backup
+        if backup_manager.should_run_backup():
+            log("Running scheduled backup", xbmc.LOGINFO)
+            success, message = backup_manager.create_backup()
+            if success:
+                log("Scheduled backup completed successfully", xbmc.LOGINFO)
+            else:
+                log(f"Scheduled backup failed: {message}", xbmc.LOGERROR)
             
             # Update schedule info after backup
-            self.backup_manager.update_schedule_info()
+            backup_manager.update_schedule_info()
+        
+        # Sleep for 60 seconds before checking again
+        if monitor.waitForAbort(60):
+            # Abort was requested while waiting
+            break
     
-    def run(self):
-        """Main service loop"""
-        while not self.abortRequested():
-            # Sleep/wait for abort for 10 seconds
-            if self.waitForAbort(10):
-                # Abort was requested while waiting. We should exit
-                break
-            
-            self.check_backup()
+    log("Service stopped", xbmc.LOGINFO)
 
 if __name__ == '__main__':
-    service = BackupService()
-    service.run() 
+    log("Starting service.py", xbmc.LOGINFO)
+    main() 

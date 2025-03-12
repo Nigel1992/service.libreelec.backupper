@@ -1,49 +1,52 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.libreelec.backupper" 
-       name="LibreELEC Backupper"
-       version="1.0.0" 
-       provider-name="Nigel1992">
-  <requires>
-    <import addon="xbmc.python" version="3.0.0"/>
-  </requires>
-  <extension point="xbmc.python.script" library="addon.py">
-    <provides>executable</provides>
-  </extension>
-  <extension point="xbmc.service" library="service.py" start="login"/>
-  <extension point="xbmc.addon.metadata">
-    <summary lang="en_GB">Comprehensive LibreELEC Backup Solution</summary>
-    <description lang="en_GB">Complete backup solution for LibreELEC. Backup options include:
+<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.1.0" provider-name="Nigel Horne">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.requests" version="2.22.0"/>
+    </requires>
+    <extension point="xbmc.service" library="service.py">
+        <provides>executable</provides>
+    </extension>
+    <extension point="xbmc.python.script" library="addon.py">
+        <provides>executable</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <platform>all</platform>
+        <summary lang="en_GB">Backup LibreELEC system to local or remote storage</summary>
+        <description lang="en_GB">Automatically backup your LibreELEC system to local or remote storage (SMB, NFS, FTP, SFTP, WebDAV). Configurable backup schedule, compression level, and retention policy.</description>
+        <license>GPL-2.0-or-later</license>
+        <forum>https://forum.libreelec.tv/</forum>
+        <source>https://github.com/njfaria/service.libreelec.backupper</source>
+        <news>v1.1.0 (2025-03-13)
+- Major update with enhanced UI and notifications
+- Added file size information in backup/restore notifications with icon
+- Improved progress reporting with current/total size during backup
+- Added human-readable file size formatting (KB, MB, GB)
+- Fixed issue with addon not being clickable to run
+- Added script extension point to ensure addon can be run directly
+- Improved main menu functionality
+- Enhanced Test Connection functionality to work directly with UI values
+- Added progress dialog during connection testing
+- Improved service mode operation
+- Added proper background service functionality
+- Enhanced scheduled backup reliability
+- Completely separated service and script functionality
+- Added dedicated service.py file for background operations
+- Simplified addon.py to focus only on user interactions
 
-• System: config.txt and configuration files
-• Add-ons: installed add-ons and their user data
-• Media: sources, playlists, and thumbnails
-• User Data: profiles, game saves, and skin settings
-
-Features:
-- Manual backup creation
-- Custom backup location support
-- Backup rotation with configurable retention
-- Easy restore functionality
-- Progress notifications
-- Automated scheduling (Coming Soon in future update)
-
-Credits:
-- Icon by Smashicon @ flaticon.com/4275334
-- Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html</description>
-    <platform>linux</platform>
-    <license>GPL-2.0-or-later</license>
-    <news>v1.0.0 (2024-03-10)
+v1.0.0 (2025-03-11)
 - Initial release
-- Full backup and restore functionality
-- Manual backup creation and restoration
-- Custom backup location support
-- Backup rotation with configurable retention
-- Progress notifications
-- Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus)
-Note: Automated scheduling functionality is planned for a future update</news>
-    <assets>
-      <icon>resources/icon.png</icon>
-      <fanart>resources/fanart.jpg</fanart>
-    </assets>
-  </extension>
+- Basic backup and restore functionality
+- Support for local and remote storage
+- Configurable backup schedule
+- Compression level options
+- Retention policy settings
+        </news>
+        <assets>
+            <icon>resources/icon.png</icon>
+            <fanart>resources/fanart.jpg</fanart>
+            <screenshot>resources/screenshot-01.jpg</screenshot>
+            <screenshot>resources/screenshot-02.jpg</screenshot>
+        </assets>
+    </extension>
 </addon> 
