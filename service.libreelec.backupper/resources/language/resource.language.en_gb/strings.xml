@@ -5,12 +5,25 @@
     <string id="32002">Schedule Settings</string>
     <string id="32003">Backup Items</string>
     <string id="32004">Actions</string>
+    <string id="32005">Credits</string>
+    <string id="32006">Network Settings</string>
+    <string id="32007">Security Settings</string>
+    <string id="32008">Custom Content</string>
+    <string id="32009">Advanced Options</string>
 
     <!-- General Settings -->
     <string id="32010">Backup Location</string>
     <string id="32011">Show Notifications</string>
-    <string id="32012">Show Detailed Progress</string>
-    <string id="32013">Maximum Backups to Keep</string>
+    <string id="32012">Detailed Notifications</string>
+    <string id="32013">Maximum Backups</string>
+    <string id="32014">Compression Level</string>
+    <string id="32015">Backup Naming</string>
+    <string id="32016">Location Type</string>
+    <string id="32017">Remote Type</string>
+    <string id="32018">Remote Path</string>
+    <string id="32019">Username</string>
+    <string id="32026">Password</string>
+    <string id="32027">Port</string>
 
     <!-- Schedule Settings -->
     <string id="32020">Enable Scheduled Backups</string>

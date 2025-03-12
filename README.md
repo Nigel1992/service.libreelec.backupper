@@ -1,149 +1,170 @@
-# 🔄 LibreELEC Backupper
+# LibreELEC Backupper
 
 <div align="center">
 
-![LibreELEC Logo](https://raw.githubusercontent.com/LibreELEC/LibreELEC.tv/master/distribution/doc/resources/logo.png)
+![LibreELEC Backupper Logo](service.libreelec.backupper/resources/icon.png)
 
-*Your Ultimate Backup Solution for LibreELEC*
+*Your reliable backup solution for LibreELEC*
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-green.svg)](https://libreelec.tv)
-[![Kodi Add-on](https://img.shields.io/badge/Kodi-Add--on-orange.svg)](https://kodi.tv)
-[![Python](https://img.shields.io/badge/Python-3.x-yellow.svg)](https://www.python.org)
-[![Status](https://img.shields.io/badge/Status-Active-success.svg)](../../commits/main)
-
----
-
-[📥 Installation](#-installation) •
-[✨ Features](#-features) •
-[⚙️ Configuration](#%EF%B8%8F-configuration) •
-[📖 Documentation](#-documentation) •
-[🤝 Contributing](#-contributing)
+[![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-green.svg)](service.libreelec.backupper/addon.xml)
+[![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
 
 </div>
 
-## 🌟 Overview
+## 🎯 What's New in 1.1.0 (March 13, 2025)
 
-LibreELEC Config Backupper is your comprehensive backup solution for LibreELEC systems. With a user-friendly interface and reliable backup management, it ensures your system configurations, add-ons, and personal data are always protected. (Note: Automated scheduling is planned for a future update)
+We're excited to announce a major update focused on improving user experience and reliability:
 
-<div align="center">
+- **Beautiful New UI** with enhanced notifications and progress reporting
+- **Real-time File Size Display** in notifications with addon icon
+- **Improved Progress Tracking** during backup/restore operations
+- **Reliable Background Service** for scheduled backups
+- **Test Connection Feature** to verify your remote storage settings
+- **Separated Service Architecture** for better stability
 
-### 🎯 Key Benefits
+## 🚀 Key Features
 
-| 🔒 Reliable | 🚀 Fast | 🎮 User-Friendly | 🔄 Manual Backups |
-|:----------:|:-------:|:----------------:|:----------------:|
-| Verified backups | Optimized performance | Intuitive interface | Easy to create |
+- **Flexible Storage Options**
+  - Local storage backup
+  - SMB (Windows shares)
+  - NFS support
+  - FTP/SFTP support
+  - WebDAV compatibility
 
-</div>
+- **Smart Backup Management**
+  - Configurable schedules
+  - Adjustable compression
+  - Retention policies
+  - One-click restore
 
-## 📦 Features
+## 📋 System Requirements
 
-<details>
-<summary><b>💾 System Configuration Backup</b></summary>
+- LibreELEC 10.0+
+- Kodi 19 (Matrix) or newer
+- Available storage space
 
-- `config.txt` and essential system files
-- Add-on configurations and data
-- User preferences and settings
-- Custom keymaps and profiles
-</details>
+## 🔧 Quick Start
 
-<details>
-<summary><b>🔄 Smart Management</b></summary>
+1. **Install the Addon**
+   ```
+   Add-ons > Install from repository > LibreELEC Backupper
+   ```
 
-- Manual backup creation
-- Intelligent verification system
-- Resource optimization
-- Automatic cleanup routines
-- Automated scheduling (Coming Soon)
-</details>
+2. **Configure Settings**
+   - Set backup location
+   - Configure schedule
+   - Adjust compression
+   - Set retention policy
 
-<details>
-<summary><b>🛡️ Data Protection</b></summary>
+3. **Start Backing Up**
+   - Click the addon to open
+   - Choose "Make Backup"
+   - Watch the progress
+   - Done!
 
-- Integrity verification
-- Error recovery
-- Secure storage
-- Version control
-</details>
+## 📚 Documentation
 
-## 📥 Installation
+### Creating Backups
 
-```bash
-1️⃣ Download the latest release
-2️⃣ Launch Kodi
-3️⃣ Go to Add-ons → Install from zip file
-4️⃣ Select the downloaded package
-5️⃣ Configure your backup preferences
-```
+1. Open LibreELEC Backupper
+2. Select "Make Backup"
+3. Watch the progress indicator
+4. Receive completion notification with size
 
-## ⚙️ Configuration
+### Restoring Backups
 
-### Backup Settings
-| Setting | Description | Default |
-|:--------|:------------|:--------|
-| 📂 Location | Backup storage path | `/storage/backup` |
-| 🔢 Retention | Maximum backups to keep | 10 |
-| ✅ Verify | Integrity checking | Enabled |
+1. Open LibreELEC Backupper
+2. Select "Restore Backup"
+3. Choose your backup
+4. Confirm and wait
+5. Restart when prompted
 
-### Future Features (Coming Soon)
-| Setting | Description | Status |
-|:--------|:------------|:--------|
-| ⏰ Scheduling | Automated backup scheduling | Planned |
-| 🕒 Time | Execution time selection | Planned |
-| 🧹 Auto-clean | Automatic old backup removal | Planned |
+## 🚧 Upcoming Features (NOT TESTED)
 
-## 🔧 Development
+> **Important Note:** The following features are still in development and have **NOT BEEN TESTED**. They are planned for future releases but are not currently available:
 
-### Prerequisites
-```python
-- Python 3.x
-- Kodi 20 (Nexus)
-- LibreELEC 12.0+
-```
+### System & Network
+- **FSTAB Support** - Mount points configuration backup
+- **Bootloader Settings** - System boot configuration
+- **Network Configuration**
+  - WiFi Configuration
+  - Hosts File
+  - Samba Settings
+  - VPN Configuration
+  - SSH Configuration
 
-### Repository Structure
-```
-📁 service.libreelec.backupper
-├── 📁 resources/
-│   ├── 📁 lib/          # Core functionality
-│   ├── 📁 language/     # Translations
-│   └── 📄 settings.xml  # Configuration
-├── 📄 addon.xml        # Metadata
-└── 📄 README.md        # Documentation
-```
+### Media & User Data
+- **Media Management**
+  - Playlists
+  - Thumbnails/Fanart
+  - Media Database
+- **User Preferences**
+  - User Profiles
+  - Game Saves
+  - Skins
+  - Favourites
+  - Keyboard Mappings
+
+### Security
+- **Security Features**
+  - Password Management
+  - Certificates Backup
+  - SSH Keys
+  - Backup Encryption
+
+### Advanced Features
+- **System Maintenance**
+  - System Logs
+  - Crash Logs
+  - Temporary Files Management
+- **Custom Content**
+  - Custom Scripts
+  - Custom Configurations
+- **Enhanced Notifications**
+  - Alternative Notification Methods
+  - Email Notifications
+
+### Previously Listed Features
+- **Differential Backups** - Only backup changed files
+- **Cloud Storage** - Google Drive/Dropbox integration
+- **Remote Management** - Web/mobile control
+- **Multi-system Support** - Manage multiple devices
+- **Backup Verification** - Integrity checking
+
+## 🔍 Troubleshooting
+
+Common solutions for:
+- Connection issues
+- Space problems
+- Permission errors
+- Schedule conflicts
+
+Need more help? Check our [Forum](https://forum.libreelec.tv/) or [GitHub Issues](https://github.com/Nigel1992/service.libreelec.backupper/issues).
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We welcome contributions! Here's how:
 
-1. 🍴 Fork the repository
-2. 🌿 Create your feature branch
-3. ✍️ Commit your changes
-4. 🚀 Push to the branch
-5. 📬 Open a Pull Request
+1. Fork the repo
+2. Create your feature branch
+3. Commit changes
+4. Push to your branch
+5. Open a Pull Request
 
-## 📖 Documentation
+## 📜 License
 
-- [📚 Detailed Guide](service.libreelec.backupper/README.md)
-- [📝 Wiki](../../wiki)
-- [❓ FAQ](../../wiki/FAQ)
-- [🐛 Issue Tracker](../../issues)
+GPL-2.0 License - see [LICENSE](LICENSE)
 
-## 📄 License
+## 📬 Contact & Support
 
-This project is protected under the [GNU General Public License v2.0](LICENSE).
+- **Author:** Nigel1992
+- **GitHub:** [Nigel1992](https://github.com/Nigel1992)
+- **Project:** [service.libreelec.backupper](https://github.com/Nigel1992/service.libreelec.backupper)
 
 ---
 
 <div align="center">
-
-### 💖 Support & Community
-
-[![Star](https://img.shields.io/github/stars/Nigel1992/service.libreelec.backupper?style=social)](../../stargazers)
-[![Follow](https://img.shields.io/github/followers/Nigel1992?style=social)](https://github.com/Nigel1992)
-
-[Report Bug](../../issues) • [Request Feature](../../issues) • [Get Support](../../discussions)
-
-**Made with ❤️ for the LibreELEC Community**
-
+  <b>Protect Your LibreELEC System Today!</b><br>
+  <i>Simple, Reliable, Automated Backups</i>
 </div>
