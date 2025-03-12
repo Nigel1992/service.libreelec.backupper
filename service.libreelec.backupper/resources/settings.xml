@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="32001"><!-- General Settings -->
-        <setting id="backup_location" type="folder" label="32010" default="/storage/backup" option="writeable"/>
+        <setting id="backup_location_type" type="enum" label="32016" values="Local|Remote" default="0"/>
+        <setting id="backup_location" type="folder" label="32010" default="/storage/backup" option="writeable" visible="eq(-1,0)"/>
+        <setting id="remote_location_type" type="enum" label="32017" values="SMB|NFS|FTP|SFTP|WebDAV" default="0" visible="eq(-2,1)"/>
+        <setting id="remote_path" type="text" label="32018" default="" visible="eq(-3,1)"/>
+        <setting id="browse_remote" type="action" label="32028" action="RunScript(service.libreelec.backupper, browse_remote)" visible="eq(-4,1)+[eq(-2,0)|eq(-2,4)]"/>
+        <setting id="remote_username" type="text" label="32019" default="" visible="!eq(-3,1)+eq(-5,1)"/>
+        <setting id="remote_password" type="text" label="32026" option="hidden" default="" visible="!eq(-4,1)+eq(-6,1)"/>
+        <setting id="remote_port" type="number" label="32027" default="0" visible="gt(-4,1)+eq(-7,1)"/>
+        <setting id="test_connection" type="action" label="32029" action="RunScript(service.libreelec.backupper, test_connection)" visible="eq(-8,1)" enable="!eq(-5,)"/>
+        <setting type="sep" visible="eq(-9,1)"/>
         <setting id="show_notifications" type="bool" label="32011" default="true"/>
         <setting id="detailed_notifications" type="bool" label="32012" default="false" enable="eq(-1,true)"/>
         <setting type="sep"/>

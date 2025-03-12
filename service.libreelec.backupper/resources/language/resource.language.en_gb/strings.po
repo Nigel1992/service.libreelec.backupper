@@ -63,20 +63,52 @@ msgid "Show Notifications"
 msgstr "Show Notifications"
 
 msgctxt "#32012"
-msgid "Show Detailed Progress"
-msgstr "Show Detailed Progress"
+msgid "Detailed Notifications"
+msgstr "Detailed Notifications"
 
 msgctxt "#32013"
-msgid "Maximum Backups to Keep"
-msgstr "Maximum Backups to Keep"
+msgid "Maximum Backups"
+msgstr "Maximum Backups"
 
 msgctxt "#32014"
 msgid "Compression Level"
 msgstr "Compression Level"
 
 msgctxt "#32015"
-msgid "Backup Naming Format"
-msgstr "Backup Naming Format"
+msgid "Backup Naming"
+msgstr "Backup Naming"
+
+msgctxt "#32016"
+msgid "Location Type"
+msgstr "Location Type"
+
+msgctxt "#32017"
+msgid "Remote Type"
+msgstr "Remote Type"
+
+msgctxt "#32018"
+msgid "Remote Path"
+msgstr "Remote Path"
+
+msgctxt "#32019"
+msgid "Username"
+msgstr "Username"
+
+msgctxt "#32026"
+msgid "Password"
+msgstr "Password"
+
+msgctxt "#32027"
+msgid "Port"
+msgstr "Port"
+
+msgctxt "#32028"
+msgid "Browse Remote Location"
+msgstr "Browse Remote Location"
+
+msgctxt "#32029"
+msgid "Test Connection"
+msgstr "Test Connection"
 
 # Schedule Settings
 msgctxt "#32020"
