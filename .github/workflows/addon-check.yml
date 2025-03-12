@@ -16,13 +16,14 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.11'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install setuptools wheel
         pip install kodi-addon-checker
     
     - name: Run addon checker
       run: |
-        kodi-addon-checker --branch matrix 
+        kodi-addon-checker --branch matrix . 
