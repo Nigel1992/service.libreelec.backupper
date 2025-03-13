@@ -18,6 +18,8 @@ import ftplib
 import socket
 import urllib.parse
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # Try to import paramiko, but don't fail if it's not available
 try:
@@ -35,6 +37,7 @@ class BackupManager:
         self.update_backup_location()
         self._temp_files = set()  # Track temporary files
         self.remote_connection = None
+        self._webdav_session = None  # Persistent WebDAV session
     
     def update_backup_location(self):
         """Update backup location from settings"""
@@ -88,6 +91,35 @@ class BackupManager:
             if not os.path.exists(self.backup_dir):
                 os.makedirs(self.backup_dir)
     
+    def _create_webdav_session(self):
+        """Create a WebDAV session with retry logic and connection pooling"""
+        if self._webdav_session is not None:
+            return self._webdav_session
+            
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,  # number of retries
+            backoff_factor=1,  # wait 1, 2, 4 seconds between retries
+            status_forcelist=[429, 500, 502, 503, 504]  # retry on these status codes
+        )
+        
+        # Create session with connection pooling
+        session = requests.Session()
+        adapter = HTTPAdapter(
+            max_retries=retry_strategy,
+            pool_connections=1,  # maintain one connection in the pool
+            pool_maxsize=1,  # max number of connections in the pool
+            pool_block=False  # don't block when pool is full
+        )
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        
+        if self.remote_username:
+            session.auth = (self.remote_username, self.remote_password)
+            
+        self._webdav_session = session
+        return session
+
     def connect_remote(self):
         """Connect to the remote location"""
         if self.location_type == 0:  # Local
@@ -180,20 +212,23 @@ class BackupManager:
                             path = path + '/'
                         base_url = f"{base_url}{path}"
                 
-                # Create a requests session with authentication
-                session = requests.Session()
-                session.auth = (self.remote_username, self.remote_password)
+                # Get or create WebDAV session
+                session = self._create_webdav_session()
                 
-                # Test connection
-                response = session.request('PROPFIND', base_url, headers={'Depth': '1'})
-                if response.status_code in [207, 200]:  # 207 is Multi-Status response
-                    self.remote_connection = {
-                        'session': session,
-                        'base_url': base_url
-                    }
-                    return True
-                else:
-                    xbmc.log(f"Failed to connect to WebDAV server: {response.status_code}", xbmc.LOGERROR)
+                # Test connection with retry logic
+                try:
+                    response = session.request('PROPFIND', base_url, headers={'Depth': '1'})
+                    if response.status_code in [207, 200]:  # 207 is Multi-Status response
+                        self.remote_connection = {
+                            'session': session,
+                            'base_url': base_url
+                        }
+                        return True
+                except requests.exceptions.RetryError:
+                    xbmc.log("WebDAV connection failed after retries", xbmc.LOGERROR)
+                    return False
+                except Exception as e:
+                    xbmc.log(f"WebDAV connection error: {str(e)}", xbmc.LOGERROR)
                     return False
                 
         except Exception as e:
@@ -228,8 +263,7 @@ class BackupManager:
                 self.remote_connection = None
                 
             elif self.remote_type == 4:  # WebDAV
-                # Close WebDAV session
-                self.remote_connection['session'].close()
+                # Don't close the session, just clear the connection info
                 self.remote_connection = None
                 
         except Exception as e:
@@ -592,26 +626,34 @@ class BackupManager:
         return paths
     
     def cleanup_resources(self):
-        """Clean up any temporary resources and force garbage collection"""
+        """Clean up resources before addon shutdown"""
         try:
-            # Clean up any temporary files we created
+            # Close WebDAV session if it exists
+            if self._webdav_session is not None:
+                self._webdav_session.close()
+                self._webdav_session = None
+                
+            # Disconnect remote connection
+            self.disconnect_remote()
+            
+            # Clean up temporary files
             for temp_file in self._temp_files:
-                try:
-                    if os.path.exists(temp_file):
-                        os.remove(temp_file)
-                except Exception as e:
-                    xbmc.log(f"Error removing temp file {temp_file}: {str(e)}", xbmc.LOGWARNING)
+                if os.path.exists(temp_file):
+                    try:
+                        if os.path.isdir(temp_file):
+                            shutil.rmtree(temp_file)
+                        else:
+                            os.remove(temp_file)
+                    except Exception as e:
+                        xbmc.log(f"Error removing temp file {temp_file}: {str(e)}", xbmc.LOGWARNING)
             
             self._temp_files.clear()
             
             # Force garbage collection
             gc.collect()
             
-            # Small sleep to allow system to stabilize
-            xbmc.sleep(500)
-            
         except Exception as e:
-            xbmc.log(f"Error during cleanup: {str(e)}", xbmc.LOGWARNING)
+            xbmc.log(f"Error during resource cleanup: {str(e)}", xbmc.LOGERROR)
 
     def create_backup(self):
         """Create a backup of all selected items"""
