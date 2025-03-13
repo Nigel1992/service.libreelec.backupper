@@ -102,6 +102,14 @@ msgctxt "#32027"
 msgid "Port"
 msgstr "Port"
 
+msgctxt "#32028"
+msgid "Browse Remote Location"
+msgstr "Browse Remote Location"
+
+msgctxt "#32029"
+msgid "Test Connection"
+msgstr "Test Connection"
+
 # Schedule Settings
 msgctxt "#32020"
 msgid "Enable Scheduled Backups"
