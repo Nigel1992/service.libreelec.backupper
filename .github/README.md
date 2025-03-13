@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![LibreELEC Backupper Logo](service.libreelec.backupper/resources/icon.png)
+[![LibreELEC Backupper Logo](https://github.com/Nigel1992/service.libreelec.backupper/blob/main/service.libreelec.backupper/resources/icon.png)]
 
 *Your reliable backup solution for LibreELEC*
 
