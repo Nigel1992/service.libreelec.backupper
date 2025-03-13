@@ -30,85 +30,21 @@
     </category>
 
     <category label="32003"><!-- Backup Items -->
-        <setting label="32030" type="lsep"/><!-- System -->
-        <setting id="backup_configs" type="bool" label="32032" default="false"/>
-        <setting id="backup_fstab" type="bool" label="32033" default="false"/>
-        <setting id="backup_bootloader" type="bool" label="32034" default="false"/>
-        <setting type="sep"/>
-        
-        <setting label="32040" type="lsep"/><!-- Add-ons -->
-        <setting id="backup_addons" type="bool" label="32041" default="false"/>
-        <setting id="backup_userdata" type="bool" label="32042" default="false"/>
-        <setting id="backup_repositories" type="bool" label="32044" default="false"/>
-        <setting type="sep"/>
-        
-        <setting label="32050" type="lsep"/><!-- Media -->
-        <setting id="backup_sources" type="bool" label="32051" default="false"/>
-        <setting id="backup_playlists" type="bool" label="32052" default="false"/>
-        <setting id="backup_thumbnails" type="bool" label="32053" default="false"/>
-        <setting id="backup_database" type="bool" label="32054" default="false"/>
-        <setting type="sep"/>
-        
-        <setting label="32060" type="lsep"/><!-- User Data -->
-        <setting id="backup_profiles" type="bool" label="32061" default="false"/>
-        <setting id="backup_gamesaves" type="bool" label="32062" default="false"/>
-        <setting id="backup_skins" type="bool" label="32063" default="false"/>
-        <setting id="backup_favourites" type="bool" label="32064" default="false"/>
-        <setting id="backup_keyboard" type="bool" label="32065" default="false"/>
-    </category>
-
-    <category label="32006"><!-- Network Settings -->
-        <setting label="32090" type="lsep"/><!-- Network Configuration -->
-        <setting id="backup_network" type="bool" label="32091" default="false"/>
-        <setting id="backup_wifi" type="bool" label="32092" default="false"/>
-        <setting id="backup_hosts" type="bool" label="32093" default="false"/>
-        <setting id="backup_samba" type="bool" label="32094" default="false"/>
-        <setting type="sep"/>
-        <setting id="backup_vpn" type="bool" label="32095" default="false"/>
-        <setting id="backup_ssh" type="bool" label="32096" default="false"/>
-    </category>
-
-    <category label="32007"><!-- Security Settings -->
-        <setting label="32110" type="lsep"/><!-- Security Configuration -->
-        <setting id="backup_passwords" type="bool" label="32111" default="false"/>
-        <setting id="backup_certificates" type="bool" label="32112" default="false"/>
-        <setting id="backup_ssh_keys" type="bool" label="32113" default="false"/>
-        <setting type="sep"/>
-        <setting id="encrypt_backup" type="bool" label="32114" default="false"/>
-        <setting id="encryption_key" type="text" label="32115" option="hidden" default="" enable="eq(-1,true)"/>
-    </category>
-
-    <category label="32008"><!-- Custom Content -->
-        <setting label="32120" type="lsep"/><!-- Custom Scripts and Data -->
-        <setting id="backup_custom_scripts" type="bool" label="32121" default="false"/>
-        <setting id="custom_scripts_path" type="folder" label="32122" default="/storage/.config/custom-scripts" option="writeable" enable="eq(-1,true)"/>
-        <setting type="sep"/>
-        <setting id="backup_custom_configs" type="bool" label="32123" default="false"/>
-        <setting id="custom_configs_path" type="folder" label="32124" default="/storage/.config/custom-configs" option="writeable" enable="eq(-1,true)"/>
-    </category>
-
-    <category label="32009"><!-- Advanced Options -->
-        <setting label="32130" type="lsep"/><!-- Advanced Settings -->
-        <setting id="backup_system_logs" type="bool" label="32131" default="false"/>
-        <setting id="backup_crash_logs" type="bool" label="32132" default="false"/>
-        <setting id="backup_temp_files" type="bool" label="32133" default="false"/>
-        <setting type="sep"/>
-        <setting id="verify_backup" type="bool" label="32134" default="true"/>
-        <setting id="backup_notification_method" type="enum" label="32135" values="Notification|Email|Both" default="0"/>
-        <setting id="email_settings" type="action" label="32136" action="RunScript(service.libreelec.backupper, email_settings)" enable="gt(-1,0)"/>
+        <setting id="backup_configs" type="bool" label="32030" default="false"/><!-- Configuration Files -->
+        <setting id="backup_addons" type="bool" label="32031" default="false"/><!-- Installed Add-ons -->
+        <setting id="backup_userdata" type="bool" label="32032" default="false"/><!-- Add-on User Data and Settings -->
+        <setting id="backup_repositories" type="bool" label="32033" default="false"/><!-- Repositories -->
+        <setting id="backup_sources" type="bool" label="32034" default="false"/><!-- Sources -->
     </category>
 
     <category label="32004"><!-- Actions -->
         <setting id="backup_now" type="action" label="32070" action="RunScript(service.libreelec.backupper, backup_now)"/>
         <setting id="restore_backup" type="action" label="32071" action="RunScript(service.libreelec.backupper, restore)"/>
         <setting id="view_backups" type="action" label="32072" action="RunScript(service.libreelec.backupper, view)"/>
-        <setting type="sep"/>
-        <setting id="export_settings" type="action" label="32073" action="RunScript(service.libreelec.backupper, export_settings)"/>
-        <setting id="import_settings" type="action" label="32074" action="RunScript(service.libreelec.backupper, import_settings)"/>
     </category>
 
     <category label="32005"><!-- Credits -->
-        <setting label="32080" type="lsep"/><!-- Image Credits -->
+        <setting label="32150" type="lsep"/><!-- Image Credits -->
         <setting id="attribution" type="text" label="Icon by Smashicon @ flaticon.com/4275334" enable="false"/>
         <setting id="fanart_attribution" type="text" label="Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html" enable="false"/>
     </category>
