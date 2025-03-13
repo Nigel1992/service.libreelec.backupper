@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![LibreELEC Backupper Logo](service.libreelec.backupper/resources/icon.png)
+![LibreELEC Backupper Logo](https://github.com/Nigel1992/service.libreelec.backupper/blob/main/service.libreelec.backupper/resources/icon.png)
 
 *Your reliable backup solution for LibreELEC*
 
@@ -42,12 +42,9 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
 
 1. **Install the Addon**
    ```
-   1. Download the latest release zip file
-   2. In Kodi, go to Add-ons > Install from zip file
-   3. Browse to the downloaded zip file
-   4. Wait for installation to complete
+   Add-ons > Install from zip file > Download and select service.libreelec.backupper-1.1.0.zip
    ```
-   Note: Repository installation will be available soon!
+   > Note: Repository installation will be available soon!
 
 2. **Configure Settings**
    - Choose backup location (Local or Remote)
