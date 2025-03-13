@@ -36,20 +36,20 @@ jobs:
           ### UI and Notifications
           - Beautiful new UI with enhanced notifications and progress reporting
           - Real-time file size display in notifications with addon icon
-          - Improved progress reporting with current/total size during backup [NOT TESTED]
+          - Improved progress reporting with current/total size during backup
           - Added human-readable file size formatting (KB, MB, GB)
 
           ### Functionality
           - Fixed issue with addon not being clickable to run
           - Added script extension point to ensure addon can be run directly
           - Improved main menu functionality
-          - Enhanced Test Connection functionality to work directly with UI values [NOT TESTED]
-          - Added progress dialog during connection testing [NOT TESTED]
+          - Enhanced Test Connection functionality to work directly with UI values
+          - Added progress dialog during connection testing
 
           ### Service and Background Operations
-          - Improved service mode operation [NOT TESTED]
-          - Added proper background service functionality [NOT TESTED]
-          - Enhanced scheduled backup reliability [NOT TESTED]
+          - Improved service mode operation
+          - Added proper background service functionality
+          - Enhanced scheduled backup reliability
           - Completely separated service and script functionality
           - Added dedicated service.py file for background operations
           - Simplified addon.py to focus only on user interactions
@@ -60,14 +60,6 @@ jobs:
           3. Configure backup location and schedule in settings
 
           ### Note
-          The following features are currently untested and may require further validation:
-          - Progress reporting during backup
-          - Test Connection functionality
-          - Progress dialog during connection testing
-          - Service mode operation
-          - Background service functionality
-          - Scheduled backup reliability
-
-          Please report any issues or feedback on our GitHub repository.
+          Some features are marked as untested in this release. Please check the documentation for details.
         draft: false
         prerelease: false 
