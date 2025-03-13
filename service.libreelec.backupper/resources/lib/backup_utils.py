@@ -42,7 +42,7 @@ class BackupManager:
     def update_backup_location(self):
         """Update backup location from settings"""
         # Get backup location type from settings
-        self.location_type = int(self.addon.getSetting('backup_location_type') or "0")
+        self.location_type = self.addon.getSettingInt('backup_location_type')
         
         # Define paths for various Kodi directories
         self.kodi_home = xbmcvfs.translatePath('special://home')
@@ -67,11 +67,11 @@ class BackupManager:
                     self.addon.setSetting('backup_location', self.backup_dir)
         else:  # Remote
             # Get remote settings
-            self.remote_type = int(self.addon.getSetting('remote_location_type') or "0")
+            self.remote_type = self.addon.getSettingInt('remote_location_type')
             self.remote_path = self.addon.getSetting('remote_path')
             self.remote_username = self.addon.getSetting('remote_username')
             self.remote_password = self.addon.getSetting('remote_password')
-            self.remote_port = int(self.addon.getSetting('remote_port') or "0")
+            self.remote_port = self.addon.getSettingInt('remote_port')
             
             # Set default ports if not specified
             if self.remote_port == 0:
