@@ -16,7 +16,6 @@
         <setting type="sep"/>
         <setting id="max_backups" type="slider" label="32013" default="10" range="5,1,50" option="int" format="Keep %d backups"/>
         <setting id="compression_level" type="enum" label="32014" values="None|Fast|Normal|Maximum" default="1"/>
-        <setting id="backup_naming" type="enum" label="32015" values="Date and Time|Custom Name|Date + Custom" default="0"/>
     </category>
 
     <category label="32003"><!-- Backup Items -->

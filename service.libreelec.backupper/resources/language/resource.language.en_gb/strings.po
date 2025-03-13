@@ -94,6 +94,10 @@ msgctxt "#32029"
 msgid "Test Connection"
 msgstr "Test Connection"
 
+msgctxt "#32030"
+msgid "Configuration Files"
+msgstr "Configuration Files"
+
 # Schedule Settings
 msgctxt "#32020"
 msgid "Enable Scheduled Backups"
@@ -139,6 +143,10 @@ msgstr "Repositories"
 msgctxt "#32034"
 msgid "Sources"
 msgstr "Sources"
+
+msgctxt "#32035"
+msgid "Create ZIP Archive"
+msgstr "Create ZIP Archive"
 
 # Actions
 msgctxt "#32070"

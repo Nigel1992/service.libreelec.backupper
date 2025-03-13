@@ -30,29 +30,7 @@ ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 LANGUAGE = ADDON.getLocalizedString
 
 class RemoteBrowser:
-    """Class to handle browsing remote locations"""
-    
-    def __init__(self, addon=None):
-        self.addon = addon or xbmcaddon.Addon()
-        self.remote_type = self.addon.getSettingInt('remote_location_type')
-        self.remote_path = self.addon.getSetting('remote_path')
-        self.remote_username = self.addon.getSetting('remote_username')
-        self.remote_password = self.addon.getSetting('remote_password')
-        self.remote_port = self.addon.getSettingInt('remote_port')
-        
-        # Set default ports if not specified
-        if self.remote_port == 0:
-            if self.remote_type == 0:  # SMB
-                self.remote_port = 445
-            elif self.remote_type == 1:  # NFS
-                self.remote_port = 2049
-            elif self.remote_type == 2:  # FTP
-                self.remote_port = 21
-            elif self.remote_type == 3:  # SFTP
-                self.remote_port = 22
-            elif self.remote_type == 4:  # WebDAV
-                self.remote_port = 80
-        
+    def __init__(self):
         # Always reload settings to ensure we have the latest values
         self.reload_settings()
     
@@ -62,11 +40,11 @@ class RemoteBrowser:
         global ADDON
         ADDON = xbmcaddon.Addon()
         
-        self.remote_type = ADDON.getSettingInt('remote_location_type')
+        self.remote_type = int(ADDON.getSetting('remote_location_type'))
         self.remote_path = ADDON.getSetting('remote_path')
-        self.remote_username = ADDON.getSetting('remote_username')
-        self.remote_password = ADDON.getSetting('remote_password')
-        self.remote_port = ADDON.getSettingInt('remote_port')
+        self.username = ADDON.getSetting('remote_username')
+        self.password = ADDON.getSetting('remote_password')
+        self.port = ADDON.getSetting('remote_port')
         
         # Default ports if not specified
         self.default_ports = {
@@ -77,8 +55,8 @@ class RemoteBrowser:
             4: 80    # WebDAV
         }
         
-        if not self.remote_port:
-            self.remote_port = self.default_ports.get(self.remote_type, 0)
+        if not self.port:
+            self.port = str(self.default_ports.get(self.remote_type, 0))
     
     def browse(self):
         """Main method to browse remote locations based on type"""
@@ -146,16 +124,16 @@ class RemoteBrowser:
                 
                 # Update the remote path setting
                 self.remote_path = path
-                self.addon.setSetting('remote_path', path)
+                ADDON.setSetting('remote_path', path)
                 
                 # Try to extract username and password from the URL if present
                 parsed_url = urlparse(selected_path)
                 if parsed_url.username:
-                    self.remote_username = unquote(parsed_url.username)
-                    self.addon.setSetting('remote_username', self.remote_username)
+                    self.username = unquote(parsed_url.username)
+                    ADDON.setSetting('remote_username', self.username)
                 if parsed_url.password:
-                    self.remote_password = unquote(parsed_url.password)
-                    self.addon.setSetting('remote_password', self.remote_password)
+                    self.password = unquote(parsed_url.password)
+                    ADDON.setSetting('remote_password', self.password)
                 
                 dialog.ok("Location Selected", f"Selected path: {path}")
                 return True
@@ -194,30 +172,30 @@ class RemoteBrowser:
                     
                     # Update the remote path setting
                     self.remote_path = remote_path
-                    self.addon.setSetting('remote_path', remote_path)
+                    ADDON.setSetting('remote_path', remote_path)
                     
                     # Try to extract username and password from the URL if present
                     if parsed_url.username:
-                        self.remote_username = unquote(parsed_url.username)
-                        self.addon.setSetting('remote_username', self.remote_username)
+                        self.username = unquote(parsed_url.username)
+                        ADDON.setSetting('remote_username', self.username)
                     if parsed_url.password:
-                        self.remote_password = unquote(parsed_url.password)
-                        self.addon.setSetting('remote_password', self.remote_password)
+                        self.password = unquote(parsed_url.password)
+                        ADDON.setSetting('remote_password', self.password)
                     
                     # Set port if specified in the URL
                     if parsed_url.port:
-                        self.remote_port = str(parsed_url.port)
-                        self.addon.setSetting('remote_port', self.remote_port)
+                        self.port = str(parsed_url.port)
+                        ADDON.setSetting('remote_port', self.port)
                     elif parsed_url.scheme == 'https':
-                        self.remote_port = "443"
-                        self.addon.setSetting('remote_port', self.remote_port)
+                        self.port = "443"
+                        ADDON.setSetting('remote_port', self.port)
                     else:
-                        self.remote_port = "80"
-                        self.addon.setSetting('remote_port', self.remote_port)
+                        self.port = "80"
+                        ADDON.setSetting('remote_port', self.port)
                 else:
                     # For other paths, just store as is
                     self.remote_path = selected_path
-                    self.addon.setSetting('remote_path', selected_path)
+                    ADDON.setSetting('remote_path', selected_path)
                 
                 dialog.ok("Location Selected", f"Selected path: {selected_path}")
                 return True
@@ -274,17 +252,17 @@ class RemoteBrowser:
         # Store the original settings
         orig_remote_type = self.remote_type
         orig_remote_path = self.remote_path
-        orig_username = self.remote_username
-        orig_password = self.remote_password
-        orig_port = self.remote_port
+        orig_username = self.username
+        orig_password = self.password
+        orig_port = self.port
         
         try:
             # Set the provided parameters
             self.remote_type = remote_type
             self.remote_path = remote_path
-            self.remote_username = username
-            self.remote_password = password
-            self.remote_port = port
+            self.username = username
+            self.password = password
+            self.port = port
             
             # Check if remote path is set
             if not self.remote_path:
@@ -309,9 +287,9 @@ class RemoteBrowser:
             # Restore the original settings
             self.remote_type = orig_remote_type
             self.remote_path = orig_remote_path
-            self.remote_username = orig_username
-            self.remote_password = orig_password
-            self.remote_port = orig_port
+            self.username = orig_username
+            self.password = orig_password
+            self.port = orig_port
     
     def _test_smb_connection(self):
         """Test the connection to the SMB location"""
@@ -322,8 +300,8 @@ class RemoteBrowser:
         try:
             # Construct the full SMB URL
             smb_url = f"smb://"
-            if self.remote_username and self.remote_password:
-                smb_url += f"{self.remote_username}:{self.remote_password}@"
+            if self.username and self.password:
+                smb_url += f"{self.username}:{self.password}@"
             smb_url += self.remote_path
             
             # Try to list the directory
@@ -374,8 +352,8 @@ class RemoteBrowser:
             
             # Connect to FTP server
             ftp = ftplib.FTP()
-            ftp.connect(server, int(self.remote_port))
-            ftp.login(self.remote_username, self.remote_password)
+            ftp.connect(server, int(self.port))
+            ftp.login(self.username, self.password)
             ftp.quit()
             
             progress.close()
@@ -405,7 +383,7 @@ class RemoteBrowser:
             # Connect to SFTP server
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(server, port=int(self.remote_port), username=self.remote_username, password=self.remote_password)
+            ssh.connect(server, port=int(self.port), username=self.username, password=self.password)
             sftp = ssh.open_sftp()
             sftp.close()
             ssh.close()
@@ -436,10 +414,10 @@ class RemoteBrowser:
             path = '/'.join(self.remote_path.split('/')[1:])
             
             # Construct WebDAV URL
-            protocol = "https" if int(self.remote_port) == 443 else "http"
+            protocol = "https" if int(self.port) == 443 else "http"
             url = f"{protocol}://{server}"
-            if self.remote_port and self.remote_port not in ["80", "443"]:
-                url += f":{self.remote_port}"
+            if self.port and self.port not in ["80", "443"]:
+                url += f":{self.port}"
             
             if path:
                 url += f"/{path}"
@@ -448,7 +426,7 @@ class RemoteBrowser:
             response = requests.request(
                 "PROPFIND",
                 url,
-                auth=(self.remote_username, self.remote_password) if self.remote_username else None,
+                auth=(self.username, self.password) if self.username else None,
                 headers={"Depth": "0"},
                 timeout=10
             )
@@ -525,7 +503,7 @@ class RemoteBrowser:
             new_path = keyboard.getText()
             if new_path != current_path:
                 self.remote_path = new_path
-                self.addon.setSetting('remote_path', new_path)
+                ADDON.setSetting('remote_path', new_path)
                 return True
         
         return False
