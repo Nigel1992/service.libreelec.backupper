@@ -26,4 +26,4 @@ jobs:
     
     - name: Run addon checker
       run: |
-        kodi-addon-checker --branch omega --exclude wiki . 
+        kodi-addon-checker --branch omega service.libreelec.backupper 
