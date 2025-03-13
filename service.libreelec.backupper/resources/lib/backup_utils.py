@@ -38,6 +38,7 @@ class BackupManager:
         self._temp_files = set()  # Track temporary files
         self.remote_connection = None
         self._webdav_session = None  # Persistent WebDAV session
+        self._cleanup_old_temp_files()  # Clean up any old temp files on startup
     
     def update_backup_location(self):
         """Update backup location from settings"""
@@ -630,6 +631,40 @@ class BackupManager:
         except Exception as e:
             xbmc.log(f"Error during resource cleanup: {str(e)}", xbmc.LOGERROR)
 
+    def _cleanup_old_temp_files(self):
+        """Clean up any old temporary files in the temp directory."""
+        try:
+            temp_dir = xbmcvfs.translatePath(os.path.join(self.addon.getAddonInfo('profile'), 'temp'))
+            if os.path.exists(temp_dir):
+                for item in os.listdir(temp_dir):
+                    item_path = os.path.join(temp_dir, item)
+                    try:
+                        if os.path.isfile(item_path):
+                            os.remove(item_path)
+                        elif os.path.isdir(item_path):
+                            shutil.rmtree(item_path)
+                    except Exception as e:
+                        xbmc.log(f"Error cleaning up old temp file {item_path}: {str(e)}")
+        except Exception as e:
+            xbmc.log(f"Error cleaning up temp directory: {str(e)}")
+
+    def _cleanup_temp_files(self):
+        """Clean up all temporary files created during this session."""
+        for temp_file in self._temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    if os.path.isfile(temp_file):
+                        os.remove(temp_file)
+                    elif os.path.isdir(temp_file):
+                        shutil.rmtree(temp_file)
+            except Exception as e:
+                xbmc.log(f"Error cleaning up temp file {temp_file}: {str(e)}")
+        self._temp_files.clear()
+
+    def __del__(self):
+        """Cleanup when the object is destroyed."""
+        self._cleanup_temp_files()
+
     def create_backup(self):
         """Create a backup of all selected items"""
         try:
@@ -784,6 +819,8 @@ class BackupManager:
                 self.notify("Backup completed successfully", size_info, True)  # Make notification persistent
                 xbmc.log(f"Backup completed: {size_info}", xbmc.LOGINFO)
                 
+                # Clean up temporary files after successful backup
+                self._cleanup_temp_files()
                 return True, f"Backup completed successfully. {size_info}"
                 
             except Exception as e:
@@ -791,6 +828,8 @@ class BackupManager:
                 self.notify("Backup failed", error_msg)
                 if self.location_type != 0:  # Remote
                     self.disconnect_remote()
+                # Clean up temporary files even if backup fails
+                self._cleanup_temp_files()
                 return False, error_msg
                 
         except Exception as e:
@@ -798,6 +837,8 @@ class BackupManager:
             self.notify("Backup failed", error_msg)
             if self.location_type != 0:  # Remote
                 self.disconnect_remote()
+            # Clean up temporary files even if backup fails
+            self._cleanup_temp_files()
             return False, error_msg
         finally:
             # Clean up resources
