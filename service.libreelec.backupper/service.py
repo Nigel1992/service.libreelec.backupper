@@ -25,26 +25,11 @@ def main():
     # Main service loop
     monitor = xbmc.Monitor()
     
-    # Update schedule info at startup
-    backup_manager.update_schedule_info()
-    
     # Log service start
     log("Service started", xbmc.LOGINFO)
     
-    # Main loop
+    # Main loop - just keep the service alive
     while not monitor.abortRequested():
-        # Check if it's time to run a scheduled backup
-        if backup_manager.should_run_backup():
-            log("Running scheduled backup", xbmc.LOGINFO)
-            success, message = backup_manager.create_backup()
-            if success:
-                log("Scheduled backup completed successfully", xbmc.LOGINFO)
-            else:
-                log(f"Scheduled backup failed: {message}", xbmc.LOGERROR)
-            
-            # Update schedule info after backup
-            backup_manager.update_schedule_info()
-        
         # Sleep for 60 seconds before checking again
         if monitor.waitForAbort(60):
             # Abort was requested while waiting

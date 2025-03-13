@@ -42,7 +42,7 @@ class BackupManager:
     def update_backup_location(self):
         """Update backup location from settings"""
         # Get backup location type from settings
-        self.location_type = self.addon.getSettingInt('backup_location_type')
+        self.location_type = int(self.addon.getSetting('backup_location_type') or "0")
         
         # Define paths for various Kodi directories
         self.kodi_home = xbmcvfs.translatePath('special://home')
@@ -67,11 +67,11 @@ class BackupManager:
                     self.addon.setSetting('backup_location', self.backup_dir)
         else:  # Remote
             # Get remote settings
-            self.remote_type = self.addon.getSettingInt('remote_location_type')
+            self.remote_type = int(self.addon.getSetting('remote_location_type') or "0")
             self.remote_path = self.addon.getSetting('remote_path')
             self.remote_username = self.addon.getSetting('remote_username')
             self.remote_password = self.addon.getSetting('remote_password')
-            self.remote_port = self.addon.getSettingInt('remote_port')
+            self.remote_port = int(self.addon.getSetting('remote_port') or "0")
             
             # Set default ports if not specified
             if self.remote_port == 0:
@@ -598,31 +598,6 @@ class BackupManager:
         if self.addon.getSettingBool('backup_userdata'):
             paths['addon_data'] = os.path.join(self.kodi_userdata, 'addon_data')
         
-        # Profiles
-        if self.addon.getSettingBool('backup_profiles'):
-            paths['profiles'] = os.path.join(self.kodi_userdata, 'profiles.xml')
-            paths['profiles_dir'] = os.path.join(self.kodi_userdata, 'profiles')
-        
-        # Game Saves
-        if self.addon.getSettingBool('backup_gamesaves'):
-            paths['gamesaves'] = os.path.join(self.kodi_userdata, 'addon_data', 'game.saves')
-        
-        # Playlists
-        if self.addon.getSettingBool('backup_playlists'):
-            paths['playlists'] = os.path.join(self.kodi_userdata, 'playlists')
-        
-        # Thumbnails/Fanart
-        if self.addon.getSettingBool('backup_thumbnails'):
-            paths['thumbnails'] = os.path.join(self.kodi_userdata, 'Thumbnails')
-            paths['fanart'] = os.path.join(self.kodi_home, 'addons', 'fanart')
-        
-        # Skins
-        if self.addon.getSettingBool('backup_skins'):
-            paths['skins'] = os.path.join(self.kodi_home, 'addons', 'skin.*')
-            # Only include skin settings if addon_data is not being backed up
-            if not self.addon.getSettingBool('backup_userdata'):
-                paths['skin_settings'] = os.path.join(self.kodi_userdata, 'addon_data', 'skin.*')
-        
         return paths
     
     def cleanup_resources(self):
@@ -664,12 +639,18 @@ class BackupManager:
             # Connect to remote location if needed
             if self.location_type != 0:  # Remote
                 if not self.connect_remote():
+                    self.notify("Backup failed", "Failed to connect to remote location")
                     return False, "Failed to connect to remote location"
             
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             
             # Get paths to backup
             paths = self.get_backup_paths()
+            
+            # Don't create empty backups
+            if not paths:
+                self.notify("Backup failed", "No items selected for backup")
+                return False, "No items selected for backup"
             
             # Create backup name with included items
             backup_items = []
@@ -693,154 +674,131 @@ class BackupManager:
                 temp_dir = xbmcvfs.translatePath(os.path.join(self.addon.getAddonInfo('profile'), 'temp'))
                 if not os.path.exists(temp_dir):
                     os.makedirs(temp_dir)
-                zip_path = os.path.join(temp_dir, f'{backup_name}.zip')
-                self._temp_files.add(zip_path)  # Track for cleanup
+                backup_path = os.path.join(temp_dir, f'{backup_name}.zip')
+                self._temp_files.add(backup_path)  # Track for cleanup
             else:
-                zip_path = os.path.join(self.backup_dir, f'{backup_name}.zip')
+                backup_path = os.path.join(self.backup_dir, f'{backup_name}.zip')
             
             try:
                 total_items = len(paths)
                 current_item = 0
                 
-                # Don't create empty backups
-                if total_items == 0:
-                    if self.location_type != 0:  # Remote
-                        self.disconnect_remote()
-                    return False, "No items selected for backup"
+                # Show initial notification
+                self.notify("Starting backup...", "Calculating backup size...")
                 
-                # Check available space (only for local backups or temp directory)
-                try:
-                    total_size = 0
-                    for _, path in paths.items():
-                        if os.path.exists(path):
-                            if os.path.isfile(path):
-                                total_size += os.path.getsize(path)
-                            else:
-                                for root, _, files in os.walk(path):
-                                    for file in files:
-                                        try:
-                                            total_size += os.path.getsize(os.path.join(root, file))
-                                        except OSError:
-                                            continue
+                # Calculate total size
+                total_size = 0
+                for _, path in paths.items():
+                    if os.path.exists(path):
+                        if os.path.isfile(path):
+                            total_size += os.path.getsize(path)
+                        else:
+                            for root, _, files in os.walk(path):
+                                for file in files:
+                                    try:
+                                        total_size += os.path.getsize(os.path.join(root, file))
+                                    except OSError:
+                                        continue
                 
-                    # Get available space in backup directory
-                    check_dir = os.path.dirname(zip_path)
-                    stat = os.statvfs(check_dir)
-                    available_space = stat.f_frsize * stat.f_bavail
-                    
-                    # Format sizes for display
-                    total_size_formatted = self.format_size(total_size)
-                    available_space_formatted = self.format_size(available_space)
-                    
-                    # Check if we have enough space (total size + 10% buffer)
-                    if total_size * 1.1 > available_space:
-                        if self.location_type != 0:  # Remote
-                            self.disconnect_remote()
-                        return False, f"Not enough space for backup. Need {total_size_formatted} but only {available_space_formatted} available"
-                    
-                    # Show space information in notification
-                    space_info = f"Size: {total_size_formatted} / Available: {available_space_formatted}"
-                    self.notify(self.addon.getLocalizedString(32100), space_info, True)  # Starting backup... (persistent)
-                    
-                except Exception as e:
-                    xbmc.log(f"Error checking space: {str(e)}", xbmc.LOGWARNING)
-                    # Still show a notification, but without space info
-                    self.notify(self.addon.getLocalizedString(32100), "", True)  # Starting backup... (persistent)
-                
-                # Track what files we actually backed up
-                backed_up_files = set()
-                current_size = 0
+                total_size_formatted = self.format_size(total_size)
+                self.notify("Starting backup...", f"Total size: {total_size_formatted}")
                 
                 # Create manifest
                 manifest = {
                     'timestamp': timestamp,
                     'items': list(paths.keys()),
                     'paths': paths,
-                    'backed_up_files': []  # Will be populated during backup
+                    'backed_up_files': [],
+                    'total_size': total_size,
+                    'total_size_formatted': total_size_formatted
                 }
                 
-                # Create zip file with UTF-8 encoding error handling
-                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zipf:
+                backed_up_size = 0
+                
+                # Create zip file with proper compression level
+                compression_level = self.addon.getSettingInt('compression_level')
+                # Map compression settings to actual ZIP compression levels
+                compression_mapping = {
+                    0: (zipfile.ZIP_STORED, 0),    # None
+                    1: (zipfile.ZIP_DEFLATED, 1),  # Fast
+                    2: (zipfile.ZIP_DEFLATED, 6),  # Normal
+                    3: (zipfile.ZIP_DEFLATED, 9)   # Maximum
+                }
+                compression_method, compression_strength = compression_mapping.get(compression_level, (zipfile.ZIP_DEFLATED, 6))
+                
+                # Create ZIP file with selected compression
+                with zipfile.ZipFile(backup_path, 'w', compression=compression_method, compresslevel=compression_strength, allowZip64=True) as zipf:
                     # Backup each item
                     for item_name, path in paths.items():
                         current_item += 1
                         progress = int((current_item / total_items) * 100)
                         
                         try:
-                            # Show progress with item name and current/total size
-                            progress_info = f"{item_name} ({self.format_size(current_size)}/{total_size_formatted})"
-                            self.notify(f"{self.addon.getLocalizedString(32100)} ({progress}%)", progress_info, True)
+                            # Show progress
+                            self.notify(f"Backup in progress ({progress}%)", f"Processing: {item_name}")
                             
                             if os.path.exists(path):
                                 if os.path.isfile(path):
-                                    # For single files, maintain the full path structure
-                                    try:
-                                        if not os.path.islink(path):  # Skip symbolic links
-                                            arcname = self.sanitize_filename(os.path.relpath(path, '/'))
-                                            zipf.write(path, arcname)
-                                            file_size = os.path.getsize(path)
-                                            current_size += file_size
-                                            backed_up_files.add(arcname)
-                                            manifest['backed_up_files'].append(arcname)
-                                    except Exception as e:
-                                        xbmc.log(f"Error backing up file {path}: {str(e)}", xbmc.LOGWARNING)
+                                    if not os.path.islink(path):  # Skip symbolic links
+                                        arcname = self.sanitize_filename(os.path.relpath(path, '/'))
+                                        zipf.write(path, arcname)
+                                        manifest['backed_up_files'].append(arcname)
+                                        backed_up_size += os.path.getsize(path)
                                 else:
-                                    # For directories, walk through and add each file
                                     for root, _, files in os.walk(path):
                                         for file in files:
-                                            try:
-                                                file_path = os.path.join(root, file)
-                                                if not os.path.islink(file_path):  # Skip symbolic links
-                                                    arcname = self.sanitize_filename(os.path.relpath(file_path, '/'))
-                                                    zipf.write(file_path, arcname)
-                                                    file_size = os.path.getsize(file_path)
-                                                    current_size += file_size
-                                                    backed_up_files.add(arcname)
-                                                    manifest['backed_up_files'].append(arcname)
-                                            except Exception as e:
-                                                xbmc.log(f"Error backing up file {file_path}: {str(e)}", xbmc.LOGWARNING)
+                                            file_path = os.path.join(root, file)
+                                            if not os.path.islink(file_path):  # Skip symbolic links
+                                                arcname = self.sanitize_filename(os.path.relpath(file_path, '/'))
+                                                zipf.write(file_path, arcname)
+                                                manifest['backed_up_files'].append(arcname)
+                                                backed_up_size += os.path.getsize(file_path)
                         except Exception as e:
-                            xbmc.log(f"Error backing up item {item_name}: {str(e)}", xbmc.LOGWARNING)
+                            xbmc.log(f"Error backing up {item_name}: {str(e)}", xbmc.LOGERROR)
                     
                     # Add manifest file
                     zipf.writestr('manifest.json', json.dumps(manifest, indent=4))
                 
-                # Show final backup size
-                final_size = os.path.getsize(zip_path)
+                # Get final backup size
+                final_size = os.path.getsize(backup_path)
                 final_size_formatted = self.format_size(final_size)
+                compression_ratio = (1 - (final_size / total_size)) * 100 if total_size > 0 else 0
+                size_info = f"Original: {total_size_formatted}, Compressed: {final_size_formatted} ({compression_ratio:.1f}% saved)"
                 
                 # Upload to remote location if needed
                 if self.location_type != 0:  # Remote
-                    self.notify(f"{self.addon.getLocalizedString(32100)} (Uploading...)", f"Size: {final_size_formatted}", True)
-                    if not self.upload_file(zip_path, f'{backup_name}.zip'):
+                    self.notify("Uploading backup...", size_info)
+                    if not self.upload_file(backup_path, f'{backup_name}.zip'):
+                        self.notify("Backup failed", "Failed to upload to remote location")
                         self.disconnect_remote()
                         return False, "Failed to upload backup to remote location"
                 
                 # Cleanup old backups
                 self.cleanup_old_backups(int(self.addon.getSetting('max_backups')))
                 
-                # Update last backup time
-                self.addon.setSetting('last_backup', datetime.now().strftime('%Y-%m-%d %H:%M'))
-                self.update_schedule_info()
-                
                 # Disconnect from remote location if needed
                 if self.location_type != 0:  # Remote
                     self.disconnect_remote()
                 
-                self.notify(self.addon.getLocalizedString(32101), f"Size: {final_size_formatted}")  # Backup completed successfully
-                return True, f"Backup completed successfully. Size: {final_size_formatted}"
+                # Show completion notification
+                self.notify("Backup completed successfully", size_info, True)  # Make notification persistent
+                xbmc.log(f"Backup completed: {size_info}", xbmc.LOGINFO)
+                
+                return True, f"Backup completed successfully. {size_info}"
                 
             except Exception as e:
-                xbmc.log(f"Error creating backup: {str(e)}", xbmc.LOGERROR)
+                error_msg = f"Error creating backup: {str(e)}"
+                self.notify("Backup failed", error_msg)
                 if self.location_type != 0:  # Remote
                     self.disconnect_remote()
-                return False, f"Error creating backup: {str(e)}"
+                return False, error_msg
                 
         except Exception as e:
-            xbmc.log(f"Error in backup process: {str(e)}", xbmc.LOGERROR)
+            error_msg = f"Error in backup process: {str(e)}"
+            self.notify("Backup failed", error_msg)
             if self.location_type != 0:  # Remote
                 self.disconnect_remote()
-            return False, f"Error in backup process: {str(e)}"
+            return False, error_msg
         finally:
             # Clean up resources
             self.cleanup_resources()
