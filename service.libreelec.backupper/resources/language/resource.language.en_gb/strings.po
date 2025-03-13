@@ -135,89 +135,26 @@ msgctxt "#32025"
 msgid "Next Scheduled Backup"
 msgstr "Next Scheduled Backup"
 
-# Backup Items - System
+# Backup Items
 msgctxt "#32030"
-msgid "System"
-msgstr "System"
-
-msgctxt "#32031"
-msgid "FSTAB (Mount Points)"
-msgstr "FSTAB (Mount Points) [NOT TESTED]"
-
-msgctxt "#32032"
-msgid "Bootloader Settings"
-msgstr "Bootloader Settings [NOT TESTED]"
-
-msgctxt "#32033"
-msgid "Config.txt"
-msgstr "Config.txt"
-
-msgctxt "#32034"
 msgid "Configuration Files"
 msgstr "Configuration Files"
 
-# Backup Items - Add-ons
-msgctxt "#32040"
-msgid "Add-ons"
-msgstr "Add-ons"
-
-msgctxt "#32041"
+msgctxt "#32031"
 msgid "Installed Add-ons"
 msgstr "Installed Add-ons"
 
-msgctxt "#32042"
+msgctxt "#32032"
 msgid "Add-on User Data and Settings"
 msgstr "Add-on User Data and Settings"
 
-msgctxt "#32044"
+msgctxt "#32033"
 msgid "Repositories"
 msgstr "Repositories"
 
-# Backup Items - Media
-msgctxt "#32050"
-msgid "Media"
-msgstr "Media"
-
-msgctxt "#32051"
+msgctxt "#32034"
 msgid "Sources"
 msgstr "Sources"
-
-msgctxt "#32052"
-msgid "Playlists"
-msgstr "Playlists"
-
-msgctxt "#32053"
-msgid "Thumbnails/Fanart"
-msgstr "Thumbnails/Fanart"
-
-msgctxt "#32054"
-msgid "Media Database"
-msgstr "Media Database"
-
-# Backup Items - User Data
-msgctxt "#32060"
-msgid "User Data"
-msgstr "User Data [NOT TESTED]"
-
-msgctxt "#32061"
-msgid "Profiles"
-msgstr "Profiles"
-
-msgctxt "#32062"
-msgid "Game Saves"
-msgstr "Game Saves"
-
-msgctxt "#32063"
-msgid "Skins"
-msgstr "Skins"
-
-msgctxt "#32064"
-msgid "Favourites"
-msgstr "Favourites"
-
-msgctxt "#32065"
-msgid "Keyboard Mappings"
-msgstr "Keyboard Mappings"
 
 # Actions
 msgctxt "#32070"
@@ -347,4 +284,9 @@ msgstr "Notification Method"
 
 msgctxt "#32139"
 msgid "Configure Email Settings"
-msgstr "Configure Email Settings" 
+msgstr "Configure Email Settings"
+
+# Credits
+msgctxt "#32150"
+msgid "Image Credits"
+msgstr "Image Credits" 
