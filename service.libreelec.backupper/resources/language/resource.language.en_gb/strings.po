@@ -37,22 +37,6 @@ msgctxt "#32005"
 msgid "Credits"
 msgstr "Credits"
 
-msgctxt "#32006"
-msgid "Network Settings"
-msgstr "Network Settings"
-
-msgctxt "#32007"
-msgid "Security Settings"
-msgstr "Security Settings"
-
-msgctxt "#32008"
-msgid "Custom Content"
-msgstr "Custom Content"
-
-msgctxt "#32009"
-msgid "Advanced Options"
-msgstr "Advanced Options"
-
 # General Settings
 msgctxt "#32010"
 msgid "Backup Location"
@@ -197,94 +181,6 @@ msgstr "Restore failed"
 msgctxt "#32086"
 msgid "No backups found"
 msgstr "No backups found"
-
-# Network Settings
-msgctxt "#32090"
-msgid "Network Configuration"
-msgstr "Network Configuration [NOT TESTED]"
-
-msgctxt "#32091"
-msgid "VPN Settings"
-msgstr "VPN Settings [NOT TESTED]"
-
-msgctxt "#32092"
-msgid "Samba Shares"
-msgstr "Samba Shares [NOT TESTED]"
-
-msgctxt "#32093"
-msgid "NFS Mounts"
-msgstr "NFS Mounts [NOT TESTED]"
-
-msgctxt "#32094"
-msgid "Hosts File"
-msgstr "Hosts File"
-
-msgctxt "#32095"
-msgid "Samba Settings"
-msgstr "Samba Settings"
-
-msgctxt "#32096"
-msgid "WiFi Configuration"
-msgstr "WiFi Configuration"
-
-# Security Settings
-msgctxt "#32110"
-msgid "SSH Keys"
-msgstr "SSH Keys [NOT TESTED]"
-
-msgctxt "#32111"
-msgid "SSL Certificates"
-msgstr "SSL Certificates [NOT TESTED]"
-
-msgctxt "#32112"
-msgid "Firewall Rules"
-msgstr "Firewall Rules [NOT TESTED]"
-
-# Custom Content
-msgctxt "#32120"
-msgid "Custom Scripts"
-msgstr "Custom Scripts [NOT TESTED]"
-
-# Advanced Options
-msgctxt "#32130"
-msgid "Differential Backup"
-msgstr "Differential Backup [NOT TESTED]"
-
-msgctxt "#32131"
-msgid "Advanced Compression"
-msgstr "Advanced Compression [NOT TESTED]"
-
-msgctxt "#32132"
-msgid "Advanced Scheduling"
-msgstr "Advanced Scheduling [NOT TESTED]"
-
-msgctxt "#32133"
-msgid "Cloud Storage Integration"
-msgstr "Cloud Storage Integration [NOT TESTED]"
-
-msgctxt "#32134"
-msgid "System Logs"
-msgstr "System Logs"
-
-msgctxt "#32135"
-msgid "Crash Logs"
-msgstr "Crash Logs"
-
-msgctxt "#32136"
-msgid "Temporary Files"
-msgstr "Temporary Files"
-
-msgctxt "#32137"
-msgid "Verify Backup"
-msgstr "Verify Backup"
-
-msgctxt "#32138"
-msgid "Notification Method"
-msgstr "Notification Method"
-
-msgctxt "#32139"
-msgid "Configure Email Settings"
-msgstr "Configure Email Settings"
 
 # Credits
 msgctxt "#32150"
