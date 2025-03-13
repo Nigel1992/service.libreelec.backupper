@@ -136,33 +136,25 @@ msgid "Next Scheduled Backup"
 msgstr "Next Scheduled Backup"
 
 # Backup Items - System
-msgctxt "#32100"
+msgctxt "#32030"
 msgid "System"
 msgstr "System"
 
-msgctxt "#32101"
+msgctxt "#32031"
 msgid "FSTAB (Mount Points)"
 msgstr "FSTAB (Mount Points) [NOT TESTED]"
 
-msgctxt "#32102"
+msgctxt "#32032"
 msgid "Bootloader Settings"
 msgstr "Bootloader Settings [NOT TESTED]"
 
-msgctxt "#32103"
+msgctxt "#32033"
 msgid "Config.txt"
 msgstr "Config.txt"
 
-msgctxt "#32104"
+msgctxt "#32034"
 msgid "Configuration Files"
 msgstr "Configuration Files"
-
-msgctxt "#32105"
-msgid "Configuration Files"
-msgstr "Configuration Files"
-
-msgctxt "#32106"
-msgid "FSTAB (Mount Points)"
-msgstr "FSTAB (Mount Points) [NOT TESTED]"
 
 # Backup Items - Add-ons
 msgctxt "#32040"
@@ -203,7 +195,7 @@ msgid "Media Database"
 msgstr "Media Database"
 
 # Backup Items - User Data
-msgctxt "#32402"
+msgctxt "#32060"
 msgid "User Data"
 msgstr "User Data [NOT TESTED]"
 
@@ -241,147 +233,118 @@ msgid "View Backups"
 msgstr "View Backups"
 
 # Messages
-msgctxt "#32100"
+msgctxt "#32080"
 msgid "Starting backup..."
 msgstr "Starting backup..."
 
-msgctxt "#32101"
+msgctxt "#32081"
 msgid "Backup completed successfully"
 msgstr "Backup completed successfully"
 
-msgctxt "#32102"
+msgctxt "#32082"
 msgid "Backup failed"
 msgstr "Backup failed"
 
-msgctxt "#32103"
+msgctxt "#32083"
 msgid "Starting restore..."
 msgstr "Starting restore..."
 
-msgctxt "#32104"
+msgctxt "#32084"
 msgid "Restore completed successfully"
 msgstr "Restore completed successfully"
 
-msgctxt "#32105"
+msgctxt "#32085"
 msgid "Restore failed"
 msgstr "Restore failed"
 
-msgctxt "#32106"
+msgctxt "#32086"
 msgid "No backups found"
 msgstr "No backups found"
 
-# Credits
-msgctxt "#32080"
-msgid "Image Credits"
-msgstr "Image Credits"
-
 # Network Settings
-msgctxt "#32200"
-msgid "Network Settings"
-msgstr "Network Settings"
-
-msgctxt "#32201"
+msgctxt "#32090"
 msgid "Network Configuration"
 msgstr "Network Configuration [NOT TESTED]"
 
-msgctxt "#32202"
+msgctxt "#32091"
 msgid "VPN Settings"
 msgstr "VPN Settings [NOT TESTED]"
 
-msgctxt "#32203"
+msgctxt "#32092"
 msgid "Samba Shares"
 msgstr "Samba Shares [NOT TESTED]"
 
-msgctxt "#32204"
+msgctxt "#32093"
 msgid "NFS Mounts"
 msgstr "NFS Mounts [NOT TESTED]"
 
-msgctxt "#32205"
+msgctxt "#32094"
 msgid "Hosts File"
 msgstr "Hosts File"
 
-msgctxt "#32206"
+msgctxt "#32095"
 msgid "Samba Settings"
 msgstr "Samba Settings"
 
-msgctxt "#32207"
+msgctxt "#32096"
 msgid "WiFi Configuration"
 msgstr "WiFi Configuration"
 
 # Security Settings
-msgctxt "#32300"
-msgid "Security Settings"
-msgstr "Security Settings"
-
-msgctxt "#32301"
+msgctxt "#32110"
 msgid "SSH Keys"
 msgstr "SSH Keys [NOT TESTED]"
 
-msgctxt "#32302"
+msgctxt "#32111"
 msgid "SSL Certificates"
 msgstr "SSL Certificates [NOT TESTED]"
 
-msgctxt "#32303"
+msgctxt "#32112"
 msgid "Firewall Rules"
 msgstr "Firewall Rules [NOT TESTED]"
 
 # Custom Content
-msgctxt "#32400"
-msgid "Custom Content"
-msgstr "Custom Content"
-
-msgctxt "#32401"
+msgctxt "#32120"
 msgid "Custom Scripts"
 msgstr "Custom Scripts [NOT TESTED]"
 
-msgctxt "#32402"
-msgid "User Data"
-msgstr "User Data [NOT TESTED]"
-
 # Advanced Options
-msgctxt "#32500"
-msgid "Advanced Options"
-msgstr "Advanced Options"
-
-msgctxt "#32501"
+msgctxt "#32130"
 msgid "Differential Backup"
 msgstr "Differential Backup [NOT TESTED]"
 
-msgctxt "#32502"
-msgid "Compression Level"
-msgstr "Compression Level [NOT TESTED]"
+msgctxt "#32131"
+msgid "Advanced Compression"
+msgstr "Advanced Compression [NOT TESTED]"
 
-msgctxt "#32503"
-msgid "Backup Scheduling"
-msgstr "Backup Scheduling [NOT TESTED]"
+msgctxt "#32132"
+msgid "Advanced Scheduling"
+msgstr "Advanced Scheduling [NOT TESTED]"
 
-msgctxt "#32504"
+msgctxt "#32133"
 msgid "Cloud Storage Integration"
 msgstr "Cloud Storage Integration [NOT TESTED]"
 
-msgctxt "#32505"
-msgid "Advanced Settings"
-msgstr "Advanced Settings"
-
-msgctxt "#32506"
+msgctxt "#32134"
 msgid "System Logs"
 msgstr "System Logs"
 
-msgctxt "#32507"
+msgctxt "#32135"
 msgid "Crash Logs"
 msgstr "Crash Logs"
 
-msgctxt "#32508"
+msgctxt "#32136"
 msgid "Temporary Files"
 msgstr "Temporary Files"
 
-msgctxt "#32509"
+msgctxt "#32137"
 msgid "Verify Backup"
 msgstr "Verify Backup"
 
-msgctxt "#32510"
+msgctxt "#32138"
 msgid "Notification Method"
 msgstr "Notification Method"
 
-msgctxt "#32511"
+msgctxt "#32139"
 msgid "Configure Email Settings"
 msgstr "Configure Email Settings" 
