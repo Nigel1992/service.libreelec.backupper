@@ -14,29 +14,23 @@
 
 ## 🎯 What's New in 1.1.0 (March 13, 2025)
 
-We're excited to announce a major update focused on improving user experience and reliability:
+We've simplified the addon to focus on core functionality and reliability:
 
 - **Beautiful New UI** with enhanced notifications and progress reporting
 - **Real-time File Size Display** in notifications with addon icon
 - **Improved Progress Tracking** during backup/restore operations
-- **Reliable Background Service** for scheduled backups
 - **Test Connection Feature** to verify your remote storage settings
-- **Separated Service Architecture** for better stability
+- **Simplified Backup Options** focusing on essential items only
 
-## 🚀 Key Features
+## 🚀 Available Backup Items
 
-- **Flexible Storage Options**
-  - Local storage backup
-  - SMB (Windows shares)
-  - NFS support
-  - FTP/SFTP support
-  - WebDAV compatibility
+The addon focuses on backing up the most important parts of your LibreELEC system:
 
-- **Smart Backup Management**
-  - Configurable schedules
-  - Adjustable compression
-  - Retention policies
-  - One-click restore
+- **Configuration Files** - System and addon configuration files
+- **Installed Add-ons** - Your installed Kodi addons
+- **Add-on User Data and Settings** - Personal settings and data for your addons
+- **Repositories** - Your addon repositories
+- **Sources** - Media source locations and settings
 
 ## 📋 System Requirements
 
@@ -52,93 +46,61 @@ We're excited to announce a major update focused on improving user experience an
    ```
 
 2. **Configure Settings**
-   - Set backup location
-   - Configure schedule
-   - Adjust compression
-   - Set retention policy
+   - Choose backup location (Local or Remote)
+   - Set compression level
+   - Configure notifications
+   - Set maximum backups to keep
 
 3. **Start Backing Up**
-   - Click the addon to open
-   - Choose "Make Backup"
+   - Click "Backup Now"
    - Watch the progress
    - Done!
 
-## 📚 Documentation
+## 📚 Available Options Explained
 
-### Creating Backups
+### General Settings
+- **Backup Location Type**: Choose between Local or Remote storage
+- **Remote Storage Options**: 
+  - Supports SMB, NFS, FTP, SFTP, and WebDAV
+  - Test connection feature
+  - Username/password authentication
+  - Custom port configuration
+- **Notifications**:
+  - Enable/disable notifications
+  - Choose detailed or simple notifications
+- **Backup Management**:
+  - Set maximum number of backups (5-50)
+  - Choose compression level (None/Fast/Normal/Maximum)
+  - Customize backup naming (Date/Custom/Both)
 
-1. Open LibreELEC Backupper
-2. Select "Make Backup"
-3. Watch the progress indicator
-4. Receive completion notification with size
+### Backup Items
+Each item can be toggled individually:
+- **Configuration Files**: System-wide configuration
+- **Installed Add-ons**: Your Kodi addons
+- **Add-on User Data**: Personal settings and data
+- **Repositories**: Addon sources
+- **Sources**: Media locations
 
-### Restoring Backups
-
-1. Open LibreELEC Backupper
-2. Select "Restore Backup"
-3. Choose your backup
-4. Confirm and wait
-5. Restart when prompted
-
-## 🚧 Upcoming Features (NOT TESTED)
-
-> **Important Note:** The following features are still in development and have **NOT BEEN TESTED**. They are planned for future releases but are not currently available:
-
-### System & Network
-- **FSTAB Support** - Mount points configuration backup
-- **Bootloader Settings** - System boot configuration
-- **Network Configuration**
-  - WiFi Configuration
-  - Hosts File
-  - Samba Settings
-  - VPN Configuration
-  - SSH Configuration
-
-### Media & User Data
-- **Media Management**
-  - Playlists
-  - Thumbnails/Fanart
-  - Media Database
-- **User Preferences**
-  - User Profiles
-  - Game Saves
-  - Skins
-  - Favourites
-  - Keyboard Mappings
-
-### Security
-- **Security Features**
-  - Password Management
-  - Certificates Backup
-  - SSH Keys
-  - Backup Encryption
-
-### Advanced Features
-- **System Maintenance**
-  - System Logs
-  - Crash Logs
-  - Temporary Files Management
-- **Custom Content**
-  - Custom Scripts
-  - Custom Configurations
-- **Enhanced Notifications**
-  - Alternative Notification Methods
-  - Email Notifications
-
-### Previously Listed Features
-- **Differential Backups** - Only backup changed files
-- **Cloud Storage** - Google Drive/Dropbox integration
-- **Remote Management** - Web/mobile control
-- **Multi-system Support** - Manage multiple devices
-- **Backup Verification** - Integrity checking
+### Actions
+- **Backup Now**: Start an immediate backup
+- **Restore Backup**: Restore from a previous backup
+- **View Backups**: Browse existing backups
 
 ## 🔍 Troubleshooting
 
 Common solutions for:
-- Connection issues
-- Space problems
-- Permission errors
-- Schedule conflicts
+- **Connection Issues**
+  - Check remote server settings
+  - Verify network connectivity
+  - Test connection before backup
+- **Space Problems**
+  - Ensure sufficient storage
+  - Check compression settings
+  - Manage backup retention
+- **Permission Errors**
+  - Verify credentials
+  - Check folder permissions
+  - Ensure write access
 
 Need more help? Check our [Forum](https://forum.libreelec.tv/) or [GitHub Issues](https://github.com/Nigel1992/service.libreelec.backupper/issues).
 
@@ -166,5 +128,5 @@ GPL-2.0 License - see [LICENSE](LICENSE)
 
 <div align="center">
   <b>Protect Your LibreELEC System Today!</b><br>
-  <i>Simple, Reliable, Automated Backups</i>
+  <i>Simple, Reliable Backups</i>
 </div>
