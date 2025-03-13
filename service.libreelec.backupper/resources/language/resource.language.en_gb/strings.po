@@ -148,6 +148,14 @@ msgctxt "#32032"
 msgid "Configuration Files"
 msgstr "Configuration Files"
 
+msgctxt "#32033"
+msgid "FSTAB (Mount Points)"
+msgstr "FSTAB (Mount Points)"
+
+msgctxt "#32034"
+msgid "Bootloader Settings"
+msgstr "Bootloader Settings"
+
 # Backup Items - Add-ons
 msgctxt "#32040"
 msgid "Add-ons"
@@ -158,8 +166,12 @@ msgid "Installed Add-ons"
 msgstr "Installed Add-ons"
 
 msgctxt "#32042"
-msgid "Add-on User Data"
-msgstr "Add-on User Data"
+msgid "Add-on User Data and Settings"
+msgstr "Add-on User Data and Settings"
+
+msgctxt "#32044"
+msgid "Repositories"
+msgstr "Repositories"
 
 # Backup Items - Media
 msgctxt "#32050"
@@ -178,6 +190,10 @@ msgctxt "#32053"
 msgid "Thumbnails/Fanart"
 msgstr "Thumbnails/Fanart"
 
+msgctxt "#32054"
+msgid "Media Database"
+msgstr "Media Database"
+
 # Backup Items - User Data
 msgctxt "#32060"
 msgid "User Data"
@@ -194,6 +210,14 @@ msgstr "Game Saves"
 msgctxt "#32063"
 msgid "Skins"
 msgstr "Skins"
+
+msgctxt "#32064"
+msgid "Favourites"
+msgstr "Favourites"
+
+msgctxt "#32065"
+msgid "Keyboard Mappings"
+msgstr "Keyboard Mappings"
 
 # Actions
 msgctxt "#32070"
@@ -235,4 +259,113 @@ msgstr "Restore failed"
 
 msgctxt "#32106"
 msgid "No backups found"
-msgstr "No backups found" 
+msgstr "No backups found"
+
+# Credits
+msgctxt "#32080"
+msgid "Image Credits"
+msgstr "Image Credits"
+
+# Network Settings
+msgctxt "#32090"
+msgid "Network Configuration"
+msgstr "Network Configuration"
+
+msgctxt "#32091"
+msgid "Network Settings"
+msgstr "Network Settings"
+
+msgctxt "#32092"
+msgid "WiFi Configuration"
+msgstr "WiFi Configuration"
+
+msgctxt "#32093"
+msgid "Hosts File"
+msgstr "Hosts File"
+
+msgctxt "#32094"
+msgid "Samba Settings"
+msgstr "Samba Settings"
+
+msgctxt "#32095"
+msgid "VPN Configuration"
+msgstr "VPN Configuration"
+
+msgctxt "#32096"
+msgid "SSH Configuration"
+msgstr "SSH Configuration"
+
+# Security Settings
+msgctxt "#32110"
+msgid "Security Configuration"
+msgstr "Security Configuration"
+
+msgctxt "#32111"
+msgid "Passwords"
+msgstr "Passwords"
+
+msgctxt "#32112"
+msgid "Certificates"
+msgstr "Certificates"
+
+msgctxt "#32113"
+msgid "SSH Keys"
+msgstr "SSH Keys"
+
+msgctxt "#32114"
+msgid "Encrypt Backup"
+msgstr "Encrypt Backup"
+
+msgctxt "#32115"
+msgid "Encryption Key"
+msgstr "Encryption Key"
+
+# Custom Content
+msgctxt "#32120"
+msgid "Custom Scripts and Data"
+msgstr "Custom Scripts and Data"
+
+msgctxt "#32121"
+msgid "Custom Scripts"
+msgstr "Custom Scripts"
+
+msgctxt "#32122"
+msgid "Custom Scripts Location"
+msgstr "Custom Scripts Location"
+
+msgctxt "#32123"
+msgid "Custom Configurations"
+msgstr "Custom Configurations"
+
+msgctxt "#32124"
+msgid "Custom Configs Location"
+msgstr "Custom Configs Location"
+
+# Advanced Options
+msgctxt "#32130"
+msgid "Advanced Settings"
+msgstr "Advanced Settings"
+
+msgctxt "#32131"
+msgid "System Logs"
+msgstr "System Logs"
+
+msgctxt "#32132"
+msgid "Crash Logs"
+msgstr "Crash Logs"
+
+msgctxt "#32133"
+msgid "Temporary Files"
+msgstr "Temporary Files"
+
+msgctxt "#32134"
+msgid "Verify Backup"
+msgstr "Verify Backup"
+
+msgctxt "#32135"
+msgid "Notification Method"
+msgstr "Notification Method"
+
+msgctxt "#32136"
+msgid "Configure Email Settings"
+msgstr "Configure Email Settings" 
