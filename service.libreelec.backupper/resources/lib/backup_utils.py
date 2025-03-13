@@ -538,9 +538,15 @@ class BackupManager:
         if self.addon.getSettingBool('show_notifications'):
             if self.addon.getSettingBool('detailed_notifications') and detailed_info:
                 message = f"{message} - {detailed_info}"
+            
+            # Make backup/restore notifications persistent by default
+            if any(keyword in message.lower() for keyword in ['backup', 'restore']):
+                persistent = True
+            
             # For persistent notifications, use a longer timeout (30 seconds)
             # For non-persistent, use the default 3 seconds
             timeout = 30000 if persistent else 3000
+            
             # Get the addon icon path
             icon = xbmcvfs.translatePath(os.path.join(self.addon.getAddonInfo('path'), 'resources', 'icon.png'))
             xbmc.executebuiltin(f'Notification({self.addon.getAddonInfo("name")}, {message}, {timeout}, {icon})')
