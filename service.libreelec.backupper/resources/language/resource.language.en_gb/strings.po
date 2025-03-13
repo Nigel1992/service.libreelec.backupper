@@ -136,25 +136,26 @@ msgid "Next Scheduled Backup"
 msgstr "Next Scheduled Backup"
 
 # Backup Items - System
-msgctxt "#32030"
-msgid "System"
+msgid "30100"
 msgstr "System"
 
-msgctxt "#32031"
-msgid "Config.txt"
+msgid "30101"
+msgstr "FSTAB (Mount Points) [NOT TESTED]"
+
+msgid "30102"
+msgstr "Bootloader Settings [NOT TESTED]"
+
+msgid "30103"
 msgstr "Config.txt"
 
-msgctxt "#32032"
-msgid "Configuration Files"
+msgid "30104"
 msgstr "Configuration Files"
 
-msgctxt "#32033"
-msgid "FSTAB (Mount Points)"
-msgstr "FSTAB (Mount Points)"
+msgid "30105"
+msgstr "Configuration Files"
 
-msgctxt "#32034"
-msgid "Bootloader Settings"
-msgstr "Bootloader Settings"
+msgid "30106"
+msgstr "FSTAB (Mount Points) [NOT TESTED]"
 
 # Backup Items - Add-ons
 msgctxt "#32040"
@@ -195,9 +196,8 @@ msgid "Media Database"
 msgstr "Media Database"
 
 # Backup Items - User Data
-msgctxt "#32060"
-msgid "User Data"
-msgstr "User Data"
+msgid "30402"
+msgstr "User Data [NOT TESTED]"
 
 msgctxt "#32061"
 msgid "Profiles"
@@ -267,105 +267,86 @@ msgid "Image Credits"
 msgstr "Image Credits"
 
 # Network Settings
-msgctxt "#32090"
-msgid "Network Configuration"
-msgstr "Network Configuration"
-
-msgctxt "#32091"
-msgid "Network Settings"
+msgid "30200"
 msgstr "Network Settings"
 
-msgctxt "#32092"
-msgid "WiFi Configuration"
-msgstr "WiFi Configuration"
+msgid "30201"
+msgstr "Network Configuration [NOT TESTED]"
 
-msgctxt "#32093"
-msgid "Hosts File"
+msgid "30202"
+msgstr "VPN Settings [NOT TESTED]"
+
+msgid "30203"
+msgstr "Samba Shares [NOT TESTED]"
+
+msgid "30204"
+msgstr "NFS Mounts [NOT TESTED]"
+
+msgid "30205"
 msgstr "Hosts File"
 
-msgctxt "#32094"
-msgid "Samba Settings"
+msgid "30206"
 msgstr "Samba Settings"
 
-msgctxt "#32095"
-msgid "VPN Configuration"
-msgstr "VPN Configuration"
-
-msgctxt "#32096"
-msgid "SSH Configuration"
-msgstr "SSH Configuration"
+msgid "30207"
+msgstr "WiFi Configuration"
 
 # Security Settings
-msgctxt "#32110"
-msgid "Security Configuration"
-msgstr "Security Configuration"
+msgid "30300"
+msgstr "Security Settings"
 
-msgctxt "#32111"
-msgid "Passwords"
-msgstr "Passwords"
+msgid "30301"
+msgstr "SSH Keys [NOT TESTED]"
 
-msgctxt "#32112"
-msgid "Certificates"
-msgstr "Certificates"
+msgid "30302"
+msgstr "SSL Certificates [NOT TESTED]"
 
-msgctxt "#32113"
-msgid "SSH Keys"
-msgstr "SSH Keys"
-
-msgctxt "#32114"
-msgid "Encrypt Backup"
-msgstr "Encrypt Backup"
-
-msgctxt "#32115"
-msgid "Encryption Key"
-msgstr "Encryption Key"
+msgid "30303"
+msgstr "Firewall Rules [NOT TESTED]"
 
 # Custom Content
-msgctxt "#32120"
-msgid "Custom Scripts and Data"
-msgstr "Custom Scripts and Data"
+msgid "30400"
+msgstr "Custom Content"
 
-msgctxt "#32121"
-msgid "Custom Scripts"
-msgstr "Custom Scripts"
+msgid "30401"
+msgstr "Custom Scripts [NOT TESTED]"
 
-msgctxt "#32122"
-msgid "Custom Scripts Location"
-msgstr "Custom Scripts Location"
-
-msgctxt "#32123"
-msgid "Custom Configurations"
-msgstr "Custom Configurations"
-
-msgctxt "#32124"
-msgid "Custom Configs Location"
-msgstr "Custom Configs Location"
+msgid "30402"
+msgstr "User Data [NOT TESTED]"
 
 # Advanced Options
-msgctxt "#32130"
-msgid "Advanced Settings"
+msgid "30500"
+msgstr "Advanced Options"
+
+msgid "30501"
+msgstr "Differential Backup [NOT TESTED]"
+
+msgid "30502"
+msgstr "Compression Level [NOT TESTED]"
+
+msgid "30503"
+msgstr "Backup Scheduling [NOT TESTED]"
+
+msgid "30504"
+msgstr "Cloud Storage Integration [NOT TESTED]"
+
+msgid "30505"
 msgstr "Advanced Settings"
 
-msgctxt "#32131"
-msgid "System Logs"
+msgid "30506"
 msgstr "System Logs"
 
-msgctxt "#32132"
-msgid "Crash Logs"
+msgid "30507"
 msgstr "Crash Logs"
 
-msgctxt "#32133"
-msgid "Temporary Files"
+msgid "30508"
 msgstr "Temporary Files"
 
-msgctxt "#32134"
-msgid "Verify Backup"
+msgid "30509"
 msgstr "Verify Backup"
 
-msgctxt "#32135"
-msgid "Notification Method"
+msgid "30510"
 msgstr "Notification Method"
 
-msgctxt "#32136"
-msgid "Configure Email Settings"
+msgid "30511"
 msgstr "Configure Email Settings" 
