@@ -562,52 +562,15 @@ class BackupManager:
     
     def get_next_backup_time(self):
         """Calculate the next backup time based on schedule settings"""
-        if not self.addon.getSettingBool('enable_schedule'):
-            return None
-        
-        interval = int(self.addon.getSetting('backup_interval'))
-        if interval == 0:  # Disabled
-            return None
-        
-        now = datetime.now()
-        backup_time = datetime.strptime(self.addon.getSetting('backup_time'), '%H:%M').time()
-        
-        if interval == 1:  # Hourly
-            next_backup = now.replace(minute=backup_time.minute)
-            if next_backup <= now:
-                next_backup += timedelta(hours=1)
-        elif interval == 2:  # Daily
-            next_backup = now.replace(hour=backup_time.hour, minute=backup_time.minute)
-            if next_backup <= now:
-                next_backup += timedelta(days=1)
-        else:  # Weekly
-            target_day = int(self.addon.getSetting('backup_day'))
-            days_ahead = target_day - now.weekday()
-            if days_ahead <= 0:
-                days_ahead += 7
-            next_backup = now.replace(hour=backup_time.hour, minute=backup_time.minute)
-            next_backup += timedelta(days=days_ahead)
-        
-        return next_backup
+        return None
     
     def update_schedule_info(self):
         """Update the last and next backup time in settings"""
-        next_backup = self.get_next_backup_time()
-        if next_backup:
-            self.addon.setSetting('next_backup', next_backup.strftime('%Y-%m-%d %H:%M'))
-        else:
-            self.addon.setSetting('next_backup', '')
+        pass
     
     def should_run_backup(self):
         """Check if it's time to run a scheduled backup"""
-        if not self.addon.getSettingBool('enable_schedule'):
-            return False
-        
-        next_backup = self.get_next_backup_time()
-        if not next_backup:
-            return False
-        
-        return datetime.now() >= next_backup
+        return False
     
     def notify(self, message, detailed_info="", persistent=False):
         """Show notification if enabled"""
