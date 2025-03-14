@@ -9,35 +9,18 @@
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
         <summary lang="en_GB">Backup LibreELEC system to local or remote storage</summary>
-        <description lang="en_GB">Automatically backup your LibreELEC system to local or remote storage (SMB, NFS, FTP, SFTP, WebDAV). Configurable backup schedule, compression level, and retention policy.</description>
+        <description lang="en_GB">Backup and restore your LibreELEC configuration, addons, and user data. Supports local and remote storage (SMB, NFS, FTP, SFTP, WebDAV). Configurable compression level and retention policy.</description>
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-        <news>v1.1.0 (2025-03-13)
-- Major update with enhanced UI and notifications
-- Added file size information in backup/restore notifications with icon
-- Improved progress reporting with current/total size during backup
-- Added human-readable file size formatting (KB, MB, GB)
-- Fixed issue with addon not being clickable to run
-- Added script extension point to ensure addon can be run directly
-- Improved main menu functionality
-- Enhanced Test Connection functionality to work directly with UI values
-- Added progress dialog during connection testing
-- Improved service mode operation
-- Added proper background service functionality
-- Enhanced scheduled backup reliability
-- Completely separated service and script functionality
-- Added dedicated service.py file for background operations
-- Simplified addon.py to focus only on user interactions
-
-v1.0.0 (2025-03-11)
-- Initial release
-- Basic backup and restore functionality
-- Support for local and remote storage
-- Configurable backup schedule
-- Compression level options
-- Retention policy settings
-        </news>
+        <news>v1.1.0 (2024-03-20)
+- Fixed backup filename to correctly show 'userdata' instead of 'data'
+- Fixed temporary file cleanup and notification persistence
+- Improved error handling and logging
+- Enhanced backup reliability
+- Added support for remote storage options
+- Added compression level configuration
+- Added backup retention policy</news>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>

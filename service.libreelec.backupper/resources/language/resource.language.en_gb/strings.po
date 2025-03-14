@@ -21,10 +21,6 @@ msgctxt "#32001"
 msgid "General Settings"
 msgstr "General Settings"
 
-msgctxt "#32002"
-msgid "Schedule Settings"
-msgstr "Schedule Settings"
-
 msgctxt "#32003"
 msgid "Backup Items"
 msgstr "Backup Items"
@@ -97,31 +93,6 @@ msgstr "Test Connection"
 msgctxt "#32030"
 msgid "Configuration Files"
 msgstr "Configuration Files"
-
-# Schedule Settings
-msgctxt "#32020"
-msgid "Enable Scheduled Backups"
-msgstr "Enable Scheduled Backups"
-
-msgctxt "#32021"
-msgid "Backup Frequency"
-msgstr "Backup Frequency"
-
-msgctxt "#32022"
-msgid "Backup Time"
-msgstr "Backup Time"
-
-msgctxt "#32023"
-msgid "Backup Day"
-msgstr "Backup Day"
-
-msgctxt "#32024"
-msgid "Last Backup"
-msgstr "Last Backup"
-
-msgctxt "#32025"
-msgid "Next Scheduled Backup"
-msgstr "Next Scheduled Backup"
 
 # Backup Items
 msgctxt "#32030"

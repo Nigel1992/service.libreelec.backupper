@@ -14,6 +14,12 @@ A Kodi add-on for LibreELEC that allows you to backup and restore your system co
 - Test connection to remote locations
 - Notification options
 - Backup rotation (keep X most recent backups)
+- Backup and restore LibreELEC system configuration
+- Support for local and remote storage (SMB, NFS, FTP, SFTP, WebDAV)
+- Configurable compression levels
+- Backup retention policy
+- Detailed progress notifications
+- Backup verification
 
 ## Installation
 
