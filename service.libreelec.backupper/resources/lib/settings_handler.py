@@ -26,7 +26,7 @@ def handle_settings_action(action):
     if action == "browse_remote":
         # Launch the remote browser
         browser = RemoteBrowser()
-        browser.browse()
+        browser.browse_remote(mode='backup')
         
         # Refresh the settings screen to show updated values
         xbmc.executebuiltin('Container.Refresh')
