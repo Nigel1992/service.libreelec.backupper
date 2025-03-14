@@ -841,7 +841,7 @@ class BackupManager:
             if self.addon.getSettingBool('backup_repositories'):
                 backup_items.append('repos')
             if self.addon.getSettingBool('backup_userdata'):
-                backup_items.append('data')
+                backup_items.append('userdata')
             if self.addon.getSettingBool('backup_sources'):
                 backup_items.append('src')
             
