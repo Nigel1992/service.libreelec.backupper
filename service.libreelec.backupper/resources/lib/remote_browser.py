@@ -11,6 +11,8 @@ import socket
 import re
 import ftplib
 from urllib.parse import urlparse, unquote
+import json
+import time
 
 try:
     import paramiko
@@ -58,41 +60,43 @@ class RemoteBrowser:
         if not self.port:
             self.port = str(self.default_ports.get(self.remote_type, 0))
     
-    def browse(self):
-        """Main method to browse remote locations based on type"""
+    def browse(self, mode='backup'):
+        """Main method to browse remote locations based on type
+        mode: 'backup' for folder selection, 'restore' for file selection"""
         # Reload settings to ensure we have the latest values
         self.reload_settings()
         
         remote_types = ["SMB", "NFS", "FTP", "SFTP", "WebDAV"]
         current_type = remote_types[self.remote_type]
         
-        xbmc.log(f"{ADDON_ID}: Browsing {current_type} location", xbmc.LOGINFO)
+        xbmc.log(f"{ADDON_ID}: Browsing {current_type} location for {mode}", xbmc.LOGINFO)
         
         # Use Kodi's built-in file browser for SMB and WebDAV
         if self.remote_type in [0, 4]:  # SMB or WebDAV
-            return self.browse_with_kodi_browser(current_type)
+            return self.browse_with_kodi_browser(current_type, mode)
         elif self.remote_type == 1:  # NFS
             self.show_manual_entry_dialog("NFS")
-            return False
+            return None
         elif self.remote_type == 2:  # FTP
             self.show_manual_entry_dialog("FTP")
-            return False
+            return None
         elif self.remote_type == 3:  # SFTP
             if not SFTP_AVAILABLE:
                 xbmcgui.Dialog().ok("Missing Dependency", 
                                    "SFTP browsing requires the paramiko module which is not available.")
-                return False
+                return None
             self.show_manual_entry_dialog("SFTP")
-            return False
+            return None
         
-        return False
+        return None
     
-    def browse_with_kodi_browser(self, protocol_name):
-        """Use Kodi's built-in file browser to select a remote location"""
+    def browse_with_kodi_browser(self, protocol_name, mode='backup'):
+        """Use Kodi's built-in file browser to select a remote location
+        mode: 'backup' for folder selection, 'restore' for file selection"""
         dialog = xbmcgui.Dialog()
         
-        # Set up a generic heading
-        heading = "Select Remote Location"
+        # Set up heading based on mode
+        heading = "Select Backup Location" if mode == 'backup' else "Select Backup File"
         
         # Determine the starting path based on protocol
         if self.remote_type == 0:  # SMB
@@ -105,12 +109,19 @@ class RemoteBrowser:
             # Default to home directory
             start_path = "/"
         
-        # Use Kodi's built-in file browser
-        selected_path = dialog.browse(0, heading, 'files', '', False, False, start_path)
+        # Use Kodi's built-in file browser with appropriate mode
+        browse_type = 0 if mode == 'backup' else 1  # 0 for folders, 1 for files
+        file_mask = '|.zip' if mode == 'restore' else ''
+        selected_path = dialog.browse(browse_type, heading, 'files', file_mask, False, False, start_path)
         
         if not selected_path or selected_path == start_path:
             # User cancelled or didn't select anything
-            return False
+            return None
+        
+        # For restore mode, verify the selected file is a backup file
+        if mode == 'restore' and not selected_path.lower().endswith('.zip'):
+            dialog.ok("Invalid Selection", "Please select a backup file (.zip)")
+            return None
         
         # Process the selected path based on protocol
         if self.remote_type == 0:  # SMB
@@ -135,11 +146,38 @@ class RemoteBrowser:
                     self.password = unquote(parsed_url.password)
                     ADDON.setSetting('remote_password', self.password)
                 
-                dialog.ok("Location Selected", f"Selected path: {path}")
-                return True
+                if mode == 'restore':
+                    # Create a remote backup placeholder file
+                    temp_dir = os.path.join(xbmcvfs.translatePath('special://temp'), 'libreelec_backupper')
+                    os.makedirs(temp_dir, exist_ok=True)
+                    
+                    # Extract server and share from the path
+                    path_parts = path.split('/')
+                    server = path_parts[0]
+                    share = path_parts[1] if len(path_parts) > 1 else ''
+                    remote_dir = '/'.join(path_parts[2:]) if len(path_parts) > 2 else ''
+                    
+                    remote_info = {
+                        'remote_file': os.path.basename(path),
+                        'remote_path': f"{server}/{share}/{remote_dir}".rstrip('/'),
+                        'remote_type': self.remote_type,
+                        'remote_username': self.username,
+                        'remote_password': self.password,
+                        'remote_port': self.port
+                    }
+                    
+                    placeholder_file = os.path.join(temp_dir, f"remote_backup_{int(time.time())}.json")
+                    with open(placeholder_file, 'w') as f:
+                        json.dump(remote_info, f)
+                    
+                    dialog.ok("Backup Selected", f"Selected backup: {os.path.basename(path)}")
+                    return placeholder_file
+                else:
+                    dialog.ok("Location Selected", f"Selected backup location: {os.path.basename(path)}")
+                    return selected_path
             else:
                 dialog.ok("Invalid Selection", f"Please select a valid {protocol_name} location (starts with smb://)")
-                return False
+                return None
                 
         elif self.remote_type == 4:  # WebDAV
             # For WebDAV, accept any valid path since WebDAV can be accessed through various protocols
@@ -192,20 +230,75 @@ class RemoteBrowser:
                     else:
                         self.port = "80"
                         ADDON.setSetting('remote_port', self.port)
+                        
+                    if mode == 'restore':
+                        # Create a remote backup placeholder file
+                        temp_dir = os.path.join(xbmcvfs.translatePath('special://temp'), 'libreelec_backupper')
+                        os.makedirs(temp_dir, exist_ok=True)
+                        
+                        # Extract the directory path and filename
+                        dir_path = os.path.dirname(path_part)
+                        if dir_path.startswith('/'):
+                            dir_path = dir_path[1:]
+                        
+                        remote_info = {
+                            'remote_file': os.path.basename(path_part),
+                            'remote_path': f"{server}/{dir_path}".rstrip('/'),
+                            'remote_type': self.remote_type,
+                            'remote_username': self.username,
+                            'remote_password': self.password,
+                            'remote_port': self.port
+                        }
+                        
+                        placeholder_file = os.path.join(temp_dir, f"remote_backup_{int(time.time())}.json")
+                        with open(placeholder_file, 'w') as f:
+                            json.dump(remote_info, f)
+                        
+                        dialog.ok("Backup Selected", f"Selected backup: {os.path.basename(path_part)}")
+                        return placeholder_file
+                    else:
+                        dialog.ok("Location Selected", f"Selected backup location: {os.path.basename(path_part)}")
+                        return selected_path
                 else:
                     # For other paths, just store as is
                     self.remote_path = selected_path
                     ADDON.setSetting('remote_path', selected_path)
-                
-                dialog.ok("Location Selected", f"Selected path: {selected_path}")
-                return True
+                    
+                    if mode == 'restore':
+                        # Create a remote backup placeholder file
+                        temp_dir = os.path.join(xbmcvfs.translatePath('special://temp'), 'libreelec_backupper')
+                        os.makedirs(temp_dir, exist_ok=True)
+                        
+                        # Extract the directory path and filename
+                        dir_path = os.path.dirname(selected_path)
+                        if dir_path.startswith('/'):
+                            dir_path = dir_path[1:]
+                        
+                        remote_info = {
+                            'remote_file': os.path.basename(selected_path),
+                            'remote_path': dir_path.rstrip('/'),
+                            'remote_type': self.remote_type,
+                            'remote_username': self.username,
+                            'remote_password': self.password,
+                            'remote_port': self.port
+                        }
+                        
+                        placeholder_file = os.path.join(temp_dir, f"remote_backup_{int(time.time())}.json")
+                        with open(placeholder_file, 'w') as f:
+                            json.dump(remote_info, f)
+                        
+                        dialog.ok("Backup Selected", f"Selected backup: {os.path.basename(selected_path)}")
+                        return placeholder_file
+                    else:
+                        dialog.ok("Location Selected", f"Selected backup location: {os.path.basename(selected_path)}")
+                        return selected_path
                 
             except Exception as e:
                 xbmc.log(f"{ADDON_ID}: Error processing WebDAV path: {str(e)}", xbmc.LOGERROR)
                 dialog.ok("Error", f"Error processing selected path: {str(e)}")
-                return False
+                return None
         
-        return False
+        return None
     
     def test_connection(self):
         """Test the connection to the remote location"""
@@ -508,9 +601,10 @@ class RemoteBrowser:
         
         return False
 
-    def browse_remote(self):
-        """Browse remote locations - wrapper for the browse method"""
-        return self.browse()
+    def browse_remote(self, mode='backup'):
+        """Browse remote locations - wrapper for the browse method
+        mode: 'backup' for folder selection, 'restore' for file selection"""
+        return self.browse(mode)
 
 def main():
     browser = RemoteBrowser()
