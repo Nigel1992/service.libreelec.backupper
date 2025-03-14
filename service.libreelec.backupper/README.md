@@ -7,17 +7,11 @@ A Kodi add-on for LibreELEC that allows you to backup and restore your system co
 - Backup and restore system configurations
 - Backup and restore add-ons and repositories
 - Backup and restore user data
-- Scheduled backups (hourly, daily, weekly, monthly)
-- Compression options
 - Remote backup support (SMB, NFS, FTP, SFTP, WebDAV)
 - Browse remote locations using Kodi's built-in file browser
 - Test connection to remote locations
-- Notification options
+- Compression options
 - Backup rotation (keep X most recent backups)
-- Backup and restore LibreELEC system configuration
-- Support for local and remote storage (SMB, NFS, FTP, SFTP, WebDAV)
-- Configurable compression levels
-- Backup retention policy
 - Detailed progress notifications
 - Backup verification
 
@@ -45,13 +39,6 @@ A Kodi add-on for LibreELEC that allows you to backup and restore your system co
 - **Maximum Backups**: Number of backups to keep
 - **Compression Level**: None, Fast, Normal, Maximum
 - **Backup Naming**: Date and Time, Custom Name, or Date + Custom
-
-### Schedule Settings
-
-- **Enable Schedule**: Turn scheduling on/off
-- **Backup Interval**: Hourly, Daily, Weekly, Monthly
-- **Backup Time**: Time to run the backup
-- **Backup Day**: Day of the week (for weekly backups)
 
 ### Backup Items
 
