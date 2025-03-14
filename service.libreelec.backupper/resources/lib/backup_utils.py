@@ -872,13 +872,6 @@ class BackupManager:
                         
                     if os.path.isfile(path):
                         if not os.path.islink(path):  # Skip symbolic links
-                            # Mount /flash in read-write mode if backing up config.txt
-                            if path == '/flash/config.txt':
-                                if not self.mount_flash_rw():
-                                    xbmc.log("Failed to mount /flash in read-write mode", xbmc.LOGERROR)
-                                    continue
-                                xbmc.log("/flash mounted in read-write mode", xbmc.LOGINFO)
-                            
                             file_size = os.path.getsize(path)
                             total_size += file_size
                             
@@ -898,13 +891,6 @@ class BackupManager:
                                 
                             files_to_backup.append((path, arcname))
                             xbmc.log(f"Added file to backup: {path} as {arcname}", xbmc.LOGINFO)
-                            
-                            # Remount /flash as read-only if we mounted it
-                            if path == '/flash/config.txt':
-                                if not self.mount_flash_ro():
-                                    xbmc.log("Warning: Failed to remount /flash as read-only", xbmc.LOGWARNING)
-                                else:
-                                    xbmc.log("/flash remounted as read-only", xbmc.LOGINFO)
                     else:  # Directory
                         # Handle special directories differently
                         if item_name == 'addons':
