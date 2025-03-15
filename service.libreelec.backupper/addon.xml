@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.1.1" provider-name="Nigel1992">
+<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.1.2" provider-name="Nigel1992">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
@@ -8,12 +8,19 @@
     <extension point="xbmc.python.script" library="addon.py"/>
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
-        <summary lang="en_GB">Backup LibreELEC system to local or remote storage</summary>
-        <description lang="en_GB">Backup and restore your LibreELEC configuration, addons, and user data. Supports local and remote storage (SMB, NFS, FTP, SFTP, WebDAV). Configurable compression level and retention policy.</description>
+        <summary lang="en_GB">Backup LibreELEC system to local or remote storage with real-time progress</summary>
+        <description lang="en_GB">Backup and restore your LibreELEC configuration, addons, and user data with real-time progress tracking. Supports local and remote storage (SMB, NFS, FTP, SFTP, WebDAV). Features accurate file size display, optimized performance for small files, and configurable compression levels.</description>
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-        <news>v1.1.1 (2025-03-15)
+        <news>v1.1.2 (2025-03-15)
+- Improved backup progress tracking with real-time updates
+- Added accurate file size display during backup
+- Optimized performance for handling many small files
+- Enhanced progress notifications with current/total size display
+- Fixed compression method initialization
+
+v1.1.1 (2025-03-15)
 - Fixed config.txt not being included in backup archive
 - Improved section handling for flash configuration files
 - Added better logging for backup file processing

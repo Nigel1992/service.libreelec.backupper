@@ -7,20 +7,20 @@
 *Your reliable backup solution for LibreELEC*
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-green.svg)](service.libreelec.backupper/addon.xml)
+[![Version: 1.1.2](https://img.shields.io/badge/Version-1.1.2-green.svg)](service.libreelec.backupper/addon.xml)
 [![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
 
 </div>
 
-## 🎯 What's New in 1.1.0 (March 13, 2025)
+## 🎯 What's New in 1.1.2 (March 15, 2025)
 
-We've simplified the addon to focus on core functionality and reliability:
+We've enhanced the backup experience with improved progress tracking:
 
-- **Beautiful New UI** with enhanced notifications and progress reporting
-- **Real-time File Size Display** in notifications with addon icon
-- **Improved Progress Tracking** during backup/restore operations
-- **Test Connection Feature** to verify your remote storage settings
-- **Simplified Backup Options** focusing on essential items only
+- **Real-time Progress Updates** with accurate file size display
+- **Optimized Performance** for handling many small files
+- **Enhanced Progress Notifications** showing current/total size
+- **Improved Backup Speed** with efficient file processing
+- **Better User Experience** with clear progress indicators
 
 ## 🚀 Available Backup Items
 
@@ -42,7 +42,7 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
 
 1. **Install the Addon**
    ```
-   Add-ons > Install from zip file > Download and select service.libreelec.backupper-1.1.0.zip
+   Add-ons > Install from zip file > Download and select service.libreelec.backupper-1.1.2.zip
    ```
    > Note: Repository installation will be available soon!
 
@@ -54,7 +54,7 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
 
 3. **Start Backing Up**
    - Click "Backup Now"
-   - Watch the progress
+   - Watch the real-time progress
    - Done!
 
 ## 📚 Available Options Explained
@@ -68,7 +68,8 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
   - Custom port configuration
 - **Notifications**:
   - Enable/disable notifications
-  - Choose detailed or simple notifications
+  - Real-time progress updates
+  - File size tracking
 - **Backup Management**:
   - Set maximum number of backups (5-50)
   - Choose compression level (None/Fast/Normal/Maximum)
@@ -83,7 +84,7 @@ Each item can be toggled individually:
 - **Sources**: Media locations
 
 ### Actions
-- **Backup Now**: Start an immediate backup
+- **Backup Now**: Start an immediate backup with progress tracking
 - **Restore Backup**: Restore from a previous backup
 - **View Backups**: Browse existing backups
 
@@ -129,5 +130,5 @@ GPL-2.0 License - see [LICENSE](LICENSE)
 
 <div align="center">
   <b>Protect Your LibreELEC System Today!</b><br>
-  <i>Simple, Reliable Backups</i>
+  <i>Simple, Reliable Backups with Real-time Progress</i>
 </div>
