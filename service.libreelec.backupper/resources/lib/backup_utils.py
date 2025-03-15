@@ -575,7 +575,12 @@ class BackupManager:
     def notify(self, message, detailed_info="", persistent=False):
         """Show notification if enabled"""
         if self.addon.getSettingBool('show_notifications'):
-            if self.addon.getSettingBool('detailed_notifications') and detailed_info:
+            # Always show progress information regardless of detailed_notifications setting
+            if any(keyword in message.lower() for keyword in ['progress:', 'backing up', 'processed:']):
+                # For progress notifications, always show the detailed info
+                message = f"{message} - {detailed_info}" if detailed_info else message
+            # For other notifications, respect detailed_notifications setting
+            elif self.addon.getSettingBool('detailed_notifications') and detailed_info:
                 message = f"{message} - {detailed_info}"
             
             # Make backup/restore notifications persistent by default
@@ -781,6 +786,30 @@ class BackupManager:
         except Exception as e:
             xbmc.log(f"Error in destructor: {str(e)}")
 
+    def buffered_copy(self, source, dest, file_size, processed_size, total_size):
+        """Copy file with progress updates using buffered reads"""
+        buffer_size = 1024 * 1024  # 1MB buffer
+        bytes_copied = 0
+        last_update = 0
+        
+        while True:
+            chunk = source.read(buffer_size)
+            if not chunk:
+                break
+            dest.write(chunk)
+            bytes_copied += len(chunk)
+            current_total = processed_size + bytes_copied
+            
+            # Update progress every ~1% or at least every 1MB
+            progress = int((current_total / total_size) * 100) if total_size > 0 else 0
+            if progress > last_update or bytes_copied >= buffer_size:
+                last_update = progress
+                processed_formatted = self.format_size(current_total)
+                total_formatted = self.format_size(total_size)
+                self.notify("Backing up files", f"{processed_formatted} / {total_formatted} ({progress}%)")
+        
+        return bytes_copied
+
     def create_backup(self, backup_name=None):
         """Create a backup of the selected items"""
         try:
@@ -837,11 +866,12 @@ class BackupManager:
             
             try:
                 # Show initial notification
-                self.notify("Starting backup...", "Calculating backup size...")
+                self.notify("Starting backup...", "Calculating total size...")
                 
                 # Calculate total size and collect files to backup
                 total_size = 0
                 files_to_backup = []
+                processed_size = 0  # Track processed size
                 
                 # Process each path based on its type
                 for item_name, path in paths.items():
@@ -853,107 +883,64 @@ class BackupManager:
                         
                     if os.path.isfile(path):
                         if not os.path.islink(path):  # Skip symbolic links
-                            file_size = os.path.getsize(path)
-                            total_size += file_size
-                            
-                            # Determine the appropriate archive name for configuration files
-                            if item_name == 'config':
-                                arcname = 'flash/config.txt'  # Ensure config.txt goes to flash directory
-                            elif item_name == 'sources':
-                                arcname = 'userdata/sources.xml'
-                            elif item_name == 'guisettings':
-                                arcname = 'userdata/guisettings.xml'
-                            elif item_name == 'advancedsettings':
-                                arcname = 'userdata/advancedsettings.xml'
-                            elif item_name == 'keyboard':
-                                arcname = 'userdata/keyboard.xml'
-                            else:
-                                arcname = item_name
+                            try:
+                                file_size = os.path.getsize(path)
+                                total_size += file_size
                                 
-                            files_to_backup.append((path, arcname))
-                            xbmc.log(f"Added file to backup: {path} as {arcname}", xbmc.LOGINFO)
+                                # Determine the appropriate archive name for configuration files
+                                if item_name == 'config':
+                                    arcname = 'flash/config.txt'  # Ensure config.txt goes to flash directory
+                                elif item_name == 'sources':
+                                    arcname = 'userdata/sources.xml'
+                                elif item_name == 'guisettings':
+                                    arcname = 'userdata/guisettings.xml'
+                                elif item_name == 'advancedsettings':
+                                    arcname = 'userdata/advancedsettings.xml'
+                                elif item_name == 'keyboard':
+                                    arcname = 'userdata/keyboard.xml'
+                                else:
+                                    arcname = item_name
+                                    
+                                files_to_backup.append((path, arcname, file_size))
+                                xbmc.log(f"Added file to backup: {path} as {arcname} ({self.format_size(file_size)})", xbmc.LOGINFO)
+                            except OSError as e:
+                                xbmc.log(f"Error getting size for {path}: {str(e)}", xbmc.LOGWARNING)
+                                continue
                     else:  # Directory
-                        # Handle special directories differently
-                        if item_name == 'addons':
-                            # For addons directory, we need to exclude certain system addons
-                            for root, dirs, files in os.walk(path):
-                                # Skip certain system directories
-                                dirs[:] = [d for d in dirs if not d.startswith('.')]
-                                
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    if not os.path.islink(file_path):  # Skip symbolic links
-                                        try:
+                        for root, dirs, files in os.walk(path):
+                            for file in files:
+                                file_path = os.path.join(root, file)
+                                if not os.path.islink(file_path):  # Skip symbolic links
+                                    try:
+                                        file_size = os.path.getsize(file_path)
+                                        total_size += file_size
+                                        
+                                        # Determine relative path based on directory type
+                                        if item_name == 'addons':
                                             rel_path = os.path.relpath(file_path, os.path.dirname(path))
                                             arcname = rel_path
-                                            file_size = os.path.getsize(file_path)
-                                            total_size += file_size
-                                            files_to_backup.append((file_path, arcname))
-                                        except OSError:
-                                            continue
-                        elif item_name == 'addon_data':
-                            # For addon_data directory
-                            for root, dirs, files in os.walk(path):
-                                # Skip certain system directories
-                                dirs[:] = [d for d in dirs if not d.startswith('.')]
-                                
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    if not os.path.islink(file_path):  # Skip symbolic links
-                                        try:
+                                        elif item_name == 'addon_data':
                                             rel_path = os.path.relpath(file_path, os.path.dirname(path))
                                             arcname = f"userdata/{rel_path}"
-                                            file_size = os.path.getsize(file_path)
-                                            total_size += file_size
-                                            files_to_backup.append((file_path, arcname))
-                                        except OSError:
-                                            continue
-                        elif item_name == 'keymaps':
-                            # For keymaps directory
-                            for root, dirs, files in os.walk(path):
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    if not os.path.islink(file_path):  # Skip symbolic links
-                                        try:
+                                        elif item_name == 'keymaps':
                                             rel_path = os.path.relpath(file_path, path)
                                             arcname = f"userdata/keymaps/{rel_path}"
-                                            file_size = os.path.getsize(file_path)
-                                            total_size += file_size
-                                            files_to_backup.append((file_path, arcname))
-                                        except OSError:
-                                            continue
-                        elif item_name.startswith('repo_'):
-                            # For repository directories
-                            for root, dirs, files in os.walk(path):
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    if not os.path.islink(file_path):  # Skip symbolic links
-                                        try:
+                                        elif item_name.startswith('repo_'):
                                             rel_path = os.path.relpath(file_path, os.path.dirname(path))
                                             arcname = f"repo/{rel_path}"
-                                            file_size = os.path.getsize(file_path)
-                                            total_size += file_size
-                                            files_to_backup.append((file_path, arcname))
-                                        except OSError:
-                                            continue
-                        else:
-                            # For other directories
-                            for root, dirs, files in os.walk(path):
-                                for file in files:
-                                    file_path = os.path.join(root, file)
-                                    if not os.path.islink(file_path):  # Skip symbolic links
-                                        try:
+                                        else:
                                             rel_path = os.path.relpath(file_path, path)
                                             arcname = f"{item_name}/{rel_path}"
-                                            file_size = os.path.getsize(file_path)
-                                            total_size += file_size
-                                            files_to_backup.append((file_path, arcname))
-                                        except OSError:
-                                            continue
+                                        
+                                        files_to_backup.append((file_path, arcname, file_size))
+                                    except OSError as e:
+                                        xbmc.log(f"Error getting size for {file_path}: {str(e)}", xbmc.LOGWARNING)
+                                        continue
                 
                 xbmc.log(f"Total files to backup: {len(files_to_backup)}", xbmc.LOGINFO)
                 total_size_formatted = self.format_size(total_size)
-                self.notify("Starting backup...", f"Total size: {total_size_formatted}")
+                self.notify("Starting backup", f"Total size: {total_size_formatted}")
+                xbmc.log(f"Total backup size: {total_size_formatted} ({total_size} bytes)", xbmc.LOGINFO)
                 
                 # Create manifest
                 manifest = {
@@ -965,7 +952,7 @@ class BackupManager:
                     'total_size_formatted': total_size_formatted
                 }
                 
-                # Create zip file with proper compression level
+                # Set compression settings based on addon settings
                 compression_level = self.addon.getSettingInt('compression_level')
                 # Map compression settings to actual ZIP compression levels
                 compression_mapping = {
@@ -978,94 +965,64 @@ class BackupManager:
                 
                 # Create ZIP file with selected compression
                 with zipfile.ZipFile(backup_path, 'w', compression=compression_method, compresslevel=compression_strength, allowZip64=True) as zipf:
-                    # Group files by section for progress reporting
-                    section_files = {}
-                    for file_path, arcname in files_to_backup:
-                        # Determine the section based on the archive name
-                        if arcname.startswith('flash/'):
-                            section = 'flash'
-                        else:
-                            section = arcname.split('/')[0] if '/' in arcname else arcname
+                    # Process each file
+                    last_update_time = time.time()
+                    update_interval = 0.5  # Update progress every 0.5 seconds
+                    batch_size = 0  # Track size of current batch
+                    
+                    for file_path, arcname, file_size in files_to_backup:
+                        try:
+                            # Read and write directly to zip
+                            with open(file_path, 'rb') as source:
+                                # Create a ZipInfo object for more control
+                                info = zipfile.ZipInfo(arcname)
+                                info.file_size = file_size
+                                info.compress_type = compression_method
+                                
+                                # Open entry in zip file
+                                with zipf.open(info, mode='w') as dest:
+                                    # Copy with batched progress updates
+                                    buffer_size = 1024 * 1024  # 1MB buffer
+                                    bytes_copied = 0
+                                    
+                                    while True:
+                                        chunk = source.read(buffer_size)
+                                        if not chunk:
+                                            break
+                                        
+                                        dest.write(chunk)
+                                        bytes_copied += len(chunk)
+                                        processed_size += len(chunk)
+                                        batch_size += len(chunk)
+                                        
+                                        # Update progress based on time interval
+                                        current_time = time.time()
+                                        if current_time - last_update_time >= update_interval:
+                                            progress = int((processed_size / total_size) * 100) if total_size > 0 else 0
+                                            processed_formatted = self.format_size(processed_size)
+                                            total_formatted = self.format_size(total_size)
+                                            
+                                            # Update progress notification
+                                            self.notify("Backing up files", f"{processed_formatted} / {total_formatted} ({progress}%)")
+                                            last_update_time = current_time
+                                            batch_size = 0  # Reset batch size
                         
-                        if section not in section_files:
-                            section_files[section] = []
-                        section_files[section].append((file_path, arcname))
-                        xbmc.log(f"Grouped file {file_path} as {arcname} into section {section}", xbmc.LOGINFO)
-                    
-                    # Get selected backup items for progress reporting
-                    selected_items = []
-                    if self.addon.getSettingBool('backup_configs'):
-                        selected_items.append('flash')  # Add flash section for config.txt
-                        selected_items.append('config')
-                        selected_items.append('userdata')
-                    if self.addon.getSettingBool('backup_addons'):
-                        selected_items.append('addons')
-                    if self.addon.getSettingBool('backup_repositories'):
-                        selected_items.append('repo')
-                    if self.addon.getSettingBool('backup_userdata'):
-                        if 'userdata' not in selected_items:
-                            selected_items.append('userdata')
-                    if self.addon.getSettingBool('backup_sources'):
-                        selected_items.append('sources')
-                    
-                    # Remove duplicates while preserving order
-                    selected_items = list(dict.fromkeys(selected_items))
-                    
-                    # Backup each section
-                    total_sections = len(selected_items)
-                    processed_sections = 0
-                    
-                    # Process files by section for better progress reporting
-                    for section_name in selected_items:
-                        if section_name not in section_files:
-                            xbmc.log(f"Skipping empty section: {section_name}", xbmc.LOGINFO)
-                            continue
+                            manifest['backed_up_files'].append(arcname)
                             
-                        processed_sections += 1
-                        section_progress = int((processed_sections / total_sections) * 100)
-                        
-                        # Get display name for the section
-                        display_name = {
-                            'flash': 'Flash Configuration',
-                            'config': 'Configuration Files',
-                            'addons': 'Addons',
-                            'userdata': 'User Data',
-                            'sources': 'Sources',
-                            'repo': 'Repositories'
-                        }.get(section_name, section_name)
-                        
-                        # Calculate section size
-                        section_size = sum(os.path.getsize(f[0]) for f in section_files[section_name])
-                        section_size_formatted = self.format_size(section_size)
-                        
-                        # Notify about section start with persistent notification
-                        self.notify(f"Backing up {display_name}", f"Size: {section_size_formatted}")
-                        
-                        # Add files from this section to zip
-                        section_file_count = len(section_files[section_name])
-                        for idx, (file_path, arcname) in enumerate(section_files[section_name]):
-                            try:
-                                # Add file to zip
-                                zipf.write(file_path, arcname)
-                                manifest['backed_up_files'].append(arcname)
-                                xbmc.log(f"Added to zip: {file_path} as {arcname}", xbmc.LOGINFO)
-                                
-                                # Update progress more frequently with persistent notifications
-                                if idx % 10 == 0 or idx == section_file_count - 1:
-                                    file_progress = int((idx + 1) / section_file_count * 100)
-                                    self.notify(f"Backing up {display_name}", f"Progress: {file_progress}%")
-                                
-                            except Exception as e:
-                                xbmc.log(f"Error backing up file {file_path}: {str(e)}", xbmc.LOGERROR)
-                        
-                        # Notify about section completion with persistent notification
-                        self.notify(f"Completed {display_name}", f"Section {processed_sections}/{total_sections}")
+                        except Exception as e:
+                            xbmc.log(f"Error backing up file {file_path}: {str(e)}", xbmc.LOGERROR)
+                    
+                    # Show final progress
+                    progress = int((processed_size / total_size) * 100) if total_size > 0 else 0
+                    processed_formatted = self.format_size(processed_size)
+                    total_formatted = self.format_size(total_size)
+                    self.notify("Backing up files", f"{processed_formatted} / {total_formatted} ({progress}%)")
                     
                     # Add manifest file
                     zipf.writestr('manifest.json', json.dumps(manifest, indent=4))
-                    
-                    # Show final progress with persistent notification
-                    self.notify("Backup completed", "Creating final archive...")
+                
+                # Show completion notification
+                self.notify("Backup completed", f"Total size: {total_size_formatted}")
                 
                 # Get final backup size
                 final_size = os.path.getsize(backup_path)
