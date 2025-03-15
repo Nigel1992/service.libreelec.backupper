@@ -630,8 +630,26 @@ class BackupManager:
         
         # Configuration Files
         if self.addon.getSettingBool('backup_configs'):
+            # Create temp directory if it doesn't exist
+            if not self.temp_dir:
+                self.temp_dir = os.path.join(xbmc.translatePath('special://temp'), 'libreelec_backupper')
+                os.makedirs(self.temp_dir, exist_ok=True)
+                self._temp_files.add(self.temp_dir)  # Track for cleanup
+
+            # Handle config.txt specially - copy to temp location first
+            config_src = '/flash/config.txt'
+            if os.path.exists(config_src):
+                config_temp = os.path.join(self.temp_dir, 'config.txt')
+                try:
+                    shutil.copy2(config_src, config_temp)
+                    self._temp_files.add(config_temp)  # Track for cleanup
+                    paths['config'] = config_temp  # Use temp location for backup
+                    xbmc.log(f"Copied config.txt to temp location: {config_temp}", xbmc.LOGINFO)
+                except Exception as e:
+                    xbmc.log(f"Failed to copy config.txt: {str(e)}", xbmc.LOGERROR)
+
+            # Add other config files
             config_paths = {
-                'config': '/flash/config.txt',
                 'guisettings': os.path.join(self.kodi_userdata, 'guisettings.xml'),
                 'advancedsettings': os.path.join(self.kodi_userdata, 'advancedsettings.xml'),
                 'keyboard': os.path.join(self.kodi_userdata, 'keyboard.xml'),
@@ -840,7 +858,7 @@ class BackupManager:
                             
                             # Determine the appropriate archive name for configuration files
                             if item_name == 'config':
-                                arcname = 'flash/config.txt'
+                                arcname = 'flash/config.txt'  # Ensure config.txt goes to flash directory
                             elif item_name == 'sources':
                                 arcname = 'userdata/sources.xml'
                             elif item_name == 'guisettings':
@@ -963,14 +981,21 @@ class BackupManager:
                     # Group files by section for progress reporting
                     section_files = {}
                     for file_path, arcname in files_to_backup:
-                        section = arcname.split('/')[0] if '/' in arcname else arcname
+                        # Determine the section based on the archive name
+                        if arcname.startswith('flash/'):
+                            section = 'flash'
+                        else:
+                            section = arcname.split('/')[0] if '/' in arcname else arcname
+                        
                         if section not in section_files:
                             section_files[section] = []
                         section_files[section].append((file_path, arcname))
+                        xbmc.log(f"Grouped file {file_path} as {arcname} into section {section}", xbmc.LOGINFO)
                     
                     # Get selected backup items for progress reporting
                     selected_items = []
                     if self.addon.getSettingBool('backup_configs'):
+                        selected_items.append('flash')  # Add flash section for config.txt
                         selected_items.append('config')
                         selected_items.append('userdata')
                     if self.addon.getSettingBool('backup_addons'):
@@ -983,6 +1008,9 @@ class BackupManager:
                     if self.addon.getSettingBool('backup_sources'):
                         selected_items.append('sources')
                     
+                    # Remove duplicates while preserving order
+                    selected_items = list(dict.fromkeys(selected_items))
+                    
                     # Backup each section
                     total_sections = len(selected_items)
                     processed_sections = 0
@@ -990,6 +1018,7 @@ class BackupManager:
                     # Process files by section for better progress reporting
                     for section_name in selected_items:
                         if section_name not in section_files:
+                            xbmc.log(f"Skipping empty section: {section_name}", xbmc.LOGINFO)
                             continue
                             
                         processed_sections += 1
@@ -997,6 +1026,7 @@ class BackupManager:
                         
                         # Get display name for the section
                         display_name = {
+                            'flash': 'Flash Configuration',
                             'config': 'Configuration Files',
                             'addons': 'Addons',
                             'userdata': 'User Data',
@@ -1018,6 +1048,7 @@ class BackupManager:
                                 # Add file to zip
                                 zipf.write(file_path, arcname)
                                 manifest['backed_up_files'].append(arcname)
+                                xbmc.log(f"Added to zip: {file_path} as {arcname}", xbmc.LOGINFO)
                                 
                                 # Update progress more frequently with persistent notifications
                                 if idx % 10 == 0 or idx == section_file_count - 1:
