@@ -1,0 +1,21 @@
+[B]1.1.1[/B] (2025-03-15)
+- Fixed config.txt not being included in backup archive
+- Improved section handling for flash configuration files
+- Added better logging for backup file processing
+
+[B]1.1.0[/B] (2024-03-20)
+- Fixed backup filename to correctly show 'userdata' instead of 'data'
+- Fixed temporary file cleanup and notification persistence
+- Improved error handling and logging
+- Enhanced backup reliability
+- Added support for remote storage options
+- Added compression level configuration
+- Added backup retention policy
+
+[B]1.0.0[/B] (2024-03-19)
+- Initial release
+- Basic backup and restore functionality
+- Support for local storage
+- Configuration file backup
+- Addon backup
+- User data backup 
