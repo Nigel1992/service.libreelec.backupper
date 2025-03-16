@@ -36,3 +36,7 @@ Thumbs.db
 *.tmp
 *.zip 
 update-git-history.sh
+
+# Kodi log files
+kodi.log
+*.log
