@@ -12,6 +12,8 @@
 
 </div>
 
+## NOTE: The restore functionality is still being worked on !
+
 ## 🎯 What's New in 1.2.0 (March 16, 2025)
 
 We've added powerful scheduling features and improved the overall experience:
