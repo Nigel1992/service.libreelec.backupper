@@ -41,6 +41,8 @@ class BackupManager:
         self._webdav_session = None  # Persistent WebDAV session
         self.temp_dir = None  # Initialize temp_dir
         self._cleanup_old_temp_files()  # Clean up any old temp files on startup
+        self.progress_dialog = None  # Initialize progress dialog
+        self.current_notification = None  # Track current notification
     
     def update_backup_location(self):
         """Update backup location from settings"""
@@ -327,45 +329,129 @@ class BackupManager:
     
     def upload_file(self, local_path, remote_filename):
         """Upload a file to the remote location"""
-        if self.location_type == 0:  # Local
-            # Just copy the file to the backup directory
-            dest_path = os.path.join(self.backup_dir, remote_filename)
-            shutil.copy2(local_path, dest_path)
-            return True
-        
         try:
+            if not os.path.exists(local_path):
+                return False
+
+            file_size = os.path.getsize(local_path)
+            file_size_str = self.format_size(file_size)
+            
+            # Show initial upload notification
+            self.notify("Uploading backup...", persistent=True)
+            self.update_progress(0, "Uploading backup...", f"Size: {file_size_str}")
+
             if self.remote_type == 0:  # SMB
-                # Use xbmcvfs to copy the file
                 remote_path = self.get_remote_path(remote_filename)
-                return xbmcvfs.copy(local_path, remote_path)
+                with open(local_path, 'rb') as local_file:
+                    with xbmcvfs.File(remote_path, 'wb') as remote_file:
+                        bytes_uploaded = 0
+                        last_update = time.time()
+                        update_interval = 0.5  # Update every 0.5 seconds
+                        chunk_size = 8192  # 8KB chunks
+                        
+                        while True:
+                            chunk = local_file.read(chunk_size)
+                            if not chunk:
+                                break
+                                
+                            remote_file.write(chunk)
+                            bytes_uploaded += len(chunk)
+                            current_time = time.time()
+                            
+                            if current_time - last_update >= update_interval:
+                                progress = int((bytes_uploaded / file_size) * 100)
+                                uploaded_str = self.format_size(bytes_uploaded)
+                                
+                                # Update progress dialog only
+                                self.update_progress(
+                                    progress,
+                                    "Uploading backup...",
+                                    f"{uploaded_str} / {file_size_str}"
+                                )
+                                
+                                last_update = current_time
                 
             elif self.remote_type == 1:  # NFS
-                # Copy the file to the mounted directory
-                remote_path = self.get_remote_path(remote_filename)
-                shutil.copy2(local_path, remote_path)
-                return True
+                if not self.remote_connection:
+                    return False
+                dest_path = os.path.join(self.remote_connection, remote_filename)
+                self.buffered_copy(local_path, dest_path, file_size, 0, file_size)
                 
             elif self.remote_type == 2:  # FTP
-                # Upload the file via FTP
-                with open(local_path, 'rb') as f:
-                    self.remote_connection.storbinary(f'STOR {remote_filename}', f)
-                return True
+                if not self.remote_connection:
+                    return False
+                    
+                with open(local_path, 'rb') as local_file:
+                    self.remote_connection.storbinary(
+                        f'STOR {remote_filename}',
+                        local_file,
+                        callback=lambda sent: self._upload_progress_callback(sent, file_size)
+                    )
                 
             elif self.remote_type == 3:  # SFTP
-                # Upload the file via SFTP
-                self.remote_connection.put(local_path, remote_filename)
-                return True
+                if not self.remote_connection:
+                    return False
+                    
+                def progress_callback(sent, total):
+                    self._upload_progress_callback(sent, total)
+                
+                self.remote_connection.put(local_path, remote_filename, callback=progress_callback)
                 
             elif self.remote_type == 4:  # WebDAV
-                # Upload the file via WebDAV
-                remote_url = self.get_remote_path(remote_filename)
-                with open(local_path, 'rb') as f:
-                    response = self.remote_connection['session'].put(remote_url, data=f)
-                    return response.status_code in [200, 201, 204]
+                if not self.remote_connection:
+                    return False
+                    
+                url = self.remote_connection['base_url'].rstrip('/') + '/' + remote_filename
+                session = self.remote_connection['session']
+                
+                with open(local_path, 'rb') as local_file:
+                    response = session.put(url, data=self._create_upload_generator(local_file, file_size))
+                    
+                if response.status_code not in [200, 201, 204]:
+                    return False
+
+            # Show completion notification
+            self.notify("Upload complete", persistent=True)
+            self.update_progress(100, "Upload complete")
+            return True
                 
         except Exception as e:
-            xbmc.log(f"Error uploading file to remote location: {str(e)}", xbmc.LOGERROR)
+            xbmc.log(f"Error uploading file: {str(e)}", xbmc.LOGERROR)
             return False
+            
+    def _upload_progress_callback(self, sent, total):
+        """Callback for upload progress"""
+        progress = int((sent / total) * 100)
+        sent_str = self.format_size(sent)
+        total_str = self.format_size(total)
+        
+        # Update progress dialog only
+        self.update_progress(
+            progress,
+            "Uploading backup...",
+            f"{sent_str} / {total_str}"
+        )
+        
+    def _create_upload_generator(self, file_obj, total_size):
+        """Create a generator for uploading files with progress tracking"""
+        bytes_uploaded = 0
+        chunk_size = 8192  # 8KB chunks
+        last_update = time.time()
+        update_interval = 0.5  # Update every 0.5 seconds
+        
+        while True:
+            chunk = file_obj.read(chunk_size)
+            if not chunk:
+                break
+                
+            bytes_uploaded += len(chunk)
+            current_time = time.time()
+            
+            if current_time - last_update >= update_interval:
+                self._upload_progress_callback(bytes_uploaded, total_size)
+                last_update = current_time
+                
+            yield chunk
     
     def download_file(self, remote_filename, local_path):
         """Download a file from the remote location"""
@@ -453,7 +539,7 @@ class BackupManager:
             elif self.remote_type == 4:  # WebDAV
                 # List files via WebDAV
                 xbmc.log(f"Listing WebDAV files from: {self.remote_connection['base_url']}", xbmc.LOGINFO)
-                xbmc.log(f"Using WebDAV credentials: username={self.remote_username}, password={'*' * len(self.remote_password) if self.remote_password else 'None'}", xbmc.LOGINFO)
+                xbmc.log(f"Using WebDAV credentials: username={self.remote_username}, password=****************", xbmc.LOGINFO)
                 
                 response = self.remote_connection['session'].request(
                     'PROPFIND', 
@@ -572,28 +658,59 @@ class BackupManager:
         """Check if it's time to run a scheduled backup"""
         return False
     
-    def notify(self, message, detailed_info="", persistent=False):
+    def notify(self, message, detailed_info="", persistent=False, progress=False):
         """Show notification if enabled"""
-        if self.addon.getSettingBool('show_notifications'):
-            # Always show progress information regardless of detailed_notifications setting
-            if any(keyword in message.lower() for keyword in ['progress:', 'backing up', 'processed:']):
-                # For progress notifications, always show the detailed info
-                message = f"{message} - {detailed_info}" if detailed_info else message
-            # For other notifications, respect detailed_notifications setting
-            elif self.addon.getSettingBool('detailed_notifications') and detailed_info:
-                message = f"{message} - {detailed_info}"
+        if not self.addon.getSettingBool('show_notifications'):
+            return
+
+        # Format the message
+        if any(keyword in message.lower() for keyword in ['progress:', 'backing up', 'processed:', 'uploading', 'copying']):
+            # For progress notifications, always show the detailed info
+            display_message = f"{message} - {detailed_info}" if detailed_info else message
+        elif self.addon.getSettingBool('detailed_notifications') and detailed_info:
+            display_message = f"{message} - {detailed_info}"
+        else:
+            display_message = message
+
+        # Handle progress dialog for backup/restore operations
+        if progress:
+            if not self.progress_dialog:
+                self.progress_dialog = xbmcgui.DialogProgressBG()
+                self.progress_dialog.create(self.addon.getAddonInfo("name"), display_message)
+            else:
+                self.progress_dialog.update(0, message=display_message)
+            return
+
+        # Get the addon icon path
+        icon = xbmcvfs.translatePath(os.path.join(self.addon.getAddonInfo('path'), 'resources', 'icon.png'))
+
+        # Show notification
+        if persistent:
+            xbmcgui.Dialog().notification(
+                self.addon.getAddonInfo("name"),
+                display_message,
+                icon,
+                0  # Time to display: 0 means persistent
+            )
+        else:
+            xbmcgui.Dialog().notification(
+                self.addon.getAddonInfo("name"),
+                display_message,
+                icon,
+                5000  # Time to display in milliseconds
+            )
+
+    def close_progress(self):
+        """Close the progress dialog if it exists"""
+        if self.progress_dialog:
+            self.progress_dialog.close()
+            self.progress_dialog = None
             
-            # Make backup/restore notifications persistent by default
-            if any(keyword in message.lower() for keyword in ['backup', 'restore', 'progress']):
-                persistent = True
-            
-            # For persistent notifications, use a longer timeout (30 seconds)
-            # For non-persistent, use the default 3 seconds
-            timeout = 30000 if persistent else 3000
-            
-            # Get the addon icon path
-            icon = xbmcvfs.translatePath(os.path.join(self.addon.getAddonInfo('path'), 'resources', 'icon.png'))
-            xbmc.executebuiltin(f'Notification({self.addon.getAddonInfo("name")}, {message}, {timeout}, {icon})')
+    def update_progress(self, percent, message, detailed_info=""):
+        """Update the progress dialog"""
+        if self.progress_dialog:
+            display_message = f"{message} - {detailed_info}" if detailed_info else message
+            self.progress_dialog.update(percent, message=display_message)
     
     def format_size(self, size_bytes):
         """Format file size in bytes to human-readable format"""
@@ -699,6 +816,7 @@ class BackupManager:
     
     def cleanup_resources(self):
         """Clean up resources before addon shutdown"""
+        self.close_progress()
         try:
             # Close WebDAV session if it exists
             if hasattr(self, '_webdav_session') and self._webdav_session is not None:
@@ -780,39 +898,61 @@ class BackupManager:
             xbmc.log(f"Error in cleanup_current_session: {str(e)}")
 
     def __del__(self):
-        """Destructor to ensure cleanup"""
-        try:
-            self.cleanup_current_session()
-        except Exception as e:
-            xbmc.log(f"Error in destructor: {str(e)}")
+        """Cleanup when object is destroyed"""
+        self.close_progress()
+        self.cleanup_resources()
 
     def buffered_copy(self, source, dest, file_size, processed_size, total_size):
-        """Copy file with progress updates using buffered reads"""
-        buffer_size = 1024 * 1024  # 1MB buffer
+        """Copy file with progress tracking"""
+        CHUNK_SIZE = 8192  # 8KB chunks
         bytes_copied = 0
-        last_update = 0
+        last_update = time.time()
+        update_interval = 0.5  # Update every 0.5 seconds
         
-        while True:
-            chunk = source.read(buffer_size)
-            if not chunk:
-                break
-            dest.write(chunk)
-            bytes_copied += len(chunk)
-            current_total = processed_size + bytes_copied
-            
-            # Update progress every ~1% or at least every 1MB
-            progress = int((current_total / total_size) * 100) if total_size > 0 else 0
-            if progress > last_update or bytes_copied >= buffer_size:
-                last_update = progress
-                processed_formatted = self.format_size(current_total)
-                total_formatted = self.format_size(total_size)
-                self.notify("Backing up files", f"{processed_formatted} / {total_formatted} ({progress}%)")
+        with open(source, 'rb') as src, open(dest, 'wb') as dst:
+            while True:
+                chunk = src.read(CHUNK_SIZE)
+                if not chunk:
+                    break
+                
+                dst.write(chunk)
+                bytes_copied += len(chunk)
+                current_time = time.time()
+                
+                # Update progress at intervals
+                if current_time - last_update >= update_interval:
+                    # Calculate percentages
+                    file_percent = int((bytes_copied / file_size) * 100)
+                    total_percent = int(((processed_size + bytes_copied) / total_size) * 100)
+                    
+                    # Format sizes
+                    current_size = self.format_size(processed_size + bytes_copied)
+                    total_size_str = self.format_size(total_size)
+                    
+                    # Update progress
+                    self.update_progress(
+                        total_percent,
+                        f"Copying files... ({current_size} / {total_size_str})",
+                        f"{file_percent}% of current file"
+                    )
+                    
+                    # Show notification
+                    self.notify(
+                        "Copying files...",
+                        f"{current_size} / {total_size_str}",
+                        persistent=True
+                    )
+                    
+                    last_update = current_time
         
         return bytes_copied
 
     def create_backup(self, backup_name=None):
         """Create a backup of the selected items"""
         try:
+            # Show initial progress
+            self.notify("Starting backup process...", progress=True)
+            
             # Clean up any old temporary files first
             self._cleanup_old_temp_files()
             
@@ -825,13 +965,16 @@ class BackupManager:
             
             # Connect to remote location if needed
             if self.location_type != 0:  # Remote
+                self.notify("Connecting to remote location...", persistent=True)
                 if not self.connect_remote():
-                    self.notify("Backup failed", "Failed to connect to remote location")
+                    self.notify("Backup failed", "Failed to connect to remote location", persistent=True)
+                    self.close_progress()
                     return False, "Failed to connect to remote location"
             
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             
             # Get paths to backup
+            self.notify("Gathering files to backup...", persistent=True)
             paths = self.get_backup_paths()
             
             # Log the paths that will be backed up
@@ -839,7 +982,8 @@ class BackupManager:
             
             # Don't create empty backups
             if not paths:
-                self.notify("Backup failed", "No items selected for backup")
+                self.notify("Backup failed", "No items selected for backup", persistent=True)
+                self.close_progress()
                 return False, "No items selected for backup"
             
             # Create backup name with included items
@@ -865,9 +1009,6 @@ class BackupManager:
             self._temp_files.add(self.temp_dir)  # Track temp directory for cleanup
             
             try:
-                # Show initial notification
-                self.notify("Starting backup...", "Calculating total size...")
-                
                 # Calculate total size and collect files to backup
                 total_size = 0
                 files_to_backup = []
@@ -1034,7 +1175,8 @@ class BackupManager:
                 if self.location_type != 0:  # Remote
                     self.notify("Uploading backup...", size_info)
                     if not self.upload_file(backup_path, f'{backup_name}.zip'):
-                        self.notify("Backup failed", "Failed to upload to remote location")
+                        self.notify("Backup failed", "Failed to upload to remote location", persistent=True)
+                        self.close_progress()
                         self.disconnect_remote()
                         return False, "Failed to upload backup to remote location"
                 else:  # Local
@@ -1058,14 +1200,14 @@ class BackupManager:
                 
             except Exception as e:
                 error_msg = f"Error creating backup: {str(e)}"
-                self.notify("Backup failed", error_msg)
+                self.notify("Backup failed", error_msg, persistent=True)
                 if self.location_type != 0:  # Remote
                     self.disconnect_remote()
                 return False, error_msg
                 
         except Exception as e:
             error_msg = f"Error in create_backup: {str(e)}"
-            self.notify("Backup failed", error_msg)
+            self.notify("Backup failed", error_msg, persistent=True)
             if self.location_type != 0:  # Remote
                 self.disconnect_remote()
             return False, error_msg
@@ -1566,102 +1708,3 @@ class BackupManager:
         finally:
             # Clean up temporary files after successful restore
             self.cleanup_current_session()
-    
-    def get_backup_date(self, backup_file):
-        """Extract date from backup filename"""
-        try:
-            # Extract date from filename format: backup_[items]_YYYYMMDD_HHMMSS.zip
-            filename = os.path.basename(backup_file)
-            date_part = filename.split('_')[-2] + '_' + filename.split('_')[-1].replace('.zip', '')
-            date_obj = datetime.strptime(date_part, '%Y%m%d_%H%M%S')
-            return date_obj.strftime('%Y-%m-%d %H:%M:%S')
-        except:
-            return "Unknown date"
-    
-    def get_backup_info(self, backup_file):
-        """Get information about what's included in a backup"""
-        try:
-            with zipfile.ZipFile(backup_file, 'r') as zipf:
-                with zipf.open('manifest.json') as f:
-                    manifest = json.load(f)
-                return manifest['items']
-        except:
-            return []
-
-    def sanitize_filename(self, filename):
-        """Sanitize filename to handle encoding issues"""
-        try:
-            # Replace any problematic characters with their closest ASCII equivalent
-            filename = filename.encode('ascii', 'replace').decode('ascii')
-            # Remove any remaining problematic characters
-            return ''.join(char for char in filename if ord(char) < 128)
-        except Exception:
-            # If all else fails, return a safe string
-            return 'invalid_filename'
-
-    def verify_backup(self, backup_file):
-        """Verify the integrity of a backup file"""
-        if not os.path.exists(backup_file):
-            return False, "Backup file not found"
-
-        try:
-            # Test ZIP file integrity
-            with zipfile.ZipFile(backup_file, 'r') as zipf:
-                # First test the ZIP file structure
-                test_result = zipf.testzip()
-                if test_result is not None:
-                    return False, f"Corrupt ZIP file, first bad file: {test_result}"
-
-                # Verify manifest exists and is valid JSON
-                try:
-                    manifest_data = zipf.read('manifest.json')
-                    try:
-                        manifest = json.loads(manifest_data.decode('utf-8'))
-                    except UnicodeDecodeError:
-                        # Try with a more lenient encoding if UTF-8 fails
-                        manifest = json.loads(manifest_data.decode('latin-1'))
-                except Exception as e:
-                    return False, f"Invalid or missing manifest: {str(e)}"
-
-                # Log what's being verified
-                xbmc.log(f"Verifying backup: {backup_file}", xbmc.LOGINFO)
-                xbmc.log(f"Manifest items: {', '.join(str(item) for item in manifest['items'])}", xbmc.LOGINFO)
-
-                # Get list of all files in the ZIP
-                try:
-                    zip_files = set(self.sanitize_filename(name) for name in zipf.namelist())
-                    zip_files.discard('manifest.json')  # Remove manifest from comparison
-                except Exception as e:
-                    return False, f"Error reading ZIP contents: {str(e)}"
-
-                # If we have backed_up_files in manifest, use that for verification
-                if 'backed_up_files' in manifest:
-                    manifest_files = set(self.sanitize_filename(name) for name in manifest['backed_up_files'])
-                    
-                    # Compare files in ZIP vs manifest (using sanitized names)
-                    missing_files = manifest_files - zip_files
-                    extra_files = zip_files - manifest_files
-
-                    if missing_files:
-                        xbmc.log(f"Missing files in backup: {', '.join(sorted(missing_files))}", xbmc.LOGERROR)
-                        return False, f"Missing files in backup: {', '.join(sorted(missing_files)[:5])}..."
-
-                    if extra_files:
-                        # Just log extra files but don't fail verification
-                        xbmc.log(f"Extra files in backup (not in manifest): {', '.join(sorted(extra_files))}", xbmc.LOGWARNING)
-
-                xbmc.log("Backup verification completed successfully", xbmc.LOGINFO)
-                return True, "Backup verified successfully"
-
-        except Exception as e:
-            error_msg = f"Error verifying backup: {str(e)}"
-            xbmc.log(error_msg, xbmc.LOGERROR)
-            return False, error_msg
-            
-        finally:
-            # Clean up after verification
-            try:
-                if 'temp_dir' in locals():
-                    shutil.rmtree(temp_dir, ignore_errors=True)
-            except Exception as e:
-                xbmc.log(f"Error during cleanup: {str(e)}", xbmc.LOGERROR) 

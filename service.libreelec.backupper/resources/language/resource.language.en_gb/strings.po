@@ -33,6 +33,10 @@ msgctxt "#32005"
 msgid "Credits"
 msgstr "Credits"
 
+msgctxt "#32006"
+msgid "Scheduler"
+msgstr ""
+
 # General Settings
 msgctxt "#32010"
 msgid "Backup Location"
@@ -160,6 +164,83 @@ msgstr "Restore failed"
 msgctxt "#32086"
 msgid "No backups found"
 msgstr "No backups found"
+
+msgctxt "#32087"
+msgid "Starting scheduled backup..."
+msgstr "Starting scheduled backup..."
+
+msgctxt "#32088"
+msgid "Scheduled backup completed successfully"
+msgstr "Scheduled backup completed successfully"
+
+msgctxt "#32089"
+msgid "Scheduled backup failed"
+msgstr "Scheduled backup failed"
+
+msgctxt "#32097"
+msgid "Scheduled backup in 1 minute"
+msgstr "Scheduled backup in 1 minute"
+
+msgctxt "#32098"
+msgid "Running missed scheduled backup"
+msgstr "Running missed scheduled backup"
+
+msgctxt "#32099"
+msgid "Running missed backup from %s"
+msgstr "Running missed backup from %s"
+
+msgctxt "#32080"
+msgid "Enable Scheduled Backups"
+msgstr ""
+
+msgctxt "#32081"
+msgid "Backup Frequency"
+msgstr ""
+
+msgctxt "#32082"
+msgid "Backup Time"
+msgstr ""
+
+msgctxt "#32083"
+msgid "Day of Week"
+msgstr ""
+
+msgctxt "#32084"
+msgid "Day of Month"
+msgstr ""
+
+msgctxt "#32085"
+msgid "Run Missed Backups"
+msgstr ""
+
+# Scheduler Settings
+msgctxt "#32090"
+msgid "Enable Scheduler"
+msgstr "Enable Scheduler"
+
+msgctxt "#32091"
+msgid "Run Backup if Missed"
+msgstr "Run Backup if Missed"
+
+msgctxt "#32092"
+msgid "Backup Frequency"
+msgstr "Backup Frequency"
+
+msgctxt "#32093"
+msgid "Backup Time"
+msgstr "Backup Time"
+
+msgctxt "#32094"
+msgid "Day of Week"
+msgstr "Day of Week"
+
+msgctxt "#32095"
+msgid "Day of Month"
+msgstr "Day of Month"
+
+msgctxt "#32096"
+msgid "DEBUG: Allow multiple backups per day"
+msgstr ""
 
 # Credits
 msgctxt "#32150"
