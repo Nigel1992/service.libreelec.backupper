@@ -17,12 +17,16 @@ LibreELEC Backupper is a reliable backup solution for your LibreELEC system. It 
 
 ### Key Features
 
+- Automated backup scheduling (Daily/Weekly/Monthly)
 - Beautiful and intuitive user interface
 - Real-time progress tracking and file size display
 - Flexible storage options (Local/Remote)
 - Essential backup items selection
 - Compression options
 - Backup management
+- Debug mode for advanced users
+- Countdown notifications for scheduled backups
+- Persistent upload status tracking
 
 ### System Requirements
 
@@ -32,9 +36,9 @@ LibreELEC Backupper is a reliable backup solution for your LibreELEC system. It 
 
 ## Getting Started
 
-1. Download the latest release (`service.libreelec.backupper-1.1.0.zip`)
+1. Download the latest release (`service.libreelec.backupper-1.2.0.zip`)
 2. Install via Kodi's "Install from zip file" option
-3. Configure your backup settings
+3. Configure your backup settings and schedule
 4. Start backing up your system
 
 For detailed instructions, visit our [Installation Guide](Installation) and [Configuration Guide](Configuration). 

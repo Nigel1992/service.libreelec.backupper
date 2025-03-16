@@ -23,9 +23,22 @@ If using remote storage:
 - **Port**: Custom port if needed (leave as 0 for default)
 - **Test Connection**: Verify your remote storage settings
 
+### Scheduling Options
+- **Enable Scheduling**: Turn automated backups on/off
+- **Backup Frequency**:
+  - Daily: Run backup every day
+  - Weekly: Choose a specific day of the week
+  - Monthly: Choose a specific day of the month
+- **Backup Time**: Set the time for scheduled backups (24-hour format)
+- **Retention Count**: Number of backups to keep for scheduled backups
+- **Debug Mode**: Allow multiple backups per day (advanced users)
+
 ### Notifications
 - **Show Notifications**: Enable/disable backup notifications
 - **Detailed Notifications**: Show additional information like file sizes and progress
+- **Countdown Notifications**: Show countdown for scheduled backups
+- **Upload Status**: Display persistent notifications during file uploads
+- **Completion Alerts**: Notify when backups finish or fail
 
 ### Backup Management
 - **Maximum Backups**: Keep between 5-50 backups (older ones are automatically deleted)
@@ -70,9 +83,11 @@ Available actions in the addon:
    - Verify credentials and permissions
 
 3. **Backup Strategy**
-   - Regular backups of essential items
+   - Set up automated backups for regular protection
+   - Choose appropriate scheduling frequency
    - Test restore process occasionally
    - Keep at least 2-3 known good backups
+   - Monitor backup logs periodically
 
 For backup and restore instructions, see:
 - [Backup Guide](Backup)

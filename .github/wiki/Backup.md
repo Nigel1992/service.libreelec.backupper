@@ -1,85 +1,73 @@
 # Backup Guide
 
-This guide explains how to create and manage backups using LibreELEC Backupper.
+This guide explains how to perform backups using LibreELEC Backupper.
 
-## Before You Start
+## Backup Methods
 
-1. **Check Configuration**
-   - Verify backup location is set
-   - Ensure enough storage space
-   - Test remote connection if using network storage
-
-2. **Select Backup Items**
-   - Choose which items to backup:
-     - Configuration Files
-     - Installed Add-ons
-     - Add-on User Data
-     - Repositories
-     - Sources
-
-## Creating a Backup
-
-### Method 1: Quick Backup
-1. Open LibreELEC Backupper
+### Manual Backup
+1. Open the addon
 2. Click "Backup Now"
-3. Wait for completion notification
+3. Monitor progress through notifications
+4. Wait for completion confirmation
 
-### Method 2: Custom Backup
-1. Open addon settings
-2. Adjust backup items
-3. Set compression level
-4. Click "Backup Now"
-5. Monitor progress
+### Scheduled Backup (New!)
+1. Enable scheduling in settings
+2. Choose frequency:
+   - Daily: Runs every day at specified time
+   - Weekly: Runs on chosen day of week
+   - Monthly: Runs on chosen day of month
+3. Set backup time (24-hour format)
+4. Configure retention count
+5. Optional: Enable debug mode for multiple daily backups
 
-## During Backup
+## Monitoring Backups
 
-The addon will:
-1. Check available space
-2. Prepare selected items
-3. Create backup archive
-4. Apply compression
-5. Save to destination
-6. Show completion notification
+### Real-time Progress
+- Watch file count and size progress
+- View current file being processed
+- See estimated time remaining
 
-## After Backup
-
-1. **Verify Backup**
-   - Check backup location
-   - Ensure correct file size
-   - Note backup name for future reference
-
-2. **Manage Backups**
-   - Remove old backups if needed
-   - Keep track of what was backed up
-   - Consider testing restore process
+### Notifications
+- Countdown alerts for scheduled backups
+- Persistent upload status during transfers
+- Completion notifications
+- Error alerts if issues occur
 
 ## Backup Management
 
-### Viewing Backups
-1. Open LibreELEC Backupper
-2. Select "View Backups"
-3. Browse available backups
+### Storage Options
+- Local storage on LibreELEC system
+- Remote storage (SMB, NFS, FTP, SFTP, WebDAV)
+- Compression levels for space saving
 
-### Backup Retention
-- System automatically manages backups
-- Keeps number specified in settings (5-50)
-- Oldest backups removed first
+### Retention Settings
+- Set maximum number of backups
+- Configure scheduled backup retention
+- Automatic cleanup of old backups
 
 ## Best Practices
 
-1. **Regular Backups**
-   - Back up after major changes
-   - Keep multiple versions
-   - Use meaningful names
+1. **Schedule Selection**
+   - Choose appropriate frequency for your needs
+   - Set convenient backup times
+   - Consider system usage patterns
 
-2. **Space Management**
-   - Monitor backup sizes
+2. **Storage Management**
+   - Monitor available space
    - Use appropriate compression
-   - Clean up old backups
+   - Set reasonable retention limits
 
-3. **Documentation**
-   - Note what was backed up
-   - Record any special settings
-   - Keep track of successful backups
+3. **Verification**
+   - Check backup logs regularly
+   - Verify backup contents periodically
+   - Test restore process occasionally
+
+## Troubleshooting
+
+If you encounter issues:
+- Check [Troubleshooting Guide](Troubleshooting)
+- Review system logs
+- Verify storage permissions
+- Test network connectivity for remote storage
 
 For restore instructions, see the [Restore Guide](Restore). 

@@ -1,42 +1,54 @@
 # Installation Guide
 
-This guide will walk you through installing LibreELEC Backupper on your system.
+This guide will help you install LibreELEC Backupper on your system.
 
-## Prerequisites
+## Download
 
-Before installing, ensure your system meets these requirements:
-- LibreELEC 10.0 or newer
-- Kodi 19 (Matrix) or newer
-- Sufficient storage space for backups
+1. Visit the [Releases Page](https://github.com/Nigel1992/service.libreelec.backupper/releases)
+2. Download the latest version: `service.libreelec.backupper-1.2.0.zip`
 
 ## Installation Steps
 
-1. **Download the Addon**
-   - Visit the [Releases page](https://github.com/Nigel1992/service.libreelec.backupper/releases)
-   - Download `service.libreelec.backupper-1.1.0.zip`
-   - Do not extract the zip file
+1. Open Kodi on your LibreELEC system
+2. Go to Add-ons
+3. Select "Install from zip file"
+4. Navigate to where you downloaded the zip file
+5. Select `service.libreelec.backupper-1.2.0.zip`
+6. Wait for the installation confirmation
 
-2. **Install in Kodi**
-   - Open Kodi
-   - Go to Add-ons
-   - Click the package icon (top-left)
-   - Select "Install from zip file"
-   - Navigate to where you downloaded the zip file
-   - Select `service.libreelec.backupper-1.1.0.zip`
-   - Wait for the installation confirmation
+## Initial Setup
 
-3. **First-Time Setup**
-   - Go to Add-ons
-   - Find "LibreELEC Backupper" under Program Add-ons
-   - Open the addon settings
-   - Configure your backup location and preferences
+After installation:
 
-## Post-Installation
+1. Configure Backup Location
+   - Choose Local or Remote storage
+   - Set up connection details if using remote storage
 
-After installation, you should:
-1. Configure your backup location (local or remote)
-2. Set up notifications if desired
-3. Choose which items to backup
-4. Test the backup process
+2. Configure Scheduling (New!)
+   - Enable/disable automated backups
+   - Choose backup frequency (Daily/Weekly/Monthly)
+   - Set preferred backup time
+   - Configure retention settings
 
-For detailed configuration instructions, see the [Configuration Guide](Configuration). 
+3. Choose Backup Items
+   - Select which items to include
+   - Configure compression settings
+   - Set notification preferences
+
+4. Test Configuration
+   - Run a test backup
+   - Verify backup location access
+   - Check notifications
+
+## Next Steps
+
+- Read the [Configuration Guide](Configuration) for detailed settings
+- Set up your [Backup Strategy](Backup)
+- Learn about [Restore Options](Restore)
+
+## Troubleshooting
+
+If you encounter any issues during installation:
+- Check the [Troubleshooting Guide](Troubleshooting)
+- Visit our [FAQ](FAQ)
+- Report issues on [GitHub](https://github.com/Nigel1992/service.libreelec.backupper/issues) 

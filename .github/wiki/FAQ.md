@@ -11,6 +11,9 @@ A: LibreELEC Backupper supports LibreELEC 10.0 and newer versions, running Kodi 
 ### Q: Where can I get the latest version?
 A: Download the latest version from our [GitHub Releases page](https://github.com/Nigel1992/service.libreelec.backupper/releases).
 
+### What's new in version 1.2.0?
+Version 1.2.0 introduces automated backup scheduling, allowing you to set up daily, weekly, or monthly backups. It also includes debug mode for multiple daily backups, countdown notifications, and improved status tracking.
+
 ## Installation
 
 ### Q: How do I install the addon?
@@ -55,6 +58,32 @@ A: We support:
 ### Q: How do I test remote storage?
 A: Use the "Test Connection" feature in the addon settings after configuring your remote storage details.
 
+## Scheduling Questions
+
+### How do I set up automated backups?
+Go to the addon settings, enable scheduling, choose your preferred frequency (daily/weekly/monthly), set the backup time, and configure retention settings.
+
+### Can I run multiple backups per day?
+Yes, with the new debug mode enabled, you can run multiple backups per day. This is useful for testing or when you need more frequent backups.
+
+### What happens if my system is off during a scheduled backup?
+The backup will run at the next system startup if the scheduled time was missed. You can configure notifications to be informed about missed backups.
+
+### How do I change the backup schedule?
+You can modify the schedule anytime in the addon settings. Changes take effect immediately, and the next backup time will be recalculated.
+
+### Can I temporarily disable scheduled backups?
+Yes, you can disable scheduling in the addon settings without losing your schedule configuration. Re-enable it when you want to resume automated backups.
+
+## Storage and Performance
+
+### Q: How much space do backups need?
+A: Space requirements vary based on:
+- Number of installed addons
+- Amount of user data
+- Compression level used
+- Number of backups kept
+
 ## Troubleshooting
 
 ### Q: What if backup fails?
@@ -87,4 +116,21 @@ A: Open an issue on our [GitHub Issues page](https://github.com/Nigel1992/servic
 - Detailed description
 - Steps to reproduce
 - System information
-- Log files if available 
+- Log files if available
+
+## Feature Requests
+
+### Can I request new features?
+Yes! Visit our [GitHub Issues](https://github.com/Nigel1992/service.libreelec.backupper/issues) page to submit feature requests or report bugs.
+
+### What features are planned for future releases?
+We're constantly improving the addon based on user feedback. Some planned features include:
+- More scheduling options
+- Advanced retention policies
+- Cloud storage support
+- Backup encryption
+
+For more detailed information, check our:
+- [Configuration Guide](Configuration)
+- [Backup Guide](Backup)
+- [Restore Guide](Restore) 
