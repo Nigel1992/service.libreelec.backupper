@@ -7,20 +7,32 @@
 *Your reliable backup solution for LibreELEC*
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version: 1.1.2](https://img.shields.io/badge/Version-1.1.2-green.svg)](service.libreelec.backupper/addon.xml)
+[![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-green.svg)](service.libreelec.backupper/addon.xml)
 [![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
 
 </div>
 
-## 🎯 What's New in 1.1.2 (March 15, 2025)
+## 🎯 What's New in 1.2.0 (March 16, 2025)
 
-We've enhanced the backup experience with improved progress tracking:
+We've added powerful scheduling features and improved the overall experience:
 
-- **Real-time Progress Updates** with accurate file size display
-- **Optimized Performance** for handling many small files
-- **Enhanced Progress Notifications** showing current/total size
-- **Improved Backup Speed** with efficient file processing
-- **Better User Experience** with clear progress indicators
+### NEW FEATURES
+- **Automated Backups** with flexible scheduling options
+- **Debug Mode** allowing multiple backups per day
+- **Countdown Notifications** for scheduled backups
+- **Persistent Upload Notifications** for better tracking
+
+### IMPROVEMENTS
+- **Enhanced Scheduling Logic** for reliable automated backups
+- **Improved Notification System** with proper icon display
+- **Better Error Handling** and detailed logging
+- **Detailed Backup Status** tracking and reporting
+
+### FIXES
+- Fixed notification icon display issues
+- Fixed syntax error in backup utilities
+- Fixed multiple backup runs on same day
+- Fixed scheduler timing precision
 
 ## 🚀 Available Backup Items
 
@@ -42,7 +54,7 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
 
 1. **Install the Addon**
    ```
-   Add-ons > Install from zip file > Download and select service.libreelec.backupper-1.1.2.zip
+   Add-ons > Install from zip file > Download and select service.libreelec.backupper-1.2.0.zip
    ```
    > Note: Repository installation will be available soon!
 
@@ -51,9 +63,11 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
    - Set compression level
    - Configure notifications
    - Set maximum backups to keep
+   - Configure backup schedule (NEW!)
 
 3. **Start Backing Up**
-   - Click "Backup Now"
+   - Click "Backup Now" for immediate backup
+   - Or wait for scheduled backup
    - Watch the real-time progress
    - Done!
 
@@ -66,10 +80,18 @@ The addon focuses on backing up the most important parts of your LibreELEC syste
   - Test connection feature
   - Username/password authentication
   - Custom port configuration
+- **Scheduling Options** (NEW!):
+  - Enable/disable automated backups
+  - Choose frequency (Daily/Weekly/Monthly)
+  - Set preferred backup time
+  - Configure retention count
+  - Debug mode for multiple daily backups
 - **Notifications**:
   - Enable/disable notifications
   - Real-time progress updates
   - File size tracking
+  - Countdown for scheduled backups
+  - Persistent upload status
 - **Backup Management**:
   - Set maximum number of backups (5-50)
   - Choose compression level (None/Fast/Normal/Maximum)
