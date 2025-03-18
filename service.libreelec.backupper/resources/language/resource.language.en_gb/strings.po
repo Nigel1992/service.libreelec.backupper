@@ -251,25 +251,21 @@ msgctxt "#32100"
 msgid "Enable Backup Reminders"
 msgstr "Enable Backup Reminders"
 
-msgctxt "#32106"
-msgid "Backup Reminder"
-msgstr "Backup Reminder"
-
 msgctxt "#32101"
-msgid "Remind 1 Hour Before"
-msgstr "Remind 1 Hour Till Backup"
+msgid "Backup in 1 Hour"
+msgstr "Backup in 1 Hour"
 
 msgctxt "#32102"
-msgid "Remind 30 Minutes Before"
-msgstr "Remind 30 Minutes Till Backup"
+msgid "Backup in 30 Minutes"
+msgstr "Backup in 30 Minutes"
 
 msgctxt "#32103"
-msgid "Remind 10 Minutes Before"
-msgstr "Remind 10 Minutes Till Backup"
+msgid "Backup in 10 Minutes"
+msgstr "Backup in 10 Minutes"
 
 msgctxt "#32104"
-msgid "Remind 1 Minute Before"
-msgstr "Remind 1 Minute Till Backup"
+msgid "Backup in 1 Minute"
+msgstr "Backup in 1 Minute"
 
 msgctxt "#32105"
 msgid "Reminders"

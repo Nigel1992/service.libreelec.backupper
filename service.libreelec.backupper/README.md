@@ -2,6 +2,10 @@
 
 A Kodi add-on for LibreELEC that allows you to backup and restore your system configuration, add-ons, and user data.
 
+## 🎯 What's New in 1.2.1.1 (March 18, 2025)
+- Fixed incorrect reminder notification messages
+- Fixed string IDs for backup time notifications
+
 ## 🎯 What's New in 1.2.1 (March 18, 2025)
 - Added backup reminder notifications (1 hour, 30 min, 10 min, 1 min before backup)
 - Improved settings organization with logical grouping
