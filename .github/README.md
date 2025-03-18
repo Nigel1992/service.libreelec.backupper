@@ -7,12 +7,18 @@
 *Your reliable backup solution for LibreELEC*
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-green.svg)](service.libreelec.backupper/addon.xml)
+[![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-green.svg)](service.libreelec.backupper/addon.xml)
 [![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
 
 </div>
 
 ## NOTE: The restore functionality is still being worked on !
+
+## 🎯 What's New in 1.2.1 (March 18, 2025)
+- Added backup reminder notifications (1 hour, 30 min, 10 min, 1 min before backup)
+- Improved settings organization with logical grouping
+- Added author information in credits section
+- Removed DEBUG multiple backups option
 
 ## 🎯 What's New in 1.2.0 (March 16, 2025)
 
