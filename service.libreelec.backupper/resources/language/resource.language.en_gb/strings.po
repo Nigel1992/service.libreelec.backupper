@@ -242,7 +242,58 @@ msgctxt "#32096"
 msgid "DEBUG: Allow multiple backups per day"
 msgstr ""
 
+# Reminder Settings
+msgctxt "#32100"
+msgid "Enable Backup Reminders"
+msgstr "Enable Backup Reminders"
+
+msgctxt "#32101"
+msgid "Remind 1 Hour Before"
+msgstr "Remind 1 Hour Before"
+
+msgctxt "#32102"
+msgid "Remind 30 Minutes Before"
+msgstr "Remind 30 Minutes Before"
+
+msgctxt "#32103"
+msgid "Remind 10 Minutes Before"
+msgstr "Remind 10 Minutes Before"
+
+msgctxt "#32104"
+msgid "Remind 1 Minute Before"
+msgstr "Remind 1 Minute Before"
+
+msgctxt "#32105"
+msgid "Reminders"
+msgstr "Reminders"
+
 # Credits
 msgctxt "#32150"
 msgid "Image Credits"
-msgstr "Image Credits" 
+msgstr "Image Credits"
+
+# General Settings Labels
+msgctxt "#32110"
+msgid "Backup Location"
+msgstr "Backup Location"
+
+msgctxt "#32111"
+msgid "Backup Settings"
+msgstr "Backup Settings"
+
+msgctxt "#32112"
+msgid "Notifications"
+msgstr "Notifications"
+
+# Author Information
+msgctxt "#32113"
+msgid "Author"
+msgstr "Author"
+
+msgctxt "#32114"
+msgid "Created by Nigel1992"
+msgstr "Created by Nigel1992"
+
+msgctxt "#32115"
+msgid "Version 1.2.1"
+msgstr "Version 1.2.1" 

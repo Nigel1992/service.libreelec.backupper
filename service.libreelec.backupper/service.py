@@ -57,16 +57,37 @@ def save_last_attempt_time(attempt_time):
     with open(LAST_ATTEMPT_FILE, 'w') as f:
         f.write(attempt_time.strftime('%Y-%m-%d %H:%M:%S'))
 
+def check_reminders(current_time, schedule_time):
+    """Check if we should show any reminder notifications"""
+    if not ADDON.getSettingBool('enable_reminders'):
+        return False, None
+
+    # Calculate time difference in minutes
+    current_minutes = current_time.hour * 60 + current_time.minute
+    schedule_minutes = schedule_time.hour * 60 + schedule_time.minute
+    time_diff = schedule_minutes - current_minutes
+
+    # Check each reminder interval
+    if time_diff == 60 and ADDON.getSettingBool('reminder_1hour'):
+        return True, 60
+    elif time_diff == 30 and ADDON.getSettingBool('reminder_30min'):
+        return True, 30
+    elif time_diff == 10 and ADDON.getSettingBool('reminder_10min'):
+        return True, 10
+    elif time_diff == 1 and ADDON.getSettingBool('reminder_1min'):
+        return True, 1
+
+    return False, None
+
 def should_run_backup():
     """Check if it's time to run a scheduled backup"""
     if not ADDON.getSettingBool('enable_scheduler'):
-        return False, False, None, False
+        return False, False, None, False, False, None
 
     current_time = datetime.now()
     schedule_time = datetime.strptime(ADDON.getSettingString('schedule_time'), '%H:%M').time()
     schedule_type = ADDON.getSettingInt('schedule_type')  # 0=Daily, 1=Weekly, 2=Monthly
     run_missed = ADDON.getSettingBool('run_missed_backups')
-    allow_multiple = ADDON.getSettingBool('allow_multiple_backups')
 
     # Get the target backup time for today
     target_time = datetime.combine(current_time.date(), schedule_time)
@@ -80,22 +101,23 @@ def should_run_backup():
     schedule_minutes = schedule_time.hour * 60 + schedule_time.minute
     time_diff = schedule_minutes - current_minutes
     
-    # Return tuple of (should_run, is_missed, missed_date, show_warning)
-    def check_result(should_run, is_missed=False, missed_date=None, show_warning=False):
-        return (should_run, is_missed, missed_date, show_warning)
+    # Check for reminders
+    should_remind, reminder_minutes = check_reminders(current_time, schedule_time)
+    
+    # Return tuple of (should_run, is_missed, missed_date, show_warning, should_remind, reminder_minutes)
+    def check_result(should_run, is_missed=False, missed_date=None, show_warning=False, should_remind=False, reminder_minutes=None):
+        return (should_run, is_missed, missed_date, show_warning, should_remind, reminder_minutes)
 
-    # If we've already attempted a backup today and multiple backups are not allowed, don't try again
-    if not allow_multiple and last_attempt and last_attempt.date() == current_time.date():
+    # If we've already attempted a backup today, don't try again
+    if last_attempt and last_attempt.date() == current_time.date():
         return check_result(False)
 
     if schedule_type == 0:  # Daily
-        if time_diff == 1:  # 1 minute before scheduled time
-            return check_result(False, False, None, True)
-        elif time_diff == 0:  # At scheduled time
+        if time_diff == 0:  # At scheduled time
             return check_result(True)
         elif run_missed and last_backup:
             # Run if we missed today's backup and haven't run yet
-            if current_time > target_time and (allow_multiple or last_backup.date() < current_time.date()):
+            if current_time > target_time and last_backup.date() < current_time.date():
                 return check_result(True, True, target_time.date())
             
     elif schedule_type == 1:  # Weekly
@@ -103,13 +125,11 @@ def should_run_backup():
         is_schedule_day = current_time.weekday() == schedule_day
         
         if is_schedule_day:
-            if time_diff == 1:  # 1 minute before scheduled time
-                return check_result(False, False, None, True)
-            elif time_diff == 0:  # At scheduled time
+            if time_diff == 0:  # At scheduled time
                 return check_result(True)
             elif run_missed and last_backup:
                 # If it's still the scheduled day but we missed the window
-                if current_time > target_time and (allow_multiple or last_backup.date() < current_time.date()):
+                if current_time > target_time and last_backup.date() < current_time.date():
                     return check_result(True, True, target_time.date())
         elif run_missed and last_backup:
             # If we completely missed the last scheduled day
@@ -122,13 +142,11 @@ def should_run_backup():
         is_schedule_date = current_time.day == schedule_date
         
         if is_schedule_date:
-            if time_diff == 1:  # 1 minute before scheduled time
-                return check_result(False, False, None, True)
-            elif time_diff == 0:  # At scheduled time
+            if time_diff == 0:  # At scheduled time
                 return check_result(True)
             elif run_missed and last_backup:
                 # If it's still the scheduled date but we missed the window
-                if current_time > target_time and (allow_multiple or last_backup.date() < current_time.date()):
+                if current_time > target_time and last_backup.date() < current_time.date():
                     return check_result(True, True, target_time.date())
         elif run_missed and last_backup:
             # If we completely missed the last scheduled date
@@ -137,7 +155,7 @@ def should_run_backup():
                 if last_backup is None or last_backup < last_schedule:
                     return check_result(True, True, last_schedule.date())
 
-    return check_result(False)
+    return check_result(False, should_remind=should_remind, reminder_minutes=reminder_minutes)
 
 def main():
     """Main service function - runs in the background"""
@@ -157,11 +175,13 @@ def main():
         
         # Check scheduler every minute
         if (current_time - last_check).total_seconds() >= 60:
-            should_run, is_missed, missed_date, show_warning = should_run_backup()
+            should_run, is_missed, missed_date, show_warning, should_remind, reminder_minutes = should_run_backup()
             
-            if show_warning:
-                # Only show the 1-minute warning
-                backup_manager.notify(ADDON.getLocalizedString(32097), persistent=True)
+            if should_remind:
+                # Show reminder notification
+                reminder_msg = ADDON.getLocalizedString(32100)  # "Backup Reminder"
+                time_msg = ADDON.getLocalizedString(32101 + (60 - reminder_minutes) // 30)  # Get appropriate time message
+                backup_manager.notify(reminder_msg, time_msg, persistent=False)
             elif should_run:
                 if is_missed:
                     # Format the missed date
