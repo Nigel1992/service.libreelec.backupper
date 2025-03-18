@@ -20,44 +20,13 @@
 - Removed DEBUG multiple backups option
 
 v1.2.0 (2025-03-16)
-NEW FEATURES:
-- Automated Backups with flexible scheduling options
-- Debug Mode allowing multiple backups per day
-- Countdown Notifications for scheduled backups
-- Persistent Upload Notifications for better tracking
-
-IMPROVEMENTS:
-- Enhanced Scheduling Logic for reliable automated backups
-- Improved Notification System with proper icon display
-- Better Error Handling and detailed logging
-- Detailed Backup Status tracking and reporting
-
-FIXES:
-- Fixed notification icon display issues
-- Fixed syntax error in backup utilities
-- Fixed multiple backup runs on same day
-- Fixed scheduler timing precision
-
-v1.1.2 (2024-03-15)
-- Improved backup progress tracking with real-time updates
-- Added accurate file size display during backup
-- Optimized performance for handling many small files
-- Enhanced progress notifications with current/total size display
-- Fixed compression method initialization
-
-v1.1.1 (2024-03-15)
-- Fixed config.txt not being included in backup archive
-- Improved section handling for flash configuration files
-- Added better logging for backup file processing
-
-v1.1.0 (2024-03-20)
-- Fixed backup filename to correctly show 'userdata' instead of 'data'
-- Fixed temporary file cleanup and notification persistence
-- Improved error handling and logging
-- Enhanced backup reliability
-- Added support for remote storage options
-- Added compression level configuration
-- Added backup retention policy</news>
+- Added automated backups with flexible scheduling
+- Added debug mode for multiple backups per day
+- Added countdown notifications for scheduled backups
+- Added persistent upload notifications
+- Enhanced scheduling logic and error handling
+- Improved notification system with proper icon display
+- Added detailed backup status tracking</news>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
