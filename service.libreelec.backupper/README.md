@@ -2,6 +2,33 @@
 
 A Kodi add-on for LibreELEC that allows you to backup and restore your system configuration, add-ons, and user data.
 
+## 🎯 What's New in 1.2.1 (March 18, 2025)
+- Added backup reminder notifications (1 hour, 30 min, 10 min, 1 min before backup)
+- Improved settings organization with logical grouping
+- Added author information in credits section
+- Removed DEBUG multiple backups option
+
+## 🎯 What's New in 1.2.0 (March 16, 2025)
+We've added powerful scheduling features and improved the overall experience:
+
+NEW FEATURES
+- Automated Backups with flexible scheduling options
+- Debug Mode allowing multiple backups per day
+- Countdown Notifications for scheduled backups
+- Persistent Upload Notifications for better tracking
+
+IMPROVEMENTS
+- Enhanced Scheduling Logic for reliable automated backups
+- Improved Notification System with proper icon display
+- Better Error Handling and detailed logging
+- Detailed Backup Status tracking and reporting
+
+FIXES
+- Fixed notification icon display issues
+- Fixed syntax error in backup utilities
+- Fixed multiple backup runs on same day
+- Fixed scheduler timing precision
+
 ## Features
 
 - Backup and restore system configurations
@@ -14,6 +41,8 @@ A Kodi add-on for LibreELEC that allows you to backup and restore your system co
 - Backup rotation (keep X most recent backups)
 - Detailed progress notifications
 - Backup verification
+- Automated backup scheduling
+- Configurable reminder notifications
 
 ## Installation
 
@@ -38,7 +67,17 @@ A Kodi add-on for LibreELEC that allows you to backup and restore your system co
 - **Detailed Notifications**: Show detailed progress
 - **Maximum Backups**: Number of backups to keep
 - **Compression Level**: None, Fast, Normal, Maximum
-- **Backup Naming**: Date and Time, Custom Name, or Date + Custom
+
+### Scheduler Settings
+
+- **Enable Scheduler**: Turn automated backups on/off
+- **Backup Frequency**: Daily, Weekly, or Monthly
+- **Backup Time**: When to run the backup
+- **Day of Week**: For weekly backups
+- **Day of Month**: For monthly backups
+- **Run Missed Backups**: Automatically run missed backups
+- **Enable Reminders**: Get notifications before scheduled backups
+- **Reminder Times**: Choose from 1 hour, 30 min, 10 min, and 1 min before backup
 
 ### Backup Items
 
@@ -129,5 +168,6 @@ This add-on is licensed under the GNU General Public License v3.0.
 
 ## Credits
 
+- Created by Nigel1992
 - Icon by Smashicon @ flaticon.com/4275334
 - Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html 
