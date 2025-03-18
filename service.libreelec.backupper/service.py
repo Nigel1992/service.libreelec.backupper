@@ -178,8 +178,6 @@ def main():
             should_run, is_missed, missed_date, show_warning, should_remind, reminder_minutes = should_run_backup()
             
             if should_remind:
-                # Show reminder notification
-                reminder_msg = ADDON.getLocalizedString(32106)  # "Backup Reminder"
                 # Calculate string ID based on reminder time
                 if reminder_minutes == 1:
                     time_msg = ADDON.getLocalizedString(32104)  # 1 minute reminder
@@ -189,7 +187,7 @@ def main():
                     time_msg = ADDON.getLocalizedString(32102)  # 30 minute reminder
                 else:
                     time_msg = ADDON.getLocalizedString(32101)  # 1 hour reminder
-                backup_manager.notify(reminder_msg, time_msg, persistent=False)
+                backup_manager.notify(time_msg, persistent=False)
             elif should_run:
                 if is_missed:
                     # Format the missed date
