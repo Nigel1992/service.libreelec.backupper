@@ -35,7 +35,11 @@ msgstr "Credits"
 
 msgctxt "#32006"
 msgid "Scheduler"
-msgstr ""
+msgstr "Scheduler"
+
+msgctxt "#32007"
+msgid "Notifications"
+msgstr "Notifications"
 
 # General Settings
 msgctxt "#32010"
@@ -282,18 +286,18 @@ msgid "Backup Settings"
 msgstr "Backup Settings"
 
 msgctxt "#32112"
-msgid "Notifications"
-msgstr "Notifications"
+msgid "General Notifications"
+msgstr "General Notifications"
 
 # Author Information
 msgctxt "#32113"
-msgid "Author"
-msgstr "Author"
+msgid "Author Information"
+msgstr "Author Information"
 
 msgctxt "#32114"
-msgid "Created by Nigel1992"
-msgstr "Created by Nigel1992"
+msgid "Author: Nigel1992"
+msgstr "Author: Nigel1992"
 
 msgctxt "#32115"
-msgid "Version 1.2.1"
-msgstr "Version 1.2.1" 
+msgid "Version: 1.2.1"
+msgstr "Version: 1.2.1" 

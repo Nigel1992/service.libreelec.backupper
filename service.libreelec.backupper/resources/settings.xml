@@ -16,11 +16,6 @@
         <setting label="32111" type="lsep"/><!-- Backup Settings -->
         <setting id="max_backups" type="slider" label="32013" default="10" range="5,1,50" option="int" format="Keep %d backups"/>
         <setting id="compression_level" type="enum" label="32014" values="None|Fast|Normal|Maximum" default="1"/>
-        <setting type="sep"/>
-        
-        <setting label="32112" type="lsep"/><!-- Notifications -->
-        <setting id="show_notifications" type="bool" label="32011" default="true"/>
-        <setting id="detailed_notifications" type="bool" label="32012" default="false" enable="eq(-1,true)"/>
     </category>
 
     <category label="32003"><!-- Backup Items -->
@@ -45,13 +40,19 @@
         <setting id="schedule_time" type="time" label="32093" default="03:00" enable="eq(-4,true)" subsetting="true"/>
         <setting id="schedule_day" type="enum" label="32094" values="Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday" default="0" visible="eq(-2,1)+eq(-5,true)" enable="eq(-5,true)" subsetting="true"/>
         <setting id="schedule_date" type="enum" label="32095" values="1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28" default="0" visible="eq(-3,2)+eq(-6,true)" enable="eq(-6,true)" subsetting="true"/>
+    </category>
+
+    <category label="32007"><!-- Notifications -->
+        <setting label="32112" type="lsep"/><!-- General Notifications -->
+        <setting id="show_notifications" type="bool" label="32011" default="true"/>
+        <setting id="detailed_notifications" type="bool" label="32012" default="false" enable="eq(-1,true)"/>
         <setting type="sep"/>
-        <setting label="32105" type="lsep" enable="eq(-8,true)"/><!-- Reminders -->
-        <setting id="enable_reminders" type="bool" label="32100" default="false" enable="eq(-8,true)" subsetting="true"/>
-        <setting id="reminder_1hour" type="bool" label="32101" default="true" enable="eq(-11,true)" subsetting="true"/>
-        <setting id="reminder_30min" type="bool" label="32102" default="true" enable="eq(-12,true)" subsetting="true"/>
-        <setting id="reminder_10min" type="bool" label="32103" default="true" enable="eq(-13,true)" subsetting="true"/>
-        <setting id="reminder_1min" type="bool" label="32104" default="true" enable="eq(-14,true)" subsetting="true"/>
+        <setting label="32105" type="lsep"/><!-- Backup Reminders -->
+        <setting id="enable_reminders" type="bool" label="32100" default="false"/>
+        <setting id="reminder_1hour" type="bool" label="32101" default="true" enable="eq(-1,true)" subsetting="true"/>
+        <setting id="reminder_30min" type="bool" label="32102" default="true" enable="eq(-2,true)" subsetting="true"/>
+        <setting id="reminder_10min" type="bool" label="32103" default="true" enable="eq(-3,true)" subsetting="true"/>
+        <setting id="reminder_1min" type="bool" label="32104" default="true" enable="eq(-4,true)" subsetting="true"/>
     </category>
 
     <category label="32005"><!-- Credits -->
