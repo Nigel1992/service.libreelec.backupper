@@ -4,3 +4,4 @@
 - Improved settings organization with logical grouping
 - Added author information in credits section
 - Removed DEBUG multiple backups option
+- Moved notifications to their own category below scheduler for better organization
