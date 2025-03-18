@@ -7,32 +7,22 @@
 *Your reliable backup solution for LibreELEC*
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-green.svg)](service.libreelec.backupper/addon.xml)
+[![Version: 1.2.1.1](https://img.shields.io/badge/Version-1.2.1.1-green.svg)](service.libreelec.backupper/addon.xml)
 [![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
 
 </div>
 
-## 🎯 What's New in 1.2.0 (March 16, 2025)
+## NOTE: The restore functionality is still being worked on !
 
-We've added powerful scheduling features and improved the overall experience:
+## 🎯 What's New in 1.2.1.1 (March 18, 2025)
+- Fixed incorrect reminder notification messages
+- Fixed string IDs for backup time notifications
 
-### NEW FEATURES
-- **Automated Backups** with flexible scheduling options
-- **Debug Mode** allowing multiple backups per day
-- **Countdown Notifications** for scheduled backups
-- **Persistent Upload Notifications** for better tracking
-
-### IMPROVEMENTS
-- **Enhanced Scheduling Logic** for reliable automated backups
-- **Improved Notification System** with proper icon display
-- **Better Error Handling** and detailed logging
-- **Detailed Backup Status** tracking and reporting
-
-### FIXES
-- Fixed notification icon display issues
-- Fixed syntax error in backup utilities
-- Fixed multiple backup runs on same day
-- Fixed scheduler timing precision
+## 🎯 What's New in 1.2.1 (March 18, 2025)
+- Added backup reminder notifications (1 hour, 30 min, 10 min, 1 min before backup)
+- Improved settings organization with logical grouping
+- Added author information in credits section
+- Removed DEBUG multiple backups option
 
 ## 🚀 Available Backup Items
 
