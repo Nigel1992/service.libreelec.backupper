@@ -193,29 +193,29 @@ msgctxt "#32099"
 msgid "Running missed backup from %s"
 msgstr "Running missed backup from %s"
 
-msgctxt "#32080"
+msgctxt "#32140"
 msgid "Enable Scheduled Backups"
-msgstr ""
+msgstr "Enable Scheduled Backups"
 
-msgctxt "#32081"
+msgctxt "#32141"
 msgid "Backup Frequency"
-msgstr ""
+msgstr "Backup Frequency"
 
-msgctxt "#32082"
+msgctxt "#32142"
 msgid "Backup Time"
-msgstr ""
+msgstr "Backup Time"
 
-msgctxt "#32083"
+msgctxt "#32143"
 msgid "Day of Week"
-msgstr ""
+msgstr "Day of Week"
 
-msgctxt "#32084"
+msgctxt "#32144"
 msgid "Day of Month"
-msgstr ""
+msgstr "Day of Month"
 
-msgctxt "#32085"
+msgctxt "#32145"
 msgid "Run Missed Backups"
-msgstr ""
+msgstr "Run Missed Backups"
 
 # Scheduler Settings
 msgctxt "#32090"
@@ -299,5 +299,66 @@ msgid "Author: Nigel1992"
 msgstr "Author: Nigel1992"
 
 msgctxt "#32115"
-msgid "Version: 1.2.1"
-msgstr "Version: 1.2.1" 
+msgid "Version: 1.3.0"
+msgstr "Version: 1.3.0"
+
+# Email Notification Settings
+msgctxt "#32120"
+msgid "Email Notifications"
+msgstr "Email Notifications"
+
+msgctxt "#32121"
+msgid "Enable Email Notifications"
+msgstr "Enable Email Notifications"
+
+msgctxt "#32122"
+msgid "SMTP Server"
+msgstr "SMTP Server"
+
+msgctxt "#32123"
+msgid "SMTP Port"
+msgstr "SMTP Port"
+
+msgctxt "#32124"
+msgid "SMTP Username"
+msgstr "SMTP Username"
+
+msgctxt "#32125"
+msgid "SMTP Password"
+msgstr "SMTP Password"
+
+msgctxt "#32126"
+msgid "From Email Address"
+msgstr "From Email Address"
+
+msgctxt "#32127"
+msgid "To Email Address"
+msgstr "To Email Address"
+
+msgctxt "#32128"
+msgid "Use TLS"
+msgstr "Use TLS"
+
+msgctxt "#32129"
+msgid "Test Email Settings"
+msgstr "Test Email Settings"
+
+msgctxt "#32130"
+msgid "Email Test Successful"
+msgstr "Email Test Successful"
+
+msgctxt "#32131"
+msgid "Email Test Failed"
+msgstr "Email Test Failed"
+
+msgctxt "#32132"
+msgid "Sending test email..."
+msgstr "Sending test email..."
+
+msgctxt "#32133"
+msgid "Test email sent successfully!"
+msgstr "Test email sent successfully!"
+
+msgctxt "#32134"
+msgid "Failed to send test email"
+msgstr "Failed to send test email" 

@@ -7,12 +7,25 @@
 *Your reliable backup solution for LibreELEC*
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version: 1.2.1.1](https://img.shields.io/badge/Version-1.2.1.1-green.svg)](service.libreelec.backupper/addon.xml)
+[![Version: 1.3.0](https://img.shields.io/badge/Version-1.3.0-green.svg)](service.libreelec.backupper/addon.xml)
 [![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
 
 </div>
 
 ## NOTE: The restore functionality is still being worked on !
+
+## 🎯 What's New in 1.3.0 (March 20, 2025)
+
+- Added email notifications for backup events
+- Added SMTP configuration in settings
+- Added test email functionality
+- Enhanced email notification system with beautiful HTML templates
+- Improved email compatibility across different email clients
+- Fixed email settings not applying immediately
+- Added detailed backup information in email notifications
+- Improved error handling and logging for email notifications
+
+[View full changelog](CHANGELOG.md)
 
 ## 🎯 What's New in 1.2.1.1 (March 18, 2025)
 - Fixed incorrect reminder notification messages

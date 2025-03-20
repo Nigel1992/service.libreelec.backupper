@@ -9,6 +9,7 @@ import xbmcaddon
 import xbmcvfs
 from resources.lib.backup_utils import BackupManager
 from resources.lib.remote_browser import RemoteBrowser
+from resources.lib.email_utils import EmailNotifier
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -62,6 +63,39 @@ def backup():
     if not success:
         xbmcgui.Dialog().ok(ADDON_NAME, f"Backup failed: {message}")
     return success
+
+def test_email():
+    """Test email notification settings"""
+    dialog = xbmcgui.Dialog()
+    
+    # Force settings to save
+    xbmc.executebuiltin('UpdateLocalAddons')
+    xbmc.sleep(1000)  # Give Kodi time to update
+    
+    # Reload addon to get fresh settings
+    addon = xbmcaddon.Addon()
+    
+    # Show progress dialog
+    dialog.notification(
+        ADDON.getAddonInfo('name'),
+        ADDON.getLocalizedString(32132),  # "Sending test email..."
+        xbmcgui.NOTIFICATION_INFO
+    )
+    
+    # Send test email
+    email_notifier = EmailNotifier()
+    success, message = email_notifier.test_email()
+    
+    if success:
+        dialog.ok(
+            ADDON.getLocalizedString(32130),  # "Email Test Successful"
+            ADDON.getLocalizedString(32133)   # "Test email sent successfully!"
+        )
+    else:
+        dialog.ok(
+            ADDON.getLocalizedString(32131),  # "Email Test Failed"
+            f"{ADDON.getLocalizedString(32134)}: {message}"  # "Failed to send test email: {error}"
+        )
 
 def main():
     """Handle script arguments"""
@@ -125,6 +159,8 @@ def main():
                     progress.close()
                 log(f"Error during test_connection: {str(e)}", xbmc.LOGERROR)
                 xbmcgui.Dialog().ok(ADDON_NAME, f"Error testing connection: {str(e)}")
+        elif args == 'test_email':
+            test_email()
         elif args == 'menu':
             # Explicitly requested menu
             show_main_menu()
