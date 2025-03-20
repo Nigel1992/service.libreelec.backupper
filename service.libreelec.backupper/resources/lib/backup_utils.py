@@ -21,6 +21,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import xbmcgui
+from .email_utils import EmailNotifier
 
 # Try to import paramiko, but don't fail if it's not available
 try:
@@ -43,6 +44,7 @@ class BackupManager:
         self._cleanup_old_temp_files()  # Clean up any old temp files on startup
         self.progress_dialog = None  # Initialize progress dialog
         self.current_notification = None  # Track current notification
+        self.email_notifier = EmailNotifier()
     
     def update_backup_location(self):
         """Update backup location from settings"""
@@ -950,6 +952,10 @@ class BackupManager:
     def create_backup(self, backup_name=None):
         """Create a backup of the selected items"""
         try:
+            # Notify backup start
+            backup_type = "scheduled" if backup_name else "manual"
+            self.email_notifier.notify_backup_started(backup_type)
+            
             # Show initial progress
             self.notify("Starting backup process...", progress=True)
             
@@ -1196,11 +1202,24 @@ class BackupManager:
                 self.notify("Backup completed successfully", size_info, True)
                 xbmc.log(f"Backup completed: {size_info}", xbmc.LOGINFO)
                 
+                # On success, notify completion with backup info
+                backup_info = {
+                    'name': backup_name or os.path.basename(final_path),
+                    'size': size_info,
+                    'location': self.backup_dir if self.location_type == 0 else f"{self.remote_path} ({['SMB', 'NFS', 'FTP', 'SFTP', 'WebDAV'][self.remote_type]})",
+                    'items': ', '.join(backup_items)
+                }
+                self.email_notifier.notify_backup_complete(backup_type, backup_info)
+                
                 return True, f"Backup completed successfully. {size_info}"
                 
             except Exception as e:
                 error_msg = f"Error creating backup: {str(e)}"
                 self.notify("Backup failed", error_msg, persistent=True)
+                
+                # Notify backup failure
+                self.email_notifier.notify_backup_failed(backup_type, error_msg)
+                
                 if self.location_type != 0:  # Remote
                     self.disconnect_remote()
                 return False, error_msg
@@ -1208,6 +1227,10 @@ class BackupManager:
         except Exception as e:
             error_msg = f"Error in create_backup: {str(e)}"
             self.notify("Backup failed", error_msg, persistent=True)
+            
+            # Notify backup failure
+            self.email_notifier.notify_backup_failed(backup_type, error_msg)
+            
             if self.location_type != 0:  # Remote
                 self.disconnect_remote()
             return False, error_msg
