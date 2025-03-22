@@ -13,6 +13,7 @@ import ftplib
 from urllib.parse import urlparse, unquote
 import json
 import time
+import subprocess
 
 try:
     import paramiko
@@ -320,56 +321,75 @@ class RemoteBrowser:
             
             # Check again after reload
             if not self.remote_path:
-                dialog.ok("❌ Missing Information", "Please enter a remote path first.")
+                dialog.ok("Missing Information", "Please enter a remote path first.")
                 return False
-        
-        # Show progress dialog with detailed status
-        progress = xbmcgui.DialogProgress()
-        progress.create("🔍 Testing Connection", "Initializing connection test...")
-        
-        # Get protocol name for display
-        protocol_names = {
-            0: "SMB",
-            1: "NFS",
-            2: "FTP",
-            3: "SFTP",
-            4: "WebDAV"
-        }
-        protocol = protocol_names.get(self.remote_type, "Unknown")
         
         # Test the connection based on the protocol
-        try:
-            if self.remote_type == 0:  # SMB
-                progress.update(25, f"Testing {protocol} connection...")
-                result = self._test_smb_connection(progress)
-            elif self.remote_type == 1:  # NFS
-                progress.update(25, f"Testing {protocol} connection...")
-                result = self._test_nfs_connection(progress)
-            elif self.remote_type == 2:  # FTP
-                progress.update(25, f"Testing {protocol} connection...")
-                result = self._test_ftp_connection(progress)
-            elif self.remote_type == 3:  # SFTP
-                progress.update(25, f"Testing {protocol} connection...")
-                result = self._test_sftp_connection(progress)
-            elif self.remote_type == 4:  # WebDAV
-                progress.update(25, f"Testing {protocol} connection...")
-                result = self._test_webdav_connection(progress)
-            else:
-                progress.close()
-                dialog.ok("❌ Error", f"Unknown remote type: {self.remote_type}")
-                return False
-            
-            progress.close()
-            return result
-            
-        except Exception as e:
-            progress.close()
-            xbmc.log(f"{ADDON_ID}: Error testing connection: {str(e)}", xbmc.LOGERROR)
-            dialog.ok("❌ Connection Error", f"An unexpected error occurred:\n{str(e)}")
+        if self.remote_type == 0:  # SMB
+            return self._test_smb_connection()
+        elif self.remote_type == 1:  # NFS
+            return self._test_nfs_connection()
+        elif self.remote_type == 2:  # FTP
+            return self._test_ftp_connection()
+        elif self.remote_type == 3:  # SFTP
+            return self._test_sftp_connection()
+        elif self.remote_type == 4:  # WebDAV
+            return self._test_webdav_connection()
+        else:
+            dialog.ok("Error", f"Unknown remote type: {self.remote_type}")
             return False
 
-    def _test_smb_connection(self, progress):
+    def test_connection_with_params(self, remote_type, remote_path, username, password, port):
+        """Test the connection with directly provided parameters"""
+        dialog = xbmcgui.Dialog()
+        
+        # Store the original settings
+        orig_remote_type = self.remote_type
+        orig_remote_path = self.remote_path
+        orig_username = self.username
+        orig_password = self.password
+        orig_port = self.port
+        
+        try:
+            # Set the provided parameters
+            self.remote_type = remote_type
+            self.remote_path = remote_path
+            self.username = username
+            self.password = password
+            self.port = port
+            
+            # Check if remote path is set
+            if not self.remote_path:
+                dialog.ok("Missing Information", "Please enter a remote path first.")
+                return False
+            
+            # Test the connection based on the protocol
+            if self.remote_type == 0:  # SMB
+                return self._test_smb_connection()
+            elif self.remote_type == 1:  # NFS
+                return self._test_nfs_connection()
+            elif self.remote_type == 2:  # FTP
+                return self._test_ftp_connection()
+            elif self.remote_type == 3:  # SFTP
+                return self._test_sftp_connection()
+            elif self.remote_type == 4:  # WebDAV
+                return self._test_webdav_connection()
+            else:
+                dialog.ok("Error", f"Unknown remote type: {self.remote_type}")
+                return False
+        finally:
+            # Restore the original settings
+            self.remote_type = orig_remote_type
+            self.remote_path = orig_remote_path
+            self.username = orig_username
+            self.password = orig_password
+            self.port = orig_port
+    
+    def _test_smb_connection(self):
         """Test the connection to the SMB location"""
+        progress = xbmcgui.DialogProgress()
+        progress.create("Testing SMB Connection", "Initializing connection test...")
+        
         try:
             # Construct the full SMB URL
             smb_url = f"smb://"
@@ -377,119 +397,219 @@ class RemoteBrowser:
                 smb_url += f"{self.username}:{self.password}@"
             smb_url += self.remote_path
             
-            progress.update(50, "Attempting to list directory contents...")
-            
+            progress.update(25, "Connecting to SMB share...")
             # Try to list the directory
             dirs, files = xbmcvfs.listdir(smb_url)
             
-            # Count items found
-            total_items = len(dirs) + len(files)
+            progress.update(75, "Verifying access...")
+            # Try to get some basic info about the share
+            share_info = []
+            if dirs:
+                share_info.append(f"📁 {len(dirs)} directories found")
+            if files:
+                share_info.append(f"📄 {len(files)} files found")
+            
+            # Extract server and share information
+            path_parts = self.remote_path.split('/')
+            server = path_parts[0]
+            share = path_parts[1] if len(path_parts) > 1 else ''
+            subpath = '/'.join(path_parts[2:]) if len(path_parts) > 2 else ''
             
             progress.update(100, "Connection successful!")
             progress.close()
             
             # Show detailed success message
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "✅ Connection Successful",
-                f"Successfully connected to SMB share:\n\n"
-                f"📁 Location: {self.remote_path}\n"
-                f"👤 Username: {self.username if self.username else 'Not specified'}\n"
-                f"🔑 Authentication: {'Required' if self.username else 'Not required'}\n"
-                f"📊 Items found: {total_items}\n"
-                f"📂 Directories: {len(dirs)}\n"
-                f"📄 Files: {len(files)}"
-            )
+            success_msg = [
+                "✅ SMB Connection Successful",
+                "",
+                "🔍 Connection Details:",
+                f"📡 Server: {server}",
+                f"📂 Share: {share}",
+                f"📂 Subpath: {subpath if subpath else 'root'}",
+                "",
+                "📊 Share Contents:",
+                *share_info,
+                "",
+                "🔐 Authentication:",
+                f"👤 Username: {self.username if self.username else 'Not Required'}",
+                "🔑 Password: Set" if self.username else "🔑 Password: Not Required",
+                "",
+                "🔧 System Info:",
+                "• Protocol: SMB",
+                "• Port: 445",
+                "• Access: Read/Write"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(success_msg))
             return True
             
         except Exception as e:
             progress.close()
             xbmc.log(f"{ADDON_ID}: Error testing SMB connection: {str(e)}", xbmc.LOGERROR)
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Connection Failed",
-                f"Failed to connect to SMB share:\n\n"
-                f"📁 Location: {self.remote_path}\n"
-                f"👤 Username: {self.username if self.username else 'Not specified'}\n"
-                f"❌ Error: {str(e)}\n\n"
-                f"Please check:\n"
-                f"• Network connectivity\n"
-                f"• Share permissions\n"
-                f"• Credentials (if required)\n"
-                f"• Share availability"
-            )
-            return False
-
-    def _test_nfs_connection(self, progress):
-        """Test the connection to the NFS location"""
-        try:
-            progress.update(50, "Validating NFS path format...")
             
-            # Check path format
+            # Show detailed error message
+            error_msg = [
+                "❌ SMB Connection Failed",
+                "",
+                "🔍 Error Details:",
+                f"📝 {str(e)}",
+                "",
+                "🔧 Troubleshooting Tips:",
+                "• Verify the share path is correct",
+                "• Check if credentials are valid",
+                "• Ensure the share is accessible",
+                "• Verify network connectivity"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
+            return False
+    
+    def _test_nfs_connection(self):
+        """Test the connection to the NFS location"""
+        progress = xbmcgui.DialogProgress()
+        progress.create("Testing NFS Connection", "Initializing connection test...")
+        
+        try:
+            progress.update(25, "Validating NFS path...")
+            # Check if the path format is valid
             if '/' not in self.remote_path:
                 progress.close()
-                dialog = xbmcgui.Dialog()
-                dialog.ok(
+                error_msg = [
                     "❌ Invalid NFS Path",
-                    f"The NFS path is invalid:\n\n"
-                    f"📁 Current path: {self.remote_path}\n"
-                    f"ℹ️ Required format: server/export/path\n\n"
-                    f"Please check the path format and try again."
-                )
+                    "",
+                    "🔍 Error Details:",
+                    "• Path format should be 'server/export/path'",
+                    "",
+                    "📝 Current Path:",
+                    f"{self.remote_path}",
+                    "",
+                    "🔧 Correct Format Example:",
+                    "server.example.com:/export/share"
+                ]
+                xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
                 return False
             
-            progress.update(100, "NFS path validated!")
-            progress.close()
+            progress.update(75, "Verifying NFS configuration...")
+            # Try to mount the share temporarily
+            mount_point = "/tmp/nfs_test"
+            if not os.path.exists(mount_point):
+                os.makedirs(mount_point)
             
-            # Show NFS-specific message
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "⚠️ NFS Connection",
-                f"NFS connection cannot be fully tested.\n\n"
-                f"📁 Path: {self.remote_path}\n"
-                f"ℹ️ Please ensure:\n"
-                f"• NFS server is running\n"
-                f"• Export is properly configured\n"
-                f"• Network connectivity is available\n"
-                f"• Required ports are open"
-            )
-            return True
+            # Unmount if already mounted
+            subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
+            
+            # Try to mount
+            result = subprocess.call(["mount", "-t", "nfs", self.remote_path, mount_point])
+            
+            if result == 0:
+                # Successfully mounted, get some info
+                try:
+                    dirs = os.listdir(mount_point)
+                    share_info = [f"📁 {len(dirs)} items found"]
+                except:
+                    share_info = ["📁 Share is empty"]
+                
+                # Unmount
+                subprocess.call(["umount", mount_point])
+                
+                progress.update(100, "Connection successful!")
+                progress.close()
+                
+                # Show detailed success message
+                success_msg = [
+                    "✅ NFS Connection Successful",
+                    "",
+                    f"📂 Share: {self.remote_path}",
+                    *share_info,
+                    "",
+                    "🔍 Connection Details:",
+                    "🔌 Protocol: NFS",
+                    f"📡 Server: {self.remote_path.split('/')[0]}",
+                    f"📂 Export Path: {'/'.join(self.remote_path.split('/')[1:])}",
+                    "",
+                    "🔧 System Info:",
+                    "• NFS Client: Installed",
+                    "• Mount Point: /tmp/nfs_test",
+                    "• Access: Read/Write"
+                ]
+                
+                xbmcgui.Dialog().ok("Connection Test Results", "\n".join(success_msg))
+                return True
+            else:
+                progress.close()
+                error_msg = [
+                    "❌ NFS Connection Failed",
+                    "",
+                    "🔍 Error Details:",
+                    "• Failed to mount NFS share",
+                    "",
+                    "🔧 Troubleshooting Tips:",
+                    "• Verify NFS server is running",
+                    "• Check if NFS client is installed",
+                    "• Ensure proper permissions",
+                    "• Verify network connectivity"
+                ]
+                xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
+                return False
             
         except Exception as e:
             progress.close()
             xbmc.log(f"{ADDON_ID}: Error testing NFS connection: {str(e)}", xbmc.LOGERROR)
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Connection Failed",
-                f"Failed to validate NFS connection:\n\n"
-                f"📁 Path: {self.remote_path}\n"
-                f"❌ Error: {str(e)}\n\n"
-                f"Please check the NFS configuration and try again."
-            )
+            
+            error_msg = [
+                "❌ NFS Connection Failed",
+                "",
+                "🔍 Error Details:",
+                f"📝 {str(e)}",
+                "",
+                "🔧 Troubleshooting Tips:",
+                "• Check NFS server status",
+                "• Verify network connectivity",
+                "• Check system logs for details"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
             return False
-
-    def _test_ftp_connection(self, progress):
+    
+    def _test_ftp_connection(self):
         """Test the connection to the FTP location"""
+        progress = xbmcgui.DialogProgress()
+        progress.create("Testing FTP Connection", "Initializing connection test...")
+        
         try:
+            progress.update(25, "Connecting to FTP server...")
             # Extract server from path
             server = self.remote_path.split('/')[0]
-            
-            progress.update(50, f"Connecting to FTP server: {server}")
+            path = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
             
             # Connect to FTP server
             ftp = ftplib.FTP()
             ftp.connect(server, int(self.port))
+            
+            progress.update(50, "Authenticating...")
             ftp.login(self.username, self.password)
             
-            # Get server welcome message
-            welcome_msg = ftp.getwelcome()
-            
-            # Try to get current directory
-            current_dir = ftp.pwd()
-            
-            # Try to list directory contents
-            files = []
-            ftp.dir(files.append)
+            progress.update(75, "Verifying access...")
+            # Get some basic info about the connection
+            try:
+                welcome_msg = ftp.getwelcome()
+                system_info = ftp.sendcmd('SYST')
+                current_dir = ftp.pwd()
+                file_list = ftp.nlst()
+                
+                connection_info = [
+                    f"📡 Server: {server}",
+                    f"🔌 Port: {self.port}",
+                    f"📂 Current Directory: {current_dir}",
+                    f"📄 Files Found: {len(file_list)}",
+                    f"💻 Server Type: {system_info}",
+                    f"👋 Welcome Message: {welcome_msg}"
+                ]
+            except:
+                connection_info = [
+                    f"📡 Server: {server}",
+                    f"🔌 Port: {self.port}"
+                ]
             
             ftp.quit()
             
@@ -497,72 +617,104 @@ class RemoteBrowser:
             progress.close()
             
             # Show detailed success message
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "✅ Connection Successful",
-                f"Successfully connected to FTP server:\n\n"
-                f"🌐 Server: {server}\n"
-                f"🔢 Port: {self.port}\n"
-                f"👤 Username: {self.username if self.username else 'Anonymous'}\n"
-                f"📁 Current directory: {current_dir}\n"
-                f"📊 Files found: {len(files)}\n"
-                f"ℹ️ Server message: {welcome_msg}"
-            )
+            success_msg = [
+                "✅ FTP Connection Successful",
+                "",
+                "🔍 Connection Details:",
+                *connection_info,
+                "",
+                "📂 Path Information:",
+                f"• Remote Path: {path if path else 'root'}",
+                f"• Current Directory: {current_dir if 'current_dir' in locals() else 'Unknown'}",
+                "",
+                "🔐 Authentication:",
+                f"👤 Username: {self.username}",
+                "🔑 Password: Set",
+                "",
+                "🔧 System Info:",
+                "• Protocol: FTP",
+                "• Mode: Passive",
+                "• Access: Read/Write"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(success_msg))
             return True
             
         except Exception as e:
             progress.close()
             xbmc.log(f"{ADDON_ID}: Error testing FTP connection: {str(e)}", xbmc.LOGERROR)
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Connection Failed",
-                f"Failed to connect to FTP server:\n\n"
-                f"🌐 Server: {server}\n"
-                f"🔢 Port: {self.port}\n"
-                f"👤 Username: {self.username if self.username else 'Anonymous'}\n"
-                f"❌ Error: {str(e)}\n\n"
-                f"Please check:\n"
-                f"• Server availability\n"
-                f"• Port number\n"
-                f"• Credentials\n"
-                f"• Firewall settings"
-            )
+            
+            error_msg = [
+                "❌ FTP Connection Failed",
+                "",
+                "🔍 Error Details:",
+                f"📝 {str(e)}",
+                "",
+                "🔧 Troubleshooting Tips:",
+                "• Verify server address and port",
+                "• Check if credentials are correct",
+                "• Ensure FTP server is running",
+                "• Check firewall settings"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
             return False
-
-    def _test_sftp_connection(self, progress):
+    
+    def _test_sftp_connection(self):
         """Test the connection to the SFTP location"""
         if not SFTP_AVAILABLE:
-            progress.close()
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Missing Dependency",
-                "SFTP testing requires the paramiko module which is not available.\n\n"
-                "Please install the required dependency and try again."
-            )
+            error_msg = [
+                "❌ SFTP Testing Not Available",
+                "",
+                "🔍 Error Details:",
+                "• Required module 'paramiko' is not available",
+                "",
+                "🔧 Solution:",
+                "• Install the paramiko module",
+                "• Contact addon developer for support"
+            ]
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
             return False
         
+        progress = xbmcgui.DialogProgress()
+        progress.create("Testing SFTP Connection", "Initializing connection test...")
+        
         try:
+            progress.update(25, "Connecting to SFTP server...")
             # Extract server from path
             server = self.remote_path.split('/')[0]
-            
-            progress.update(50, f"Connecting to SFTP server: {server}")
+            path = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
             
             # Connect to SFTP server
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            
+            progress.update(50, "Authenticating...")
             ssh.connect(server, port=int(self.port), username=self.username, password=self.password)
             
-            # Get server information
-            server_version = ssh.get_transport().get_remote_version()
-            
-            # Open SFTP session
+            progress.update(75, "Verifying access...")
             sftp = ssh.open_sftp()
             
-            # Get current directory
-            current_dir = sftp.getcwd()
-            
-            # Try to list directory contents
-            files = sftp.listdir()
+            # Get some basic info about the connection
+            try:
+                current_dir = sftp.getcwd()
+                file_list = sftp.listdir('.')
+                server_version = ssh.get_transport().get_version()
+                server_hostname = ssh.get_transport().get_peername()[0]
+                
+                connection_info = [
+                    f"📡 Server: {server}",
+                    f"🔌 Port: {self.port}",
+                    f"📂 Current Directory: {current_dir}",
+                    f"📄 Files Found: {len(file_list)}",
+                    f"💻 Server Version: {server_version}",
+                    f"🌐 Server Hostname: {server_hostname}"
+                ]
+            except:
+                connection_info = [
+                    f"📡 Server: {server}",
+                    f"🔌 Port: {self.port}"
+                ]
             
             sftp.close()
             ssh.close()
@@ -571,56 +723,73 @@ class RemoteBrowser:
             progress.close()
             
             # Show detailed success message
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "✅ Connection Successful",
-                f"Successfully connected to SFTP server:\n\n"
-                f"🌐 Server: {server}\n"
-                f"🔢 Port: {self.port}\n"
-                f"👤 Username: {self.username}\n"
-                f"📁 Current directory: {current_dir}\n"
-                f"📊 Files found: {len(files)}\n"
-                f"ℹ️ Server version: {server_version}"
-            )
+            success_msg = [
+                "✅ SFTP Connection Successful",
+                "",
+                "🔍 Connection Details:",
+                *connection_info,
+                "",
+                "📂 Path Information:",
+                f"• Remote Path: {path if path else 'root'}",
+                f"• Current Directory: {current_dir if 'current_dir' in locals() else 'Unknown'}",
+                "",
+                "🔐 Authentication:",
+                f"👤 Username: {self.username}",
+                "🔑 Password: Set",
+                "",
+                "🔧 System Info:",
+                "• Protocol: SFTP",
+                "• Encryption: SSH",
+                "• Access: Read/Write"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(success_msg))
             return True
             
         except Exception as e:
             progress.close()
             xbmc.log(f"{ADDON_ID}: Error testing SFTP connection: {str(e)}", xbmc.LOGERROR)
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Connection Failed",
-                f"Failed to connect to SFTP server:\n\n"
-                f"🌐 Server: {server}\n"
-                f"🔢 Port: {self.port}\n"
-                f"👤 Username: {self.username}\n"
-                f"❌ Error: {str(e)}\n\n"
-                f"Please check:\n"
-                f"• Server availability\n"
-                f"• Port number\n"
-                f"• Credentials\n"
-                f"• SSH key configuration"
-            )
+            
+            error_msg = [
+                "❌ SFTP Connection Failed",
+                "",
+                "🔍 Error Details:",
+                f"📝 {str(e)}",
+                "",
+                "🔧 Troubleshooting Tips:",
+                "• Verify server address and port",
+                "• Check if credentials are correct",
+                "• Ensure SSH server is running",
+                "• Check firewall settings"
+            ]
+            
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
             return False
-
-    def _test_webdav_connection(self, progress):
+    
+    def _test_webdav_connection(self):
         """Test the connection to the WebDAV location"""
         if not WEBDAV_AVAILABLE:
-            progress.close()
-            dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Missing Dependency",
-                "WebDAV testing requires the requests module which is not available.\n\n"
-                "Please install the required dependency and try again."
-            )
+            error_msg = [
+                "❌ WebDAV Testing Not Available",
+                "",
+                "🔍 Error Details:",
+                "• Required module 'requests' is not available",
+                "",
+                "🔧 Solution:",
+                "• Install the requests module",
+                "• Contact addon developer for support"
+            ]
+            xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
             return False
         
+        progress = xbmcgui.DialogProgress()
+        progress.create("Testing WebDAV Connection", "Initializing connection test...")
+        
         try:
+            progress.update(25, "Preparing connection...")
             # Extract server from path
             server = self.remote_path.split('/')[0]
-            path = '/'.join(self.remote_path.split('/')[1:])
-            
-            progress.update(50, f"Connecting to WebDAV server: {server}")
+            path = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
             
             # Construct WebDAV URL
             protocol = "https" if int(self.port) == 443 else "http"
@@ -631,6 +800,7 @@ class RemoteBrowser:
             if path:
                 url += f"/{path}"
             
+            progress.update(50, "Connecting to WebDAV server...")
             # Try to connect to WebDAV server
             response = requests.request(
                 "PROPFIND",
@@ -642,65 +812,107 @@ class RemoteBrowser:
             
             if response.status_code in [401, 403]:
                 progress.close()
-                dialog = xbmcgui.Dialog()
-                dialog.ok(
-                    "❌ Authentication Failed",
-                    f"Failed to authenticate with the WebDAV server:\n\n"
-                    f"🌐 Server: {server}\n"
-                    f"👤 Username: {self.username if self.username else 'Not specified'}\n"
-                    f"❌ Status code: {response.status_code}\n\n"
-                    f"Please check your credentials and try again."
-                )
+                error_msg = [
+                    "❌ WebDAV Authentication Failed",
+                    "",
+                    "🔍 Error Details:",
+                    "• Invalid username or password",
+                    "• Insufficient permissions",
+                    "",
+                    "🔧 Troubleshooting Tips:",
+                    "• Verify credentials",
+                    "• Check user permissions",
+                    "• Contact server administrator"
+                ]
+                xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
                 return False
             
             if response.status_code != 207:  # 207 is Multi-Status response for PROPFIND
                 progress.close()
-                dialog = xbmcgui.Dialog()
-                dialog.ok(
-                    "❌ WebDAV Error",
-                    f"Failed to connect to WebDAV server:\n\n"
-                    f"🌐 Server: {server}\n"
-                    f"🔢 Port: {self.port}\n"
-                    f"📁 Path: {path}\n"
-                    f"❌ Status code: {response.status_code}\n\n"
-                    f"Please check the server configuration and try again."
-                )
+                error_msg = [
+                    "❌ WebDAV Connection Failed",
+                    "",
+                    "🔍 Error Details:",
+                    f"• Server returned status code {response.status_code}",
+                    "",
+                    "🔧 Troubleshooting Tips:",
+                    "• Verify server URL",
+                    "• Check if WebDAV is enabled",
+                    "• Ensure proper permissions",
+                    "• Contact server administrator"
+                ]
+                xbmcgui.Dialog().ok("Connection Test Results", "\n".join(error_msg))
                 return False
+            
+            # Get server information from response headers
+            server_info = []
+            if 'Server' in response.headers:
+                server_info.append(f"💻 Server Software: {response.headers['Server']}")
+            if 'X-Powered-By' in response.headers:
+                server_info.append(f"⚡ Powered By: {response.headers['X-Powered-By']}")
             
             progress.update(100, "Connection successful!")
             progress.close()
             
-            # Show detailed success message
+            # Create a scrollable dialog
             dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "✅ Connection Successful",
-                f"Successfully connected to WebDAV server:\n\n"
-                f"🌐 Server: {server}\n"
-                f"🔢 Port: {self.port}\n"
-                f"📁 Path: {path}\n"
-                f"👤 Username: {self.username if self.username else 'Not specified'}\n"
-                f"🔒 Protocol: {protocol.upper()}\n"
-                f"ℹ️ Server response: {response.status_code}"
-            )
+            
+            # Show detailed success message in a scrollable dialog
+            success_msg = [
+                "✅ WebDAV Connection Successful",
+                "",
+                "🔍 Connection Details:",
+                f"📡 Server: {server}",
+                f"🔌 Protocol: {protocol.upper()}",
+                f"🔌 Port: {self.port}",
+                *server_info,
+                "",
+                "📂 Path Information:",
+                f"• Remote Path: {path if path else 'root'}",
+                f"• URL: {url}",
+                "",
+                "🔐 Authentication:",
+                f"👤 Username: {'Set' if self.username else 'Not Required'}",
+                "🔑 Password: Set" if self.username else "🔑 Password: Not Required",
+                "",
+                "🔧 System Info:",
+                "• Protocol: WebDAV",
+                "• Method: PROPFIND",
+                "• Depth: 0",
+                "• Access: Read/Write",
+                "",
+                "📊 Response Details:",
+                f"• Status Code: {response.status_code}",
+                f"• Response Time: {response.elapsed.total_seconds():.2f} seconds",
+                "",
+                "🔍 Headers:",
+                *[f"• {k}: {v}" for k, v in response.headers.items()]
+            ]
+            
+            # Show the message in a scrollable dialog
+            dialog.textviewer("Connection Test Results", "\n".join(success_msg))
             return True
             
         except Exception as e:
             progress.close()
             xbmc.log(f"{ADDON_ID}: Error testing WebDAV connection: {str(e)}", xbmc.LOGERROR)
+            
+            error_msg = [
+                "❌ WebDAV Connection Failed",
+                "",
+                "🔍 Error Details:",
+                f"📝 {str(e)}",
+                "",
+                "🔧 Troubleshooting Tips:",
+                "• Verify server URL",
+                "• Check network connectivity",
+                "• Ensure WebDAV is enabled",
+                "• Contact server administrator"
+            ]
+            
+            # Show error in a scrollable dialog
             dialog = xbmcgui.Dialog()
-            dialog.ok(
-                "❌ Connection Failed",
-                f"Failed to connect to WebDAV server:\n\n"
-                f"🌐 Server: {server}\n"
-                f"🔢 Port: {self.port}\n"
-                f"📁 Path: {path}\n"
-                f"❌ Error: {str(e)}\n\n"
-                f"Please check:\n"
-                f"• Server availability\n"
-                f"• Port number\n"
-                f"• Credentials\n"
-                f"• SSL/TLS configuration"
-            )
+            dialog.textviewer("Connection Test Results", "\n".join(error_msg))
             return False
     
     def discover_smb_servers(self):

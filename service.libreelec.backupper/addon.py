@@ -134,11 +134,25 @@ def main():
                 
                 progress.update(50, "Initializing connection test...")
                 
+                # Get the current settings
+                addon = xbmcaddon.Addon()
+                remote_type = int(addon.getSetting('remote_location_type'))
+                remote_path = addon.getSetting('remote_path')
+                username = addon.getSetting('remote_username')
+                password = addon.getSetting('remote_password')
+                port = addon.getSetting('remote_port')
+                
+                progress.update(75, "Testing connection...")
+                
                 # Test the remote connection with current settings
                 browser = RemoteBrowser()
-                result = browser.test_connection()
+                result = browser.test_connection_with_params(remote_type, remote_path, username, password, port)
                 
                 progress.close()
+                
+                if result:
+                    xbmcgui.Dialog().ok(ADDON_NAME, "Connection successful!")
+                # No else needed as test_connection_with_params will show error dialogs
                 
             except Exception as e:
                 if 'progress' in locals() and progress:
