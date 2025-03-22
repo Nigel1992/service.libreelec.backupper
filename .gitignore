@@ -40,3 +40,4 @@ update-git-history.sh
 # Kodi log files
 kodi.log
 *.log
+service.libreelec.backupper.wiki/
