@@ -43,16 +43,6 @@ jobs:
           VERSION=$(python3 -c "from xml.etree import ElementTree as ET; tree = ET.parse('addon.xml'); root = tree.getroot(); print(root.get('version'))")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create addon zip
-        run: |
-          cd backupper
-          mkdir -p temp_addon/service.libreelec.backupper
-          cp -r addon.py addon.xml changelog.txt README.md service.py resources temp_addon/service.libreelec.backupper/
-          cd temp_addon
-          zip -r ../service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip *
-          cd ..
-          rm -rf temp_addon
-
       - name: Create addon directory
         run: |
           cd kodi-repo/repository.nigel1992/addons/service.libreelec.backupper
@@ -61,7 +51,6 @@ jobs:
       - name: Copy addon files
         run: |
           cp -r backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/${{ steps.get_version.outputs.version }}/
-          cp backupper/service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
 
       - name: Commit and push changes
         run: |
