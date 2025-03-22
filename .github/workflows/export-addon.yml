@@ -4,55 +4,60 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'service.libreelec.backupper/**'
+      - 'addon.xml'
+      - 'service.py'
+      - 'addon.py'
+      - 'resources/**'
       - '.github/workflows/export-addon.yml'
 
 jobs:
   export-addon:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout LibreELEC Backupper
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          submodules: true
+          path: backupper
 
-      - name: Install GitHub CLI
+      - name: Checkout Kodi Repository
+        uses: actions/checkout@v4
+        with:
+          repository: Nigel1992/kodi-repository
+          path: kodi-repo
+          token: ${{ secrets.REPO_PAT }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
         run: |
-          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-          && sudo apt update \
-          && sudo apt install gh -y
+          python -m pip install --upgrade pip
+          pip install lxml
 
       - name: Get version from addon.xml
         id: get_version
         run: |
-          VERSION=$(grep -oP '(?<=version=")[^"]*' service.libreelec.backupper/addon.xml)
+          cd backupper
+          VERSION=$(python3 -c "from xml.etree import ElementTree as ET; tree = ET.parse('addon.xml'); root = tree.getroot(); print(root.get('version'))")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create addon zip
+      - name: Create addon directory
         run: |
-          mkdir -p temp_addon/service.libreelec.backupper
-          cp -r service.libreelec.backupper/* temp_addon/service.libreelec.backupper/
-          cd temp_addon
-          zip -r ../service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip *
-          cd ..
+          cd kodi-repo/repository.nigel1992/addons/service.libreelec.backupper
+          mkdir -p ${{ steps.get_version.outputs.version }}
 
-      - name: Clone Kodi Repository
+      - name: Copy addon files
         run: |
-          gh repo clone Nigel1992/kodi-repository kodi-repo
-
-      - name: Update addon in repository
-        run: |
-          mkdir -p kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/${{ steps.get_version.outputs.version }}
-          cp -r service.libreelec.backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/${{ steps.get_version.outputs.version }}/
-          cp service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
+          cp -r backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/${{ steps.get_version.outputs.version }}/
+          cp backupper/service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
 
       - name: Commit and push changes
         run: |
           cd kodi-repo
-          gh auth setup-git
-          git add repository.nigel1992/addons/service.libreelec.backupper/
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add repository.nigel1992/addons/service.libreelec.backupper
           git commit -m "Update LibreELEC Backupper to version ${{ steps.get_version.outputs.version }}"
           git push 
