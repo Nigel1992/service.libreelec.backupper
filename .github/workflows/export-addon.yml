@@ -1,0 +1,58 @@
+name: Export Addon to Kodi Repository
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'service.libreelec.backupper/**'
+      - '.github/workflows/export-addon.yml'
+
+jobs:
+  export-addon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
+      - name: Get version from addon.xml
+        id: get_version
+        run: |
+          VERSION=$(grep -oP '(?<=version=")[^"]*' service.libreelec.backupper/addon.xml)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create addon zip
+        run: |
+          mkdir -p temp_addon/service.libreelec.backupper
+          cp -r service.libreelec.backupper/* temp_addon/service.libreelec.backupper/
+          cd temp_addon
+          zip -r ../service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip *
+          cd ..
+
+      - name: Clone Kodi Repository
+        run: |
+          gh repo clone Nigel1992/kodi-repository kodi-repo
+
+      - name: Update addon in repository
+        run: |
+          mkdir -p kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/${{ steps.get_version.outputs.version }}
+          cp -r service.libreelec.backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/${{ steps.get_version.outputs.version }}/
+          cp service.libreelec.backupper-${{ steps.get_version.outputs.version }}.zip kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
+
+      - name: Commit and push changes
+        run: |
+          cd kodi-repo
+          gh auth setup-git
+          git add repository.nigel1992/addons/service.libreelec.backupper/
+          git commit -m "Update LibreELEC Backupper to version ${{ steps.get_version.outputs.version }}"
+          git push 
