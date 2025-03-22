@@ -4,9 +4,7 @@
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
     </requires>
-    <extension point="xbmc.service" library="service.py" start="login">
-        <provides>executable</provides>
-    </extension>
+    <extension point="xbmc.service" library="service.py" start="login"/>
     <extension point="xbmc.python.script" library="addon.py"/>
     <extension point="xbmc.addon.metadata">
         <platform>all</platform>
@@ -43,9 +41,11 @@ v1.2.0 (2025-03-16)
 - Enhanced scheduling logic and error handling
 - Improved notification system with proper icon display
 - Added detailed backup status tracking</news>
+        <disclaimer lang="en">This addon is not affiliated with LibreELEC</disclaimer>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
+            <screenshot>resources/screenshots/backup-completed-email.png</screenshot>
             <screenshot>resources/screenshot-01.jpg</screenshot>
             <screenshot>resources/screenshot-02.jpg</screenshot>
         </assets>
