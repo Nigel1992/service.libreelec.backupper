@@ -41,7 +41,6 @@ v1.2.0 (2025-03-16)
 - Enhanced scheduling logic and error handling
 - Improved notification system with proper icon display
 - Added detailed backup status tracking</news>
-        <disclaimer lang="en">This addon is not affiliated with LibreELEC</disclaimer>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
