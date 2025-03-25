@@ -41,6 +41,10 @@ jobs:
           VERSION=$(python3 -c "from xml.etree import ElementTree as ET; tree = ET.parse('service.libreelec.backupper/addon.xml'); root = tree.getroot(); print(root.get('version'))")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Delete existing addon files
+        run: |
+          rm -rf kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/*
+
       - name: Copy addon files
         run: |
           cp -r service.libreelec.backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
@@ -52,4 +56,4 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add repository.nigel1992/addons/service.libreelec.backupper
           git commit -m "Update LibreELEC Backupper to version ${{ steps.get_version.outputs.version }}"
-          git push 
+          git push
