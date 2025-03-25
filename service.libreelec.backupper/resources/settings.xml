@@ -14,8 +14,14 @@
         <setting type="sep"/>
         
         <setting label="32111" type="lsep"/><!-- Backup Settings -->
-        <setting id="max_backups" type="slider" label="32013" default="10" range="5,1,50" option="int" format="Keep %d backups"/>
         <setting id="compression_level" type="enum" label="32014" values="None|Fast|Normal|Maximum" default="1"/>
+        <setting type="sep"/>
+        
+        <setting label="32162" type="lsep"/><!-- Backup Rotation -->
+        <setting label="32163" type="lsep"/><!-- Warning about backup deletion -->
+        <setting id="enable_rotation" type="bool" label="32161" default="false" action="RunScript(service.libreelec.backupper, rotation_warning)" option="instance"/>
+        <setting id="backup_rotation" type="enum" label="32160" values="Keep Newest|Keep Oldest|Keep Both Ends" default="0" enable="eq(-1,true)" subsetting="true"/>
+        <setting id="max_backups" type="slider" label="32150" option="int" range="5,1,50" default="10" format="Keep %d backups" enable="eq(-2,true)" subsetting="true"/>
     </category>
 
     <category label="32003"><!-- Backup Items -->
@@ -68,7 +74,7 @@
     </category>
 
     <category label="32005"><!-- Credits -->
-        <setting label="32150" type="lsep"/><!-- Image Credits -->
+        <setting label="32151" type="lsep"/><!-- Image Credits -->
         <setting id="attribution" type="text" label="Icon by Smashicon @ flaticon.com/4275334" enable="false"/>
         <setting id="fanart_attribution" type="text" label="Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html" enable="false"/>
         <setting type="sep"/>

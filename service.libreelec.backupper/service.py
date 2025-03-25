@@ -159,7 +159,7 @@ def should_run_backup():
 
 def main():
     """Main service function - runs in the background"""
-    # Initialize the backup manager
+    # Initialize backup manager
     backup_manager = BackupManager()
     
     # Main service loop
