@@ -35,11 +35,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install lxml
 
-      - name: Get version from addon.xml
-        id: get_version
+      - name: Get version and info from addon.xml
+        id: get_info
         run: |
-          VERSION=$(python3 -c "from xml.etree import ElementTree as ET; tree = ET.parse('service.libreelec.backupper/addon.xml'); root = tree.getroot(); print(root.get('version'))")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          python3 << EOF
+          from xml.etree import ElementTree as ET
+          tree = ET.parse('service.libreelec.backupper/addon.xml')
+          root = tree.getroot()
+          version = root.get('version')
+          description = root.find(".//description").text.strip()
+          news = root.find(".//news").text.strip().split('\n')[0]  # Get first line of news
+          print(f"version={version}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          print(f"description={description}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          print(f"news={news}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          EOF
 
       - name: Delete existing addon files
         run: |
@@ -49,11 +58,32 @@ jobs:
         run: |
           cp -r service.libreelec.backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
 
+      - name: Update Repository README
+        run: |
+          cd kodi-repo
+          # Update version badge in README
+          sed -i "s/version-.*-blue/version-${{ steps.get_info.outputs.version }}-blue/" README.md
+          # Update addon section
+          awk -v ver="${{ steps.get_info.outputs.version }}" -v desc="${{ steps.get_info.outputs.description }}" -v news="${{ steps.get_info.outputs.news }}" '
+          /### LibreELEC Backupper/{
+            print
+            print ""
+            print "**Current Version:** " ver
+            print ""
+            print desc
+            print ""
+            print "**Latest Update:** " news
+            print ""
+            getline
+            while($0 ~ /^[[:space:]]*$/ || $0 ~ /^Current Version/ || $0 ~ /^Latest Update/) getline
+          }
+          1' README.md > README.md.tmp && mv README.md.tmp README.md
+
       - name: Commit and push changes
         run: |
           cd kodi-repo
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add repository.nigel1992/addons/service.libreelec.backupper
-          git commit -m "Update LibreELEC Backupper to version ${{ steps.get_version.outputs.version }}"
+          git add repository.nigel1992/addons/service.libreelec.backupper README.md
+          git commit -m "Update LibreELEC Backupper to version ${{ steps.get_info.outputs.version }}"
           git push
