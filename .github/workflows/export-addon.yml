@@ -1,6 +1,7 @@
 name: Export Addon to Kodi Repository
 
 on:
+  workflow_dispatch:  # Allow manual triggering
   push:
     branches: [ main ]
     paths:
