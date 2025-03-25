@@ -38,6 +38,14 @@
 
 ## 💻 Installation
 
+### Method 1: Install via Repository (Recommended)
+1. Download the [Nigel1992 Kodi Repository](https://github.com/Nigel1992/kodi-repository)
+2. In Kodi, go to Add-ons → Install from zip file
+3. Select the downloaded repository zip file
+4. Go to Add-ons → Install from repository → Nigel1992 Repository → Program add-ons
+5. Select and install LibreELEC Backupper
+
+### Method 2: Direct Installation
 1. Download the latest release from our [Releases Page](https://github.com/Nigel1992/service.libreelec.backupper/releases)
 2. In Kodi, go to Add-ons → Install from zip file
 3. Select the downloaded zip file
@@ -111,6 +119,11 @@ Need help? We've got you covered:
 ## 📜 License
 
 This project is licensed under the [GPL-2.0](LICENSE) license.
+
+### Resources
+- [LibreELEC Website](https://libreelec.tv)
+- [Kodi Website](https://kodi.tv)
+- [Nigel1992 Kodi Repository](https://github.com/Nigel1992/kodi-repository)
 
 ---
 <div align="center">
