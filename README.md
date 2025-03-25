@@ -1,16 +1,84 @@
 # LibreELEC Backupper
 
-<div align="center">
+A Kodi addon for LibreELEC that provides automated backup and restore functionality for your system settings, configurations, and addons.
 
-![LibreELEC Backupper Logo](https://github.com/Nigel1992/service.libreelec.backupper/blob/main/service.libreelec.backupper/resources/icon.png)
+## Features
 
-*Your reliable backup solution for LibreELEC*
+- **Automated Backups**: Schedule automatic backups at your preferred time
+- **Multiple Storage Options**: Save backups locally or to remote locations (SMB, NFS, FTP, SFTP, WebDAV)
+- **Smart Backup Rotation**: Automatically manage your backup files with configurable retention policies
+- **Email Notifications**: Receive detailed backup status notifications via email
+- **Flexible Configuration**: Choose what to backup (configurations, addons, repositories, etc.)
+- **Backup Reminders**: Get notifications before scheduled backups
+- **Compression Options**: Choose from different compression levels
+- **Remote Browser**: Easy navigation of remote backup locations
+- **Connection Testing**: Verify your remote storage settings
+- **Beautiful UI**: Modern and user-friendly interface
 
-[![License: GPL-2.0](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![Version: 1.3.0](https://img.shields.io/badge/Version-1.3.0-green.svg)](service.libreelec.backupper/addon.xml)
-[![Platform: LibreELEC](https://img.shields.io/badge/Platform-LibreELEC-red.svg)](https://libreelec.tv/)
+## Installation
 
-</div>
+1. Download the latest release
+2. Install through Kodi's addon manager
+3. Configure your backup settings
+4. Enjoy automated backups!
+
+## Configuration
+
+### General Settings
+- Choose backup location (local or remote)
+- Configure remote storage details
+- Set compression level
+- Enable/configure backup rotation
+
+### Backup Rotation
+The backup rotation feature helps manage your backup files by automatically maintaining a specified number of backups. [See Wiki](https://github.com/Nigel1992/service.libreelec.backupper/wiki/Backup-Rotation) for detailed information.
+
+### Email Notifications
+- Configure SMTP settings
+- Choose notification events
+- Customize email templates
+
+### Scheduling
+- Set backup time
+- Enable reminder notifications
+- Choose reminder intervals
+
+## Support
+
+For help and discussions, visit the [LibreELEC Forum](https://forum.libreelec.tv/).
+
+## Credits
+
+- Icon by Smashicon @ flaticon.com/4275334
+- Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com
+
+## License
+
+GPL-2.0-or-later
+
+## Version History
+
+### v1.4.0 (2025-03-25)
+- Added backup rotation feature with configurable retention policies
+- Added dedicated wiki documentation for backup rotation
+- Improved settings organization with subcategories
+- Enhanced warning system for potentially destructive features
+- Added visual separators in settings for better organization
+
+### v1.3.1.2 (2025-03-24)
+- Improved dialog formatting and organization
+- Fixed addon.xml schema validation error
+
+### v1.3.1.1 (2025-03-22)
+- Fixed WebDAV connection handling
+- Improved error messages for failed connections
+
+### v1.3.1 (2025-03-21)
+- Added WebDAV support for remote backups
+- Enhanced remote connection error handling
+- Improved backup progress reporting
+
+[See full version history](https://github.com/Nigel1992/service.libreelec.backupper/wiki/Version-History)
 
 ## NOTE: The restore functionality is still being worked on !
 
