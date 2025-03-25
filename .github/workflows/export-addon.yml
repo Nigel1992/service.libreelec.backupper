@@ -39,6 +39,7 @@ jobs:
         id: get_info
         run: |
           python3 << EOF
+          import os
           from xml.etree import ElementTree as ET
           tree = ET.parse('service.libreelec.backupper/addon.xml')
           root = tree.getroot()
