@@ -1433,7 +1433,7 @@ class BackupManager:
             )
 
             # Determine which backups to keep
-                    if len(backup_files) > max_backups:
+            if len(backup_files) > max_backups:
                 if rotation_strategy == 0:  # Keep Newest
                     backups_to_keep = backup_files[:max_backups]
                     backups_to_delete = backup_files[max_backups:]
@@ -1470,7 +1470,7 @@ class BackupManager:
                                     continue
                         xbmc.log(f"Deleted old backup: {file_path}", xbmc.LOGINFO)
                         deleted_count += 1
-                            except Exception as e:
+                    except Exception as e:
                         xbmc.log(f"Error deleting old backup {file_path}: {str(e)}", xbmc.LOGERROR)
 
                 # Notify about cleanup results
@@ -1493,7 +1493,7 @@ class BackupManager:
 
             # Always disconnect from remote location if we connected
             if self.location_type != 0:  # Remote
-                    self.disconnect_remote()
+                self.disconnect_remote()
 
         except Exception as e:
             xbmc.log(f"Error during backup cleanup: {str(e)}", xbmc.LOGERROR)
