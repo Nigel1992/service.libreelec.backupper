@@ -273,6 +273,10 @@ msgstr "Reminders"
 
 # Credits
 msgctxt "#32150"
+msgid "Maximum Number of Backups"
+msgstr "Maximum Number of Backups"
+
+msgctxt "#32151"
 msgid "Image Credits"
 msgstr "Image Credits"
 
@@ -361,4 +365,25 @@ msgstr "Test email sent successfully!"
 
 msgctxt "#32134"
 msgid "Failed to send test email"
-msgstr "Failed to send test email" 
+msgstr "Failed to send test email"
+
+# Backup Rotation Strategy
+msgctxt "#32160"
+msgid "Backup Rotation Strategy"
+msgstr "Backup Rotation Strategy"
+
+msgctxt "#32161"
+msgid "Enable Backup Rotation"
+msgstr "Enable Backup Rotation"
+
+msgctxt "#32162"
+msgid "Backup Rotation"
+msgstr "Backup Rotation"
+
+msgctxt "#32163"
+msgid "[COLOR red]Warning:[/COLOR] The below feature will automatically delete other zip files [see wiki]"
+msgstr "[COLOR red]Warning:[/COLOR] The below feature will automatically delete other zip files [see wiki]"
+
+msgctxt "#32150"
+msgid "Maximum Number of Backups"
+msgstr "Maximum Number of Backups" 

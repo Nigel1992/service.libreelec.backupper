@@ -1300,48 +1300,207 @@ class BackupManager:
                 xbmc.log(f"Traceback: {traceback.format_exc()}", xbmc.LOGERROR)
                 return []
     
-    def cleanup_old_backups(self, max_backups=10):
-        """Remove old backups, keeping only the specified number"""
+    def show_rotation_warning(self):
+        """Show warning dialog when enabling backup rotation"""
+        dialog = xbmcgui.Dialog()
+        confirmed = dialog.yesno(
+            "Warning",
+            "Backup rotation will automatically delete old backups when enabled.\n\nAre you sure you want to continue?",
+            nolabel="No, Disable",
+            yeslabel="Yes, Enable"
+        )
+        
+        if not confirmed:
+            # User chose to disable rotation
+            self.addon.setSetting('enable_rotation', 'false')
+            xbmc.log("User disabled backup rotation after warning", xbmc.LOGINFO)
+            self.notify(
+                "Backup Cleanup",
+                "Backup rotation has been disabled"
+            )
+            return False
+        return True
+
+    def cleanup_old_backups(self, max_backups):
+        """Clean up old backups based on rotation strategy"""
         try:
-            if self.location_type == 0:  # Local
-                backups = self.get_all_backups()
-                
-                # If we have more backups than the maximum allowed
-                if len(backups) > max_backups:
-                    # Remove the oldest backups (they're sorted newest first)
-                    for old_backup in backups[max_backups:]:
-                        try:
-                            os.remove(old_backup)
-                            xbmc.log(f"Removed old backup: {old_backup}", xbmc.LOGINFO)
-                        except Exception as e:
-                            xbmc.log(f"Failed to remove old backup {old_backup}: {str(e)}", xbmc.LOGERROR)
-            else:  # Remote
-                # Connect to remote location
+            # Check if backup rotation is enabled
+            if not self.addon.getSettingBool('enable_rotation'):
+                xbmc.log("Backup rotation is disabled", xbmc.LOGINFO)
+                self.notify(
+                    "Backup Cleanup",
+                    "Backup rotation is disabled"
+                )
+                return
+
+            # Get all backup files
+            backup_files = []
+            
+            # For remote locations, ensure we have a connection
+            if self.location_type != 0:  # Remote
                 if not self.connect_remote():
                     xbmc.log("Failed to connect to remote location for cleanup", xbmc.LOGERROR)
+                    self.notify(
+                        "Backup Cleanup Error",
+                        "Failed to connect to remote location"
+                    )
                     return
                 
-                try:
-                    # Get list of backup files
-                    all_files = self.list_remote_files()
-                    backup_files = [f for f in all_files if f.endswith('.zip')]
-                    backup_files.sort(reverse=True)  # Sort newest first
-                    
-                    # If we have more backups than the maximum allowed
+            # List backup files
+            if self.location_type == 0:  # Local
+                for file in os.listdir(self.backup_dir):
+                    if file.endswith('.zip'):
+                        file_path = os.path.join(self.backup_dir, file)
+                        backup_files.append((file_path, os.path.getmtime(file_path)))
+            else:  # Remote
+                if self.remote_type == 0:  # SMB
+                    for file in os.listdir(self.backup_dir):
+                        if file.endswith('.zip'):
+                            file_path = os.path.join(self.backup_dir, file)
+                            backup_files.append((file_path, os.path.getmtime(file_path)))
+                elif self.remote_type == 1:  # NFS
+                    for file in os.listdir(self.backup_dir):
+                        if file.endswith('.zip'):
+                            file_path = os.path.join(self.backup_dir, file)
+                            backup_files.append((file_path, os.path.getmtime(file_path)))
+                elif self.remote_type == 2:  # FTP
+                    for file in self.ftp.nlst():
+                        if file.endswith('.zip'):
+                            backup_files.append((file, self.ftp.voidcmd(f'MDTM {file}')[4:]))
+                elif self.remote_type == 3:  # SFTP
+                    for file in self.sftp.listdir():
+                        if file.endswith('.zip'):
+                            backup_files.append((file, self.sftp.stat(file).st_mtime))
+                elif self.remote_type == 4:  # WebDAV
+                    if self.remote_connection and 'session' in self.remote_connection:
+                        response = self.remote_connection['session'].request(
+                            'PROPFIND', 
+                            self.remote_connection['base_url'], 
+                            headers={'Depth': '1'}
+                        )
+                        
+                        if response.status_code == 207:  # Multi-status
+                            # Parse XML response to get file names
+                            from xml.etree import ElementTree
+                            root = ElementTree.fromstring(response.content)
+                            ns = {'d': 'DAV:'}
+                            
+                            for response_elem in root.findall('.//d:response', ns):
+                                href = response_elem.find('.//d:href', ns).text
+                                filename = href.split('/')[-1] if href.split('/')[-1] else href.split('/')[-2]
+                                filename = urllib.parse.unquote(filename)
+                                
+                                if filename.endswith('.zip'):
+                                    # Get last modified time
+                                    last_modified = response_elem.find('.//d:getlastmodified', ns)
+                                    if last_modified is not None:
+                                        try:
+                                            from email.utils import parsedate_to_datetime
+                                            last_modified_time = parsedate_to_datetime(last_modified.text).timestamp()
+                                        except:
+                                            last_modified_time = 0
+                                    else:
+                                        last_modified_time = 0
+                                        
+                                    # Store the full URL path for deletion
+                                    file_url = self.remote_connection['base_url'].rstrip('/') + '/' + filename
+                                    backup_files.append((file_url, last_modified_time))
+                                    xbmc.log(f"Found backup file: {filename} with timestamp {last_modified_time}", xbmc.LOGINFO)
+                    else:
+                        xbmc.log("WebDAV connection not initialized", xbmc.LOGERROR)
+                        self.notify(
+                            "Backup Cleanup Error",
+                            "WebDAV connection not initialized"
+                        )
+                        return
+
+            # Log the found backup files
+            xbmc.log(f"Found {len(backup_files)} backup files before sorting", xbmc.LOGINFO)
+            for bf in backup_files:
+                xbmc.log(f"Backup file: {bf[0]} with timestamp {bf[1]}", xbmc.LOGINFO)
+
+            # Sort backups by modification time
+            backup_files.sort(key=lambda x: x[1], reverse=True)
+
+            # Get rotation strategy
+            rotation_strategy = int(self.addon.getSetting('backup_rotation') or "0")
+            strategy_names = ["Keep Newest", "Keep Oldest", "Keep Both Ends"]
+
+            # Notify about current rotation strategy
+            self.notify(
+                "Backup Rotation",
+                f"Strategy: {strategy_names[rotation_strategy]} (Max: {max_backups})"
+            )
+
+            # Determine which backups to keep
                     if len(backup_files) > max_backups:
-                        # Remove the oldest backups
-                        for old_backup in backup_files[max_backups:]:
-                            try:
-                                self.delete_remote_file(old_backup)
-                                xbmc.log(f"Removed old remote backup: {old_backup}", xbmc.LOGINFO)
+                if rotation_strategy == 0:  # Keep Newest
+                    backups_to_keep = backup_files[:max_backups]
+                    backups_to_delete = backup_files[max_backups:]
+                elif rotation_strategy == 1:  # Keep Oldest
+                    backups_to_keep = backup_files[-max_backups:]
+                    backups_to_delete = backup_files[:-max_backups]
+                else:  # Keep Both Ends
+                    half = max_backups // 2
+                    backups_to_keep = backup_files[:half] + backup_files[-half:]
+                    backups_to_delete = backup_files[half:-half]
+
+                # Delete old backups
+                deleted_count = 0
+                for file_path, _ in backups_to_delete:
+                    try:
+                        if self.location_type == 0:  # Local
+                            os.remove(file_path)
+                        else:  # Remote
+                            if self.remote_type == 0:  # SMB
+                                os.remove(file_path)
+                            elif self.remote_type == 1:  # NFS
+                                os.remove(file_path)
+                            elif self.remote_type == 2:  # FTP
+                                self.ftp.delete(file_path)
+                            elif self.remote_type == 3:  # SFTP
+                                self.sftp.remove(file_path)
+                            elif self.remote_type == 4:  # WebDAV
+                                if self.remote_connection and 'session' in self.remote_connection:
+                                    response = self.remote_connection['session'].delete(file_path)
+                                    if response.status_code not in [200, 204, 404]:
+                                        xbmc.log(f"Error deleting WebDAV file {file_path}: {response.status_code}", xbmc.LOGERROR)
+                                        continue
+                                else:
+                                    continue
+                        xbmc.log(f"Deleted old backup: {file_path}", xbmc.LOGINFO)
+                        deleted_count += 1
                             except Exception as e:
-                                xbmc.log(f"Failed to remove old remote backup {old_backup}: {str(e)}", xbmc.LOGERROR)
-                finally:
-                    # Disconnect from remote location
+                        xbmc.log(f"Error deleting old backup {file_path}: {str(e)}", xbmc.LOGERROR)
+
+                # Notify about cleanup results
+                if deleted_count > 0:
+                    self.notify(
+                        "Backup Cleanup Complete",
+                        f"Deleted {deleted_count} old backup{'s' if deleted_count > 1 else ''}\n"
+                        f"Keeping {len(backups_to_keep)} backup{'s' if len(backups_to_keep) > 1 else ''}"
+                    )
+                else:
+                    self.notify(
+                        "Backup Cleanup",
+                        "No backups needed to be deleted"
+                    )
+            else:
+                self.notify(
+                    "Backup Cleanup",
+                    f"Current backup count ({len(backup_files)}) is within limit ({max_backups})"
+                )
+
+            # Always disconnect from remote location if we connected
+            if self.location_type != 0:  # Remote
                     self.disconnect_remote()
-        finally:
-            # Clean up after removing old backups
-            self.cleanup_resources()
+
+        except Exception as e:
+            xbmc.log(f"Error during backup cleanup: {str(e)}", xbmc.LOGERROR)
+            self.notify(
+                "Backup Cleanup Error",
+                f"Error during cleanup: {str(e)}"
+            )
     
     def mount_flash_rw(self):
         """Mount /flash in read-write mode"""
@@ -1731,3 +1890,43 @@ class BackupManager:
         finally:
             # Clean up temporary files after successful restore
             self.cleanup_current_session()
+
+    def backup(self, backup_name=None):
+        """Create a backup of the LibreELEC system"""
+        try:
+            # Get backup location
+            if not self.update_backup_location():
+                return False
+
+            # Create backup name if not provided
+            if not backup_name:
+                backup_name = f"libreelec_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+
+            # Create backup
+            if self.location_type == 0:  # Local
+                backup_path = os.path.join(self.backup_dir, backup_name)
+                success, message = self.create_backup(backup_path)
+                if not success:
+                    return False
+            else:  # Remote
+                if not self.connect_remote():
+                    return False
+                try:
+                    backup_path = os.path.join(self.backup_dir, backup_name)
+                    success, message = self.create_backup(backup_path)
+                    if not success:
+                        return False
+                    if not self.upload_backup(backup_path, backup_name):
+                        return False
+                finally:
+                    self.disconnect_remote()
+
+            # Only clean up old backups if the backup was successful
+            max_backups = int(self.addon.getSetting('max_backups') or "10")
+            self.cleanup_old_backups(max_backups)
+
+            return True
+
+        except Exception as e:
+            xbmc.log(f"Error during backup: {str(e)}", xbmc.LOGERROR)
+            return False
