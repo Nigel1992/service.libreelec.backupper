@@ -38,21 +38,30 @@ class BackupBrowser:
 
 def show_main_menu():
     """Show the main menu with options"""
-    options = ["Make Backup", "Restore Backup", "Settings"]
+    backup_utils = BackupManager()
+    last_backup = backup_utils.get_last_successful_backup()
+    next_backup = backup_utils.get_next_scheduled_backup()
+    
+    # Create menu items with backup information
+    options = [
+        "Make Backup",
+        "Restore Backup",
+        "Settings",
+        "----------------------------------------",  # Divider line
+        f"Last Backup: {last_backup}",
+        f"Next Backup: {next_backup}"
+    ]
+    
     selected = xbmcgui.Dialog().select(ADDON_NAME, options)
     
     if selected >= 0:
-        backup_utils = BackupManager()
-        
         if selected == 0:  # Make Backup
             success, message = backup_utils.create_backup()
             if not success:
                 xbmcgui.Dialog().ok(ADDON_NAME, f"Backup failed: {message}")
-            
         elif selected == 1:  # Restore Backup
             browser = BackupBrowser()
             browser.show_backups()
-            
         elif selected == 2:  # Settings
             ADDON.openSettings()
 

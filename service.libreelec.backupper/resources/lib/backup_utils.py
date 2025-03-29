@@ -1930,3 +1930,68 @@ class BackupManager:
         except Exception as e:
             xbmc.log(f"Error during backup: {str(e)}", xbmc.LOGERROR)
             return False
+
+    def get_last_successful_backup(self):
+        """Retrieve the date and time of the last successful backup from the last backup file."""
+        last_backup_file = "/storage/.kodi/userdata/addon_data/service.libreelec.backupper/last_backup.txt"
+        try:
+            if os.path.exists(last_backup_file):
+                with open(last_backup_file, 'r') as f:
+                    last_backup = f.read().strip()
+                return last_backup if last_backup else "No backup yet"
+            return "No backup yet"
+        except Exception as e:
+            xbmc.log(f"{ADDON_ID}: Error reading last backup time: {str(e)}", xbmc.LOGERROR)
+            return "Unknown"
+
+    def get_next_scheduled_backup(self):
+        """Retrieve the date and time of the next scheduled backup based on scheduler settings."""
+        try:
+            # Check if scheduler is enabled
+            if not self.addon.getSettingBool('enable_scheduler'):
+                return "Scheduler disabled"
+
+            # Get current time
+            now = datetime.now()
+            
+            # Get schedule settings
+            schedule_type = int(self.addon.getSetting('schedule_type') or "0")  # 0=daily, 1=weekly, 2=monthly
+            schedule_time = self.addon.getSetting('schedule_time') or "00:00"
+            schedule_day = int(self.addon.getSetting('schedule_day') or "0")  # 0-6 for weekly, 1-31 for monthly
+            
+            # Parse schedule time
+            try:
+                hour, minute = map(int, schedule_time.split(':'))
+            except ValueError:
+                return "Invalid schedule time"
+
+            # Calculate next backup time
+            next_backup = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            
+            if schedule_type == 0:  # Daily
+                if next_backup <= now:
+                    next_backup += timedelta(days=1)
+                    
+            elif schedule_type == 1:  # Weekly
+                # Convert schedule_day (0-6) to actual day of week
+                current_day = now.weekday()
+                days_ahead = schedule_day - current_day
+                if days_ahead <= 0:
+                    days_ahead += 7
+                next_backup += timedelta(days=days_ahead)
+                
+            elif schedule_type == 2:  # Monthly
+                # Set to the specified day of the month
+                next_backup = next_backup.replace(day=schedule_day)
+                if next_backup <= now:
+                    # Move to next month
+                    if next_backup.month == 12:
+                        next_backup = next_backup.replace(year=next_backup.year + 1, month=1)
+                    else:
+                        next_backup = next_backup.replace(month=next_backup.month + 1)
+
+            return next_backup.strftime("%Y-%m-%d %H:%M:%S")
+            
+        except Exception as e:
+            xbmc.log(f"{ADDON_ID}: Error calculating next backup time: {str(e)}", xbmc.LOGERROR)
+            return "Unknown"
