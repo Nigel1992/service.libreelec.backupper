@@ -85,7 +85,7 @@ def should_run_backup():
         return False, False, None, False, False, None
 
     current_time = datetime.now()
-    schedule_time = datetime.strptime(ADDON.getSettingString('schedule_time'), '%H:%M').time()
+    schedule_time = datetime.strptime(ADDON.getSetting('schedule_time'), '%H:%M').time()
     schedule_type = ADDON.getSettingInt('schedule_type')  # 0=Daily, 1=Weekly, 2=Monthly
     run_missed = ADDON.getSettingBool('run_missed_backups')
 
