@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.4.1.1-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -37,6 +37,10 @@
 - 🔗 Media Sources
 
 ## 📦 Latest Updates
+
+### Version 1.4.1.1 (March 29, 2025)
+- Fixed datetime parsing issue in scheduler
+- Improved error handling for schedule time parsing
 
 ### Version 1.4.1 (March 29, 2025)
 - Enhanced main menu UI with last backup and next scheduled backup information
