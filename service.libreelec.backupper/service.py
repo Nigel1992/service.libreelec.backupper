@@ -6,7 +6,7 @@ import sys
 import xbmc
 import xbmcaddon
 import xbmcvfs
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from resources.lib.backup_utils import BackupManager
 
 ADDON = xbmcaddon.Addon()
@@ -85,7 +85,17 @@ def should_run_backup():
         return False, False, None, False, False, None
 
     current_time = datetime.now()
-    schedule_time = datetime.strptime(ADDON.getSetting('schedule_time'), '%H:%M').time()
+    try:
+        schedule_time_str = ADDON.getSetting('schedule_time')
+        if not schedule_time_str:
+            log("No schedule time set", xbmc.LOGWARNING)
+            return False, False, None, False, False, None
+            
+        schedule_time = datetime.strptime(schedule_time_str, '%H:%M').time()
+    except (ValueError, TypeError) as e:
+        log(f"Error parsing schedule time: {str(e)}", xbmc.LOGERROR)
+        return False, False, None, False, False, None
+
     schedule_type = ADDON.getSettingInt('schedule_type')  # 0=Daily, 1=Weekly, 2=Monthly
     run_missed = ADDON.getSettingBool('run_missed_backups')
 
