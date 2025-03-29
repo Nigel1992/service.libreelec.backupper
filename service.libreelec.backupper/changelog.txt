@@ -1,3 +1,7 @@
+[B]1.4.1.1[/B] (2025-03-29)
+- Fixed datetime parsing issue in scheduler
+- Improved error handling for schedule time parsing
+
 [B]1.4.1[/B] (2025-03-29)
 - Enhanced main menu UI with last backup and next scheduled backup information
 - Improved menu layout with visual separation between actions and information
