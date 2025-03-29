@@ -303,8 +303,8 @@ msgid "Nigel1992"
 msgstr "Nigel1992"
 
 msgctxt "#32115"
-msgid "Version 1.4.0"
-msgstr "Version 1.4.0"
+msgid "Version 1.4.1"
+msgstr "Version 1.4.1"
 
 # Email Notification Settings
 msgctxt "#32120"
