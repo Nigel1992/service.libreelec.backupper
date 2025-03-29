@@ -91,7 +91,9 @@ def should_run_backup():
             log("No schedule time set", xbmc.LOGWARNING)
             return False, False, None, False, False, None
             
-        schedule_time = datetime.strptime(schedule_time_str, '%H:%M').time()
+        # Parse time string manually to avoid datetime.strptime issues
+        hours, minutes = map(int, schedule_time_str.split(':'))
+        schedule_time = time(hours, minutes)
     except (ValueError, TypeError) as e:
         log(f"Error parsing schedule time: {str(e)}", xbmc.LOGERROR)
         return False, False, None, False, False, None
