@@ -1,3 +1,14 @@
+[B]1.4.1[/B] (2025-03-29)
+- Enhanced main menu UI with last backup and next scheduled backup information
+- Improved menu layout with visual separation between actions and information
+
+[B]1.4.0[/B] (2025-03-25)
+- Added backup rotation feature with configurable retention policies
+- Added dedicated wiki documentation for backup rotation
+- Improved settings organization with subcategories
+- Enhanced warning system for potentially destructive features
+- Added visual separators in settings for better organization
+
 [B]1.1.1[/B] (2025-03-15)
 - Fixed config.txt not being included in backup archive
 - Improved section handling for flash configuration files
