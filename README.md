@@ -13,7 +13,7 @@
 [Features](#-features) • 
 [Configuration](#-configuration) • 
 [Support](#-support) • 
-[Documentation](#-documentation)
+[Documentation](#-documentation) •
 [Forum](https://forum.libreelec.tv/thread/29619-addon-libreelec-backup-automated-system-backup-solution/)
 
 </div>
