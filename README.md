@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.4.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.4.1.2-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -38,6 +38,12 @@
 - 🔗 Media Sources
 
 ## 📦 Latest Updates
+
+### Version 1.4.1.2 (December 30, 2025)
+- **Fixed restore from backup failing due to read-only file system error**
+- Added automatic mounting/unmounting of addons directory during restore operations
+- Fixed path resolution for addons and repository files during restore
+- Improved error handling for filesystem mount operations
 
 ### Version 1.4.1.1 (March 29, 2025)
 - Fixed datetime parsing issue in scheduler
