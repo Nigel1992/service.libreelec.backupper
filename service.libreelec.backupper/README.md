@@ -2,6 +2,12 @@
 
 A Kodi add-on for LibreELEC that allows you to backup and restore your system configuration, add-ons, and user data.
 
+## 🎯 What's New in 1.4.1.2 (December 30, 2025)
+- **Fixed restore from backup failing due to read-only file system error**
+- Added automatic mounting/unmounting of addons directory during restore operations
+- Fixed path resolution for addons and repository files during restore
+- Improved error handling for filesystem mount operations
+
 ## 🎯 What's New in 1.4.1.1 (March 29, 2025)
 - Fixed datetime parsing issue in scheduler
 - Improved error handling for schedule time parsing
