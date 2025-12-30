@@ -63,6 +63,14 @@ class BackupManager:
             self.backup_dir = self.addon.getSetting('backup_location')
             if not self.backup_dir:
                 self.backup_dir = "/storage/backup"  # Default location
+            
+            # Validate that local path doesn't contain network protocols
+            if self.backup_dir and (self.backup_dir.startswith(('nfs:', 'smb:', 'ftp:', 'sftp:', 'http:', 'https:')) or '://' in self.backup_dir):
+                xbmc.log(f"Invalid local path detected (contains network protocol): {self.backup_dir}", xbmc.LOGWARNING)
+                # Reset to default if invalid
+                self.backup_dir = "/storage/backup"
+                self.addon.setSetting('backup_location', self.backup_dir)
+                xbmc.log(f"Reset backup location to default: {self.backup_dir}", xbmc.LOGINFO)
         else:  # Remote
             # Get remote settings
             self.remote_type = int(self.addon.getSetting('remote_location_type') or "0")
@@ -137,13 +145,40 @@ class BackupManager:
         try:
             if self.remote_type == 0:  # SMB
                 # Use Kodi's built-in SMB support via xbmcvfs
-                remote_url = f"smb://{self.remote_username}:{urllib.parse.quote(self.remote_password)}@{self.remote_path}"
+                # Construct SMB URL properly
+                if self.remote_username and self.remote_password:
+                    remote_url = f"smb://{self.remote_username}:{urllib.parse.quote(self.remote_password)}@{self.remote_path}"
+                elif self.remote_username:
+                    remote_url = f"smb://{self.remote_username}@{self.remote_path}"
+                else:
+                    remote_url = f"smb://{self.remote_path}"
+                
                 self.remote_connection = remote_url
                 # Test connection by trying to list directory
                 dirs, files = xbmcvfs.listdir(remote_url)
                 return True
                 
             elif self.remote_type == 1:  # NFS
+                # Validate and format NFS path
+                # NFS requires format: server:/export/path or server:/export
+                nfs_path = self.remote_path.strip()
+                
+                # Check if path already has the correct format (contains :/)
+                if ':/' not in nfs_path:
+                    # Try to convert IP or hostname to proper NFS format
+                    # If it's just an IP or hostname, we need the export path
+                    if '/' not in nfs_path:
+                        xbmc.log(f"Invalid NFS path format: {nfs_path}. Expected format: server:/export/path", xbmc.LOGERROR)
+                        return False
+                    # If it has / but no :, assume it's server/export format and convert
+                    if ':' not in nfs_path:
+                        parts = nfs_path.split('/', 1)
+                        if len(parts) == 2:
+                            nfs_path = f"{parts[0]}:/{parts[1]}"
+                        else:
+                            xbmc.log(f"Invalid NFS path format: {nfs_path}. Expected format: server:/export/path", xbmc.LOGERROR)
+                            return False
+                
                 # Mount NFS share
                 mount_point = os.path.join(self.backup_dir, "nfs_mount")
                 if not os.path.exists(mount_point):
@@ -152,13 +187,21 @@ class BackupManager:
                 # Unmount if already mounted
                 subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
                 
-                # Mount the NFS share
-                result = subprocess.call(["mount", "-t", "nfs", self.remote_path, mount_point])
+                # Mount the NFS share with proper options
+                # Use soft mount and shorter timeout for better error handling
+                mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2"]
+                result = subprocess.call(["mount"] + mount_options + [nfs_path, mount_point], 
+                                        stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                
                 if result == 0:
                     self.remote_connection = mount_point
+                    xbmc.log(f"Successfully mounted NFS share: {nfs_path} to {mount_point}", xbmc.LOGINFO)
                     return True
                 else:
-                    xbmc.log(f"Failed to mount NFS share: {self.remote_path}", xbmc.LOGERROR)
+                    error_msg = f"Failed to mount NFS share: {nfs_path}. "
+                    error_msg += "Please verify: 1) NFS server is running, 2) Export path is correct (format: server:/export/path), "
+                    error_msg += "3) Network connectivity, 4) NFS client is installed"
+                    xbmc.log(error_msg, xbmc.LOGERROR)
                     return False
                 
             elif self.remote_type == 2:  # FTP
