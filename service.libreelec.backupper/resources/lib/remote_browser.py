@@ -74,20 +74,47 @@ class RemoteBrowser:
         
         # Use Kodi's built-in file browser for SMB and WebDAV
         if self.remote_type in [0, 4]:  # SMB or WebDAV
+            # If path is already set, try to use it, otherwise browse
+            if self.remote_path and self.remote_path.strip():
+                # Path is set, validate it and use it
+                if self.remote_type == 0:  # SMB
+                    # Validate SMB path format
+                    if not self.remote_path.startswith('smb://') and '/' in self.remote_path:
+                        # Path looks valid, use it
+                        ADDON.setSetting('remote_path', self.remote_path)
+                        xbmc.executebuiltin('UpdateLocalAddons')
+                        dialog = xbmcgui.Dialog()
+                        dialog.ok("Path Set", f"SMB path configured: {self.remote_path}\n\nUse 'Test Connection' to verify.")
+                        return self.remote_path
+                # For WebDAV, path validation is handled in browse_with_kodi_browser
             return self.browse_with_kodi_browser(current_type, mode)
         elif self.remote_type == 1:  # NFS
-            self.show_manual_entry_dialog("NFS")
-            return None
+            # NFS browsing - show dialog with format hint
+            return self.browse_nfs(mode)
         elif self.remote_type == 2:  # FTP
             self.show_manual_entry_dialog("FTP")
             return None
         elif self.remote_type == 3:  # SFTP
             if not SFTP_AVAILABLE:
-                xbmcgui.Dialog().ok("Missing Dependency", 
-                                   "SFTP browsing requires the paramiko module which is not available.")
-                return None
-            self.show_manual_entry_dialog("SFTP")
-            return None
+                error_msg = [
+                    "[COLOR red]Missing Dependency[/COLOR]",
+                    "",
+                    "SFTP browsing requires the paramiko module",
+                    "which is not available on this system.",
+                    "",
+                    "[B]Solutions:[/B]",
+                    "• Install paramiko module if possible",
+                    "• Use SFTP via manual path entry",
+                    "• Consider using SMB, NFS, or WebDAV instead",
+                    "",
+                    "Note: Manual path entry will still work",
+                    "for SFTP if the server is accessible."
+                ]
+                dialog = xbmcgui.Dialog()
+                dialog.textviewer("SFTP Not Available", "\n".join(error_msg))
+                # Still allow manual entry
+                return self.show_manual_entry_dialog("SFTP")
+            return self.show_manual_entry_dialog("SFTP")
         
         return None
     
@@ -137,6 +164,9 @@ class RemoteBrowser:
                 # Update the remote path setting
                 self.remote_path = path
                 ADDON.setSetting('remote_path', path)
+                # Force settings save immediately
+                xbmc.executebuiltin('UpdateLocalAddons')
+                xbmc.sleep(200)  # Brief pause to ensure settings are saved
                 
                 # Try to extract username and password from the URL if present
                 parsed_url = urlparse(selected_path)
@@ -212,6 +242,9 @@ class RemoteBrowser:
                     # Update the remote path setting
                     self.remote_path = remote_path
                     ADDON.setSetting('remote_path', remote_path)
+                    # Force settings save immediately
+                    xbmc.executebuiltin('UpdateLocalAddons')
+                    xbmc.sleep(200)  # Brief pause to ensure settings are saved
                     
                     # Try to extract username and password from the URL if present
                     if parsed_url.username:
@@ -264,6 +297,9 @@ class RemoteBrowser:
                     # For other paths, just store as is
                     self.remote_path = selected_path
                     ADDON.setSetting('remote_path', selected_path)
+                    # Force settings save immediately
+                    xbmc.executebuiltin('UpdateLocalAddons')
+                    xbmc.sleep(200)  # Brief pause to ensure settings are saved
                     
                     if mode == 'restore':
                         # Create a remote backup placeholder file
@@ -501,21 +537,63 @@ class RemoteBrowser:
         
         try:
             progress.update(25, "Validating NFS path...")
-            # Check if the path format is valid
-            if '/' not in self.remote_path:
-                progress.close()
-                error_msg = [
-                    "[COLOR red]ERROR[/COLOR] Invalid NFS Path",
-                    "",
-                    "[B]Current Path[/B]:",
-                    f"{self.remote_path}",
-                    "",
-                    "[B]Correct Format Example[/B]:",
-                    "server.example.com:/export/share"
-                ]
-                dialog = xbmcgui.Dialog()
-                dialog.textviewer("Connection Test Results", "\n".join(error_msg))
-                return False
+            # Validate and format NFS path
+            nfs_path = self.remote_path.strip()
+            
+            # Check if path has the correct format (contains :/)
+            if ':/' not in nfs_path:
+                # Try to convert to proper format
+                if '/' in nfs_path and ':' not in nfs_path:
+                    parts = nfs_path.split('/', 1)
+                    if len(parts) == 2:
+                        nfs_path = f"{parts[0]}:/{parts[1]}"
+                        # Update the setting with corrected path
+                        self.remote_path = nfs_path
+                        ADDON.setSetting('remote_path', nfs_path)
+                        xbmc.executebuiltin('UpdateLocalAddons')
+                    else:
+                        progress.close()
+                        error_msg = [
+                            "[COLOR red]ERROR[/COLOR] Invalid NFS Path Format",
+                            "",
+                            "[B]Current Path[/B]:",
+                            f"{self.remote_path}",
+                            "",
+                            "[B]Correct Format[/B]:",
+                            "server:/export/path",
+                            "",
+                            "[B]Examples[/B]:",
+                            "• 192.168.1.100:/mnt/backups",
+                            "• nas.example.com:/export/share",
+                            "",
+                            "[B]Note[/B]:",
+                            "The colon (:) is required between",
+                            "server and export path."
+                        ]
+                        dialog = xbmcgui.Dialog()
+                        dialog.textviewer("Connection Test Results", "\n".join(error_msg))
+                        return False
+                elif '/' not in nfs_path:
+                    progress.close()
+                    error_msg = [
+                        "[COLOR red]ERROR[/COLOR] Invalid NFS Path",
+                        "",
+                        "[B]Current Path[/B]:",
+                        f"{self.remote_path}",
+                        "",
+                        "[B]Correct Format[/B]:",
+                        "server:/export/path",
+                        "",
+                        "[B]Examples[/B]:",
+                        "• 192.168.1.100:/mnt/backups",
+                        "• nas.example.com:/export/share"
+                    ]
+                    dialog = xbmcgui.Dialog()
+                    dialog.textviewer("Connection Test Results", "\n".join(error_msg))
+                    return False
+            
+            # Use the validated/formatted path
+            self.remote_path = nfs_path
             
             progress.update(75, "Verifying NFS configuration...")
             # Try to mount the share temporarily
@@ -526,8 +604,10 @@ class RemoteBrowser:
             # Unmount if already mounted
             subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
             
-            # Try to mount
-            result = subprocess.call(["mount", "-t", "nfs", self.remote_path, mount_point])
+            # Try to mount with proper options
+            mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2"]
+            result = subprocess.call(["mount"] + mount_options + [self.remote_path, mount_point],
+                                   stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             
             if result == 0:
                 # Successfully mounted, get some info
@@ -1078,9 +1158,66 @@ class RemoteBrowser:
             
         return items[index]
     
+    def browse_nfs(self, mode='backup'):
+        """Browse NFS location - show dialog with format hint"""
+        dialog = xbmcgui.Dialog()
+        
+        # Show format hint first
+        format_hint = [
+            "NFS Path Format:",
+            "",
+            "Format: server:/export/path",
+            "",
+            "Examples:",
+            "• 192.168.1.100:/mnt/backups",
+            "• nas.example.com:/export/backup",
+            "• server:/share",
+            "",
+            "Note: The colon (:) is required between",
+            "server and export path."
+        ]
+        
+        dialog.ok("NFS Path Format", "\n".join(format_hint))
+        
+        # Get current path or empty string
+        current_path = self.remote_path or ""
+        
+        # Show keyboard dialog
+        keyboard = xbmc.Keyboard(current_path, "Enter NFS Path (server:/export/path)")
+        keyboard.doModal()
+        
+        if keyboard.isConfirmed():
+            new_path = keyboard.getText().strip()
+            if new_path:
+                # Validate NFS path format
+                if ':/' not in new_path and ':' not in new_path:
+                    # Try to help user - if they entered IP/path, add the colon
+                    if '/' in new_path:
+                        parts = new_path.split('/', 1)
+                        if len(parts) == 2:
+                            new_path = f"{parts[0]}:/{parts[1]}"
+                            dialog.ok("Path Format Adjusted", f"Adjusted to: {new_path}")
+                
+                if new_path != current_path:
+                    self.remote_path = new_path
+                    ADDON.setSetting('remote_path', new_path)
+                    # Force settings save
+                    xbmc.executebuiltin('UpdateLocalAddons')
+                    return new_path
+        
+        return None
+    
     def show_manual_entry_dialog(self, protocol_name):
         """Show a dialog for manual entry of remote path"""
         dialog = xbmcgui.Dialog()
+        
+        # Get format hints based on protocol
+        format_hints = {
+            "FTP": "Format: server/path\nExample: ftp.example.com/backups",
+            "SFTP": "Format: server/path\nExample: server.example.com/home/user/backups"
+        }
+        
+        hint = format_hints.get(protocol_name, f"Enter {protocol_name} path")
         
         # Get current path or empty string
         current_path = self.remote_path or ""
@@ -1090,10 +1227,12 @@ class RemoteBrowser:
         keyboard.doModal()
         
         if keyboard.isConfirmed():
-            new_path = keyboard.getText()
+            new_path = keyboard.getText().strip()
             if new_path != current_path:
                 self.remote_path = new_path
                 ADDON.setSetting('remote_path', new_path)
+                # Force settings save
+                xbmc.executebuiltin('UpdateLocalAddons')
                 return True
         
         return False
