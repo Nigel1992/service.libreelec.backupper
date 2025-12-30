@@ -1599,8 +1599,89 @@ class BackupManager:
             xbmc.log(f"Error mounting userdata as read-only: {str(e)}", xbmc.LOGERROR)
             return False
     
+    def mount_addons_rw(self):
+        """Mount addons directory in read-write mode"""
+        try:
+            # Get the actual path for addons
+            addons_path = os.path.join(self.kodi_home, 'addons')
+            
+            # Check if addons directory is already writable
+            test_file = os.path.join(addons_path, '.write_test')
+            try:
+                os.makedirs(addons_path, exist_ok=True)
+                with open(test_file, 'w') as f:
+                    f.write('test')
+                os.remove(test_file)
+                xbmc.log("Addons directory is already writable", xbmc.LOGINFO)
+                return True
+            except (IOError, PermissionError, OSError):
+                xbmc.log("Addons directory is not writable, attempting to remount", xbmc.LOGINFO)
+            
+            # Find the mount point that contains addons
+            mount_info = subprocess.run(['mount'], capture_output=True, text=True, check=True)
+            mount_lines = mount_info.stdout.splitlines()
+            
+            addons_mount = None
+            for line in mount_lines:
+                parts = line.split()
+                if len(parts) >= 3 and addons_path.startswith(parts[2]):
+                    addons_mount = parts[2]
+                    break
+            
+            if addons_mount:
+                xbmc.log(f"Mounting {addons_mount} as read-write", xbmc.LOGINFO)
+                subprocess.run(['mount', '-o', 'remount,rw', addons_mount], check=True)
+                
+                # Verify it's now writable
+                try:
+                    os.makedirs(addons_path, exist_ok=True)
+                    with open(test_file, 'w') as f:
+                        f.write('test')
+                    os.remove(test_file)
+                    xbmc.log("Verified addons directory is now writable", xbmc.LOGINFO)
+                    return True
+                except (IOError, PermissionError, OSError):
+                    xbmc.log("Addons directory is still not writable after remount", xbmc.LOGERROR)
+                    return False
+            else:
+                xbmc.log(f"Could not find mount point for addons: {addons_path}", xbmc.LOGERROR)
+                return False
+                
+        except Exception as e:
+            xbmc.log(f"Error mounting addons as read-write: {str(e)}", xbmc.LOGERROR)
+            return False
+            
+    def mount_addons_ro(self):
+        """Mount addons directory back in read-only mode"""
+        try:
+            # Get the actual path for addons
+            addons_path = os.path.join(self.kodi_home, 'addons')
+            
+            # Find the mount point that contains addons
+            mount_info = subprocess.run(['mount'], capture_output=True, text=True, check=True)
+            mount_lines = mount_info.stdout.splitlines()
+            
+            addons_mount = None
+            for line in mount_lines:
+                parts = line.split()
+                if len(parts) >= 3 and addons_path.startswith(parts[2]):
+                    addons_mount = parts[2]
+                    break
+            
+            if addons_mount:
+                xbmc.log(f"Remounting {addons_mount} as read-only", xbmc.LOGINFO)
+                subprocess.run(['mount', '-o', 'remount,ro', addons_mount], check=True)
+                return True
+            else:
+                xbmc.log(f"Could not find mount point for addons: {addons_path}", xbmc.LOGERROR)
+                return False
+                
+        except Exception as e:
+            xbmc.log(f"Error mounting addons as read-only: {str(e)}", xbmc.LOGERROR)
+            return False
+    
     def restore_file(self, zip_file, file_info, extract_path):
-        """Restore a single file with special handling for config.txt and userdata"""
+        """Restore a single file with special handling for config.txt, userdata, and addons"""
         try:
             # Handle configuration files that need /flash to be writable
             if extract_path == '/flash/config.txt' or extract_path.startswith('/flash/'):
@@ -1687,6 +1768,55 @@ class BackupManager:
                             self.notify(error_msg)
                     else:
                         xbmc.log("Userdata remounted as read-only", xbmc.LOGINFO)
+                    
+                    if not restore_success:
+                        return False, f"Failed to restore {os.path.basename(extract_path)}"
+                
+                return True, None
+            
+            # Handle addons files
+            elif extract_path.startswith(os.path.join(self.kodi_home, 'addons')):
+                xbmc.log(f"Preparing to restore addon file: {extract_path}", xbmc.LOGINFO)
+                
+                # Mount addons directory in read-write mode
+                if not self.mount_addons_rw():
+                    xbmc.log("Failed to mount addons directory in read-write mode", xbmc.LOGERROR)
+                    return False, "Failed to mount addons directory in read-write mode"
+                
+                xbmc.log("Addons directory mounted in read-write mode", xbmc.LOGINFO)
+                restore_success = False
+                
+                try:
+                    # Ensure the directory exists
+                    os.makedirs(os.path.dirname(extract_path), exist_ok=True)
+                    
+                    # Extract the file
+                    with zip_file.open(file_info) as source, open(extract_path, 'wb') as target:
+                        shutil.copyfileobj(source, target)
+                    
+                    xbmc.log(f"Addon file extracted successfully: {extract_path}", xbmc.LOGINFO)
+                    
+                    # Ensure proper permissions (644 for files, 755 for directories)
+                    if os.path.isdir(extract_path):
+                        os.chmod(extract_path, 0o755)
+                    else:
+                        os.chmod(extract_path, 0o644)
+                    
+                    restore_success = True
+                except Exception as e:
+                    xbmc.log(f"Error during addon file restore: {str(e)}", xbmc.LOGERROR)
+                    raise e
+                finally:
+                    # Always try to remount as read-only
+                    xbmc.log("Attempting to remount addons directory as read-only", xbmc.LOGINFO)
+                    if not self.mount_addons_ro():
+                        error_msg = "Warning: Failed to remount addons directory as read-only"
+                        xbmc.log(error_msg, xbmc.LOGWARNING)
+                        # If restore was successful but remount failed, still warn the user
+                        if restore_success:
+                            self.notify(error_msg)
+                    else:
+                        xbmc.log("Addons directory remounted as read-only", xbmc.LOGINFO)
                     
                     if not restore_success:
                         return False, f"Failed to restore {os.path.basename(extract_path)}"
@@ -1865,8 +1995,17 @@ class BackupManager:
                         if file_info.filename.startswith('userdata/'):
                             # Handle userdata paths correctly
                             extract_path = os.path.join(self.kodi_userdata, os.path.relpath(file_info.filename, 'userdata'))
+                        elif file_info.filename.startswith('addons/'):
+                            # Handle addons paths correctly
+                            extract_path = os.path.join(self.kodi_home, file_info.filename)
+                        elif file_info.filename.startswith('flash/'):
+                            # Handle flash paths correctly
+                            extract_path = os.path.join('/', file_info.filename)
+                        elif file_info.filename.startswith('repo/'):
+                            # Handle repository paths correctly (repositories are in addons directory)
+                            extract_path = os.path.join(self.kodi_home, 'addons', os.path.relpath(file_info.filename, 'repo'))
                         else:
-                            # Handle all other files
+                            # Handle all other files (assume they're relative to root)
                             extract_path = os.path.join('/', file_info.filename)
                         
                         # Restore the file with special handling for config.txt
