@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.4.1.3" provider-name="Nigel">
+<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.4.1.4" provider-name="Nigel">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
@@ -14,7 +14,13 @@
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-        <news>v1.4.1.3 (2026-01-04) - FIX RELEASE
+        <news>v1.4.1.4 (2026-01-04) - FIX RELEASE
+- Fixed NFS mounting with nolock option for better compatibility
+- Fixed SMB browsing path conversion (smb://server/share -> server:/share)
+- Fixed local backup path handling for NFS mounts
+- Improved error handling for remote connections
+
+v1.4.1.3 (2026-01-04) - FIX RELEASE
 - Fixed addon zip structure for proper Kodi installation
 
 v1.4.1.3 (2025-12-30) - TEST RELEASE
