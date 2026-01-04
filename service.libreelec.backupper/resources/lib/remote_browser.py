@@ -160,10 +160,20 @@ class RemoteBrowser:
                 # Remove trailing slash if present
                 if path.endswith('/'):
                     path = path[:-1]
-                
+
+                # Convert from smb://server/share format to server:/share format
+                if '/' in path:
+                    parts = path.split('/', 1)
+                    server = parts[0]
+                    share = parts[1]
+                    # Convert to the expected format: server:/share
+                    expected_path = f"{server}:{share}" if share else server
+                else:
+                    expected_path = path
+
                 # Update the remote path setting
-                self.remote_path = path
-                ADDON.setSetting('remote_path', path)
+                self.remote_path = expected_path
+                ADDON.setSetting('remote_path', expected_path)
                 # Force settings save immediately
                 xbmc.executebuiltin('UpdateLocalAddons')
                 xbmc.sleep(200)  # Brief pause to ensure settings are saved
@@ -605,7 +615,7 @@ class RemoteBrowser:
             subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
             
             # Try to mount with proper options
-            mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2"]
+            mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2,nolock"]
             result = subprocess.call(["mount"] + mount_options + [self.remote_path, mount_point],
                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             
@@ -1253,4 +1263,4 @@ def main():
         browser.browse()
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -95,18 +95,17 @@ class BackupManager:
             # Create a temporary local directory for staging remote files
             self.backup_dir = os.path.join(xbmcvfs.translatePath('special://temp'), 'libreelec_backupper')
         
-        # Ensure backup directory exists
-        if self.backup_dir and not os.path.exists(self.backup_dir):
-            try:
-                os.makedirs(self.backup_dir)
-            except Exception as e:
-                xbmc.log(f"Error creating backup directory: {str(e)}", xbmc.LOGERROR)
-                # Fall back to addon profile if custom location can't be created
-                self.backup_dir = xbmcvfs.translatePath(self.addon.getAddonInfo('profile'))
-                if not os.path.exists(self.backup_dir):
+        # Ensure backup directory exists (only for remote backups where we create temp dirs)
+        if self.location_type != 0:  # Remote
+            if self.backup_dir and not os.path.exists(self.backup_dir):
+                try:
                     os.makedirs(self.backup_dir)
-                if self.location_type == 0:  # Only update setting for local backups
-                    self.addon.setSetting('backup_location', self.backup_dir)
+                except Exception as e:
+                    xbmc.log(f"Error creating backup directory: {str(e)}", xbmc.LOGERROR)
+                    # Fall back to addon profile if custom location can't be created
+                    self.backup_dir = xbmcvfs.translatePath(self.addon.getAddonInfo('profile'))
+                    if not os.path.exists(self.backup_dir):
+                        os.makedirs(self.backup_dir)
     
     def _create_webdav_session(self):
         """Create a WebDAV session with retry logic and connection pooling"""
@@ -188,9 +187,9 @@ class BackupManager:
                 subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
                 
                 # Mount the NFS share with proper options
-                # Use soft mount and shorter timeout for better error handling
-                mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2"]
-                result = subprocess.call(["mount"] + mount_options + [nfs_path, mount_point], 
+                # Use soft mount, shorter timeout, and nolock for better compatibility
+                mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2,nolock"]
+                result = subprocess.call(["mount"] + mount_options + [nfs_path, mount_point],
                                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
                 
                 if result == 0:
