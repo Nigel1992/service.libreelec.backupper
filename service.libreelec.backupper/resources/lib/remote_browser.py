@@ -39,16 +39,22 @@ class RemoteBrowser:
     
     def reload_settings(self):
         """Reload settings from Kodi"""
+        xbmc.log("RemoteBrowser: Reloading settings from Kodi", xbmc.LOGINFO)
+
         # Force reload of addon to get fresh settings
         global ADDON
         ADDON = xbmcaddon.Addon()
-        
+
         self.remote_type = int(ADDON.getSetting('remote_location_type'))
         self.remote_path = ADDON.getSetting('remote_path')
         self.username = ADDON.getSetting('remote_username')
-        self.password = ADDON.getSetting('remote_password')
+        # Don't log password for security
         self.port = ADDON.getSetting('remote_port')
-        
+
+        xbmc.log(f"RemoteBrowser: Remote type = {self.remote_type}", xbmc.LOGINFO)
+        xbmc.log(f"RemoteBrowser: Remote path = {self.remote_path}", xbmc.LOGINFO)
+        xbmc.log(f"RemoteBrowser: Username = {self.username}", xbmc.LOGINFO)
+
         # Default ports if not specified
         self.default_ports = {
             0: 445,  # SMB
@@ -57,9 +63,14 @@ class RemoteBrowser:
             3: 22,   # SFTP
             4: 80    # WebDAV
         }
-        
+
         if not self.port:
             self.port = str(self.default_ports.get(self.remote_type, 0))
+            xbmc.log(f"RemoteBrowser: Set default port: {self.port}", xbmc.LOGINFO)
+        else:
+            xbmc.log(f"RemoteBrowser: Using configured port: {self.port}", xbmc.LOGINFO)
+
+        xbmc.log("RemoteBrowser: Settings reloaded successfully", xbmc.LOGINFO)
     
     def browse(self, mode='backup'):
         """Main method to browse remote locations based on type

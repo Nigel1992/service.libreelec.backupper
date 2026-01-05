@@ -48,37 +48,56 @@ class BackupManager:
     
     def update_backup_location(self):
         """Update backup location from settings"""
+        xbmc.log("BackupManager: Updating backup location settings", xbmc.LOGINFO)
+
         # Get backup location type from settings
         self.location_type = int(self.addon.getSetting('backup_location_type') or "0")
-        
+        xbmc.log(f"BackupManager: Location type = {self.location_type} (0=Local, 1=Remote)", xbmc.LOGINFO)
+
         # Define paths for various Kodi directories
         self.kodi_home = xbmcvfs.translatePath('special://home')
         self.kodi_userdata = xbmcvfs.translatePath('special://userdata')
-        
+        xbmc.log(f"BackupManager: Kodi paths - home: {self.kodi_home}, userdata: {self.kodi_userdata}", xbmc.LOGDEBUG)
+
         # Initialize backup_dir
         self.backup_dir = None
-        
+
         # Handle local backup location
         if self.location_type == 0:  # Local
             self.backup_dir = self.addon.getSetting('backup_location')
+            xbmc.log(f"BackupManager: Local backup location setting: {self.backup_dir}", xbmc.LOGINFO)
+
             if not self.backup_dir:
                 self.backup_dir = "/storage/backup"  # Default location
-            
+                xbmc.log("BackupManager: Using default local backup location: /storage/backup", xbmc.LOGINFO)
+
             # Validate that local path doesn't contain network protocols or remote path formats
             if self.backup_dir and (self.backup_dir.startswith(('nfs:', 'smb:', 'ftp:', 'sftp:', 'http:', 'https:')) or '://' in self.backup_dir or ':' in self.backup_dir):
-                xbmc.log(f"Invalid local path detected (contains network protocol or remote path format): {self.backup_dir}", xbmc.LOGWARNING)
+                xbmc.log(f"BackupManager: Invalid local path detected (contains network protocol or remote path format): {self.backup_dir}", xbmc.LOGWARNING)
                 # Reset to default if invalid
                 self.backup_dir = "/storage/backup"
                 self.addon.setSetting('backup_location', self.backup_dir)
-                xbmc.log(f"Reset backup location to default: {self.backup_dir}", xbmc.LOGINFO)
+                xbmc.log("BackupManager: Reset backup location to default: /storage/backup", xbmc.LOGINFO)
+            else:
+                xbmc.log(f"BackupManager: Local backup directory validated: {self.backup_dir}", xbmc.LOGINFO)
         else:  # Remote
+            xbmc.log("BackupManager: Configuring remote backup settings", xbmc.LOGINFO)
+
             # Get remote settings
             self.remote_type = int(self.addon.getSetting('remote_location_type') or "0")
             self.remote_path = self.addon.getSetting('remote_path')
             self.remote_username = self.addon.getSetting('remote_username')
-            self.remote_password = self.addon.getSetting('remote_password')
+            # Don't log password for security
             self.remote_port = int(self.addon.getSetting('remote_port') or "0")
-            
+
+            remote_type_names = ["SMB", "NFS", "FTP", "SFTP", "WebDAV"]
+            remote_type_name = remote_type_names[self.remote_type] if self.remote_type < len(remote_type_names) else f"Unknown({self.remote_type})"
+
+            xbmc.log(f"BackupManager: Remote type = {self.remote_type} ({remote_type_name})", xbmc.LOGINFO)
+            xbmc.log(f"BackupManager: Remote path = {self.remote_path}", xbmc.LOGINFO)
+            xbmc.log(f"BackupManager: Remote username = {self.remote_username}", xbmc.LOGINFO)
+            xbmc.log(f"BackupManager: Remote port = {self.remote_port}", xbmc.LOGINFO)
+
             # Set default ports if not specified
             if self.remote_port == 0:
                 if self.remote_type == 0:  # SMB
@@ -91,21 +110,28 @@ class BackupManager:
                     self.remote_port = 22
                 elif self.remote_type == 4:  # WebDAV
                     self.remote_port = 80
-            
+                xbmc.log(f"BackupManager: Set default port for {remote_type_name}: {self.remote_port}", xbmc.LOGINFO)
+
             # Create a temporary local directory for staging remote files
             self.backup_dir = os.path.join(xbmcvfs.translatePath('special://temp'), 'libreelec_backupper')
-        
+            xbmc.log(f"BackupManager: Remote staging directory: {self.backup_dir}", xbmc.LOGINFO)
+
         # Ensure backup directory exists (only for remote backups where we create temp dirs)
         if self.location_type != 0:  # Remote
             if self.backup_dir and not os.path.exists(self.backup_dir):
                 try:
                     os.makedirs(self.backup_dir)
+                    xbmc.log(f"BackupManager: Created staging directory: {self.backup_dir}", xbmc.LOGINFO)
                 except Exception as e:
-                    xbmc.log(f"Error creating backup directory: {str(e)}", xbmc.LOGERROR)
+                    xbmc.log(f"BackupManager: Error creating backup directory: {str(e)}", xbmc.LOGERROR)
                     # Fall back to addon profile if custom location can't be created
                     self.backup_dir = xbmcvfs.translatePath(self.addon.getAddonInfo('profile'))
+                    xbmc.log(f"BackupManager: Falling back to addon profile directory: {self.backup_dir}", xbmc.LOGWARNING)
                     if not os.path.exists(self.backup_dir):
                         os.makedirs(self.backup_dir)
+                        xbmc.log("BackupManager: Created fallback directory", xbmc.LOGINFO)
+
+        xbmc.log(f"BackupManager: Final backup directory: {self.backup_dir}", xbmc.LOGINFO)
     
     def _create_webdav_session(self):
         """Create a WebDAV session with retry logic and connection pooling"""

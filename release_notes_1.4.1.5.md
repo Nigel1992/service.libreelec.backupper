@@ -38,6 +38,7 @@
 2. **Path Validation**: Prevents invalid paths from causing silent failures
 3. **User Experience**: Clear feedback and proper dialog flows
 4. **Error Handling**: Comprehensive error handling for all operations
+5. **Enhanced Logging**: Detailed logging throughout the application for easier debugging and troubleshooting
 
 ## Testing
 

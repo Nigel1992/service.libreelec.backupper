@@ -30,17 +30,25 @@ class BackupBrowser:
     def show_backups(self, mode='view'):
         """Display a list of available backups for selection
         mode: 'view' for viewing/listing, 'restore' for selecting to restore"""
+        xbmc.log(f"BackupBrowser: Showing backups in {mode} mode", xbmc.LOGINFO)
+
         # Get list of available backups
+        xbmc.log("BackupBrowser: Retrieving backup list...", xbmc.LOGDEBUG)
         backups = self.backup_utils.get_all_backups()
+        xbmc.log(f"BackupBrowser: Found {len(backups)} backups", xbmc.LOGINFO)
+
         if not backups:
+            xbmc.log("BackupBrowser: No backup files found", xbmc.LOGWARNING)
             xbmcgui.Dialog().ok(ADDON_NAME, "No backup files found")
             return
 
         # Create backup options with detailed information
+        xbmc.log("BackupBrowser: Processing backup list...", xbmc.LOGDEBUG)
         backup_options = []
         for backup in backups:
             try:
                 backup_name = os.path.basename(backup)
+                xbmc.log(f"BackupBrowser: Processing backup: {backup_name}", xbmc.LOGDEBUG)
 
                 # Get backup date from filename (format: backup_items_timestamp.zip)
                 # Extract timestamp from filename
@@ -70,7 +78,8 @@ class BackupBrowser:
                             backup_date = "Unknown date"
                     else:
                         backup_date = "Unknown date"
-                except:
+                except Exception as e:
+                    xbmc.log(f"BackupBrowser: Error parsing backup date for {backup_name}: {str(e)}", xbmc.LOGWARNING)
                     backup_date = "Unknown date"
 
                 # Get backup size
@@ -81,7 +90,8 @@ class BackupBrowser:
                         # For remote backups, size info may not be available
                         backup_size = 0
                     backup_size_formatted = self.backup_utils.format_size(backup_size)
-                except:
+                except Exception as e:
+                    xbmc.log(f"BackupBrowser: Error getting backup size for {backup_name}: {str(e)}", xbmc.LOGWARNING)
                     backup_size_formatted = "Unknown size"
 
                 # Create display string
@@ -90,26 +100,35 @@ class BackupBrowser:
                     display_name += f" ({backup_size_formatted})"
 
                 backup_options.append((display_name, backup))
+                xbmc.log(f"BackupBrowser: Added backup option: {display_name}", xbmc.LOGDEBUG)
             except Exception as e:
-                xbmc.log(f"Error processing backup {backup}: {str(e)}", xbmc.LOGERROR)
+                xbmc.log(f"BackupBrowser: Error processing backup {backup}: {str(e)}", xbmc.LOGERROR)
                 continue
 
+        xbmc.log(f"BackupBrowser: Created {len(backup_options)} backup options", xbmc.LOGINFO)
+
         if not backup_options:
+            xbmc.log("BackupBrowser: No valid backup options created", xbmc.LOGWARNING)
             xbmcgui.Dialog().ok(ADDON_NAME, "No valid backup files found")
             return
 
         # Show dialog to select backup
         dialog = xbmcgui.Dialog()
         title = "Select backup to restore" if mode == 'restore' else "Available backups"
+        xbmc.log(f"BackupBrowser: Showing selection dialog with title: {title}", xbmc.LOGINFO)
         selected = dialog.select(title, [opt[0] for opt in backup_options])
 
         if selected == -1:  # User cancelled
+            xbmc.log("BackupBrowser: User cancelled backup selection", xbmc.LOGINFO)
             return
 
         selected_backup = backup_options[selected][1]
+        selected_display = backup_options[selected][0]
+        xbmc.log(f"BackupBrowser: User selected backup: {selected_display}", xbmc.LOGINFO)
 
         if mode == 'restore':
             # Confirm restore
+            xbmc.log("BackupBrowser: Showing restore confirmation dialog", xbmc.LOGDEBUG)
             confirmed = dialog.yesno(
                 ADDON_NAME,
                 f"Restore backup: {os.path.basename(selected_backup)}?",
@@ -117,13 +136,19 @@ class BackupBrowser:
             )
 
             if confirmed:
+                xbmc.log(f"BackupBrowser: Starting backup restoration: {selected_backup}", xbmc.LOGINFO)
                 success, message = self.backup_utils.restore_backup(selected_backup)
                 if success:
+                    xbmc.log("BackupBrowser: Backup restoration completed successfully", xbmc.LOGINFO)
                     dialog.ok(ADDON_NAME, "Backup restored successfully")
                 else:
+                    xbmc.log(f"BackupBrowser: Backup restoration failed: {message}", xbmc.LOGERROR)
                     dialog.ok(ADDON_NAME, f"Failed to restore backup: {message}")
+            else:
+                xbmc.log("BackupBrowser: User cancelled backup restoration", xbmc.LOGINFO)
         else:
             # For view mode, just show backup info
+            xbmc.log("BackupBrowser: Showing backup information dialog", xbmc.LOGDEBUG)
             dialog.ok(ADDON_NAME, f"Backup: {os.path.basename(selected_backup)}")
 
 def show_main_menu():
