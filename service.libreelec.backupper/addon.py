@@ -22,19 +22,109 @@ def log(message, level=xbmc.LOGINFO):
 
 class BackupBrowser:
     """GUI for browsing and restoring backups"""
-    
+
     def __init__(self):
         self.backup_utils = BackupManager()
         self.remote_browser = RemoteBrowser()
-    
-    def show_backups(self):
-        """Display a list of available backups"""
-        # Use RemoteBrowser to show the browse dialog
-        selected_file = self.remote_browser.browse_remote(mode='restore')
-        if selected_file:
-            success, message = self.backup_utils.restore_backup(selected_file)
-            if not success:
-                xbmcgui.Dialog().ok(ADDON_NAME, f"Failed to restore backup: {message}")
+
+    def show_backups(self, mode='view'):
+        """Display a list of available backups for selection
+        mode: 'view' for viewing/listing, 'restore' for selecting to restore"""
+        # Get list of available backups
+        backups = self.backup_utils.get_all_backups()
+        if not backups:
+            xbmcgui.Dialog().ok(ADDON_NAME, "No backup files found")
+            return
+
+        # Create backup options with detailed information
+        backup_options = []
+        for backup in backups:
+            try:
+                backup_name = os.path.basename(backup)
+
+                # Get backup date from filename (format: backup_items_timestamp.zip)
+                # Extract timestamp from filename
+                try:
+                    # Split by underscore and find the timestamp part
+                    parts = backup_name.replace('.zip', '').split('_')
+                    if len(parts) >= 3:
+                        # Find the timestamp (should be the last part that's all digits)
+                        timestamp_part = None
+                        for part in reversed(parts):
+                            if part.isdigit() and len(part) == 14:  # YYYYMMDDHHMMSS format
+                                timestamp_part = part
+                                break
+
+                        if timestamp_part:
+                            # Parse timestamp: YYYYMMDDHHMMSS
+                            year = int(timestamp_part[0:4])
+                            month = int(timestamp_part[4:6])
+                            day = int(timestamp_part[6:8])
+                            hour = int(timestamp_part[8:10])
+                            minute = int(timestamp_part[10:12])
+                            second = int(timestamp_part[12:14])
+
+                            from datetime import datetime
+                            backup_date = datetime(year, month, day, hour, minute, second).strftime("%Y-%m-%d %H:%M:%S")
+                        else:
+                            backup_date = "Unknown date"
+                    else:
+                        backup_date = "Unknown date"
+                except:
+                    backup_date = "Unknown date"
+
+                # Get backup size
+                try:
+                    if self.backup_utils.location_type == 0:  # Local
+                        backup_size = os.path.getsize(backup)
+                    else:
+                        # For remote backups, size info may not be available
+                        backup_size = 0
+                    backup_size_formatted = self.backup_utils.format_size(backup_size)
+                except:
+                    backup_size_formatted = "Unknown size"
+
+                # Create display string
+                display_name = f"{backup_date} - {backup_name}"
+                if backup_size_formatted != "Unknown size":
+                    display_name += f" ({backup_size_formatted})"
+
+                backup_options.append((display_name, backup))
+            except Exception as e:
+                xbmc.log(f"Error processing backup {backup}: {str(e)}", xbmc.LOGERROR)
+                continue
+
+        if not backup_options:
+            xbmcgui.Dialog().ok(ADDON_NAME, "No valid backup files found")
+            return
+
+        # Show dialog to select backup
+        dialog = xbmcgui.Dialog()
+        title = "Select backup to restore" if mode == 'restore' else "Available backups"
+        selected = dialog.select(title, [opt[0] for opt in backup_options])
+
+        if selected == -1:  # User cancelled
+            return
+
+        selected_backup = backup_options[selected][1]
+
+        if mode == 'restore':
+            # Confirm restore
+            confirmed = dialog.yesno(
+                ADDON_NAME,
+                f"Restore backup: {os.path.basename(selected_backup)}?",
+                "This will overwrite existing files. Continue?"
+            )
+
+            if confirmed:
+                success, message = self.backup_utils.restore_backup(selected_backup)
+                if success:
+                    dialog.ok(ADDON_NAME, "Backup restored successfully")
+                else:
+                    dialog.ok(ADDON_NAME, f"Failed to restore backup: {message}")
+        else:
+            # For view mode, just show backup info
+            dialog.ok(ADDON_NAME, f"Backup: {os.path.basename(selected_backup)}")
 
 def show_main_menu():
     """Show the main menu with options"""
@@ -61,7 +151,7 @@ def show_main_menu():
                 xbmcgui.Dialog().ok(ADDON_NAME, f"Backup failed: {message}")
         elif selected == 1:  # Restore Backup
             browser = BackupBrowser()
-            browser.show_backups()
+            browser.show_backups(mode='restore')
         elif selected == 2:  # Settings
             ADDON.openSettings()
 
@@ -121,10 +211,10 @@ def main():
             backup()
         elif args == 'restore':
             browser = BackupBrowser()
-            browser.show_backups()
+            browser.show_backups(mode='restore')
         elif args == 'view':
             browser = BackupBrowser()
-            browser.show_backups()
+            browser.show_backups(mode='view')
         elif args == 'browse_remote':
             browser = RemoteBrowser()
             browser.browse_remote()
@@ -184,4 +274,4 @@ def main():
 
 if __name__ == '__main__':
     # This file is only used for script functionality, not service
-    main() 
+    main()

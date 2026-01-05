@@ -161,13 +161,13 @@ class RemoteBrowser:
                 if path.endswith('/'):
                     path = path[:-1]
 
-                # Convert from smb://server/share format to server:/share format
+                # Convert from smb://server/share format to server/share format
                 if '/' in path:
                     parts = path.split('/', 1)
                     server = parts[0]
                     share = parts[1]
-                    # Convert to the expected format: server:/share
-                    expected_path = f"{server}:{share}" if share else server
+                    # Convert to the expected format: server/share
+                    expected_path = f"{server}/{share}" if share else server
                 else:
                     expected_path = path
 
@@ -1171,7 +1171,7 @@ class RemoteBrowser:
     def browse_nfs(self, mode='backup'):
         """Browse NFS location - show dialog with format hint"""
         dialog = xbmcgui.Dialog()
-        
+
         # Show format hint first
         format_hint = [
             "NFS Path Format:",
@@ -1186,16 +1186,16 @@ class RemoteBrowser:
             "Note: The colon (:) is required between",
             "server and export path."
         ]
-        
+
         dialog.ok("NFS Path Format", "\n".join(format_hint))
-        
+
         # Get current path or empty string
         current_path = self.remote_path or ""
-        
+
         # Show keyboard dialog
         keyboard = xbmc.Keyboard(current_path, "Enter NFS Path (server:/export/path)")
         keyboard.doModal()
-        
+
         if keyboard.isConfirmed():
             new_path = keyboard.getText().strip()
             if new_path:
@@ -1207,15 +1207,32 @@ class RemoteBrowser:
                         if len(parts) == 2:
                             new_path = f"{parts[0]}:/{parts[1]}"
                             dialog.ok("Path Format Adjusted", f"Adjusted to: {new_path}")
-                
+
+                # Validate the path looks like a proper NFS path
+                if ':/' not in new_path:
+                    dialog.ok("Invalid NFS Path", "NFS path must contain ':' (colon) in format server:/export/path")
+                    return None
+
                 if new_path != current_path:
                     self.remote_path = new_path
                     ADDON.setSetting('remote_path', new_path)
                     # Force settings save
                     xbmc.executebuiltin('UpdateLocalAddons')
+                    xbmc.sleep(200)  # Brief pause to ensure settings are saved
+
+                    # Show confirmation
+                    dialog.ok("NFS Path Set", f"NFS path configured: {new_path}\n\nUse 'Test Connection' to verify.")
                     return new_path
-        
-        return None
+                else:
+                    # Path didn't change
+                    dialog.ok("NFS Path", f"NFS path unchanged: {new_path}")
+                    return new_path
+            else:
+                dialog.ok("NFS Path", "No path entered")
+                return None
+        else:
+            # User cancelled
+            return None
     
     def show_manual_entry_dialog(self, protocol_name):
         """Show a dialog for manual entry of remote path"""

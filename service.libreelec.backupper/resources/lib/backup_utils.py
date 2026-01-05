@@ -64,9 +64,9 @@ class BackupManager:
             if not self.backup_dir:
                 self.backup_dir = "/storage/backup"  # Default location
             
-            # Validate that local path doesn't contain network protocols
-            if self.backup_dir and (self.backup_dir.startswith(('nfs:', 'smb:', 'ftp:', 'sftp:', 'http:', 'https:')) or '://' in self.backup_dir):
-                xbmc.log(f"Invalid local path detected (contains network protocol): {self.backup_dir}", xbmc.LOGWARNING)
+            # Validate that local path doesn't contain network protocols or remote path formats
+            if self.backup_dir and (self.backup_dir.startswith(('nfs:', 'smb:', 'ftp:', 'sftp:', 'http:', 'https:')) or '://' in self.backup_dir or ':' in self.backup_dir):
+                xbmc.log(f"Invalid local path detected (contains network protocol or remote path format): {self.backup_dir}", xbmc.LOGWARNING)
                 # Reset to default if invalid
                 self.backup_dir = "/storage/backup"
                 self.addon.setSetting('backup_location', self.backup_dir)
@@ -145,13 +145,16 @@ class BackupManager:
             if self.remote_type == 0:  # SMB
                 # Use Kodi's built-in SMB support via xbmcvfs
                 # Construct SMB URL properly
+                # remote_path is in format: server/share
+                # Convert to: smb://server/share
+                smb_path = self.remote_path.replace(':', '/')  # Just in case there's still a colon
                 if self.remote_username and self.remote_password:
-                    remote_url = f"smb://{self.remote_username}:{urllib.parse.quote(self.remote_password)}@{self.remote_path}"
+                    remote_url = f"smb://{self.remote_username}:{urllib.parse.quote(self.remote_password)}@{smb_path}"
                 elif self.remote_username:
-                    remote_url = f"smb://{self.remote_username}@{self.remote_path}"
+                    remote_url = f"smb://{self.remote_username}@{smb_path}"
                 else:
-                    remote_url = f"smb://{self.remote_path}"
-                
+                    remote_url = f"smb://{smb_path}"
+
                 self.remote_connection = remote_url
                 # Test connection by trying to list directory
                 dirs, files = xbmcvfs.listdir(remote_url)
@@ -1287,60 +1290,66 @@ class BackupManager:
     def get_all_backups(self):
         """Get list of all available backup files"""
         self.update_backup_location()
-        
+
         if self.location_type == 0:  # Local
             backup_pattern = os.path.join(self.backup_dir, 'backup_*.zip')
             return sorted(glob.glob(backup_pattern))
         else:  # Remote
             try:
                 # Connect to remote location
-                if self.location_type == 1:  # WebDAV
-                    if not self.webdav:
-                        self.webdav = self.connect_webdav()
-                    if not self.webdav:
-                        return []
-                    
-                    # List files from WebDAV
-                    xbmc.log(f"Listing WebDAV files from: {self.webdav_url}", xbmc.LOGINFO)
-                    xbmc.log(f"Using WebDAV credentials: username={self.webdav_username}, password=****************", xbmc.LOGINFO)
-                    
-                    try:
-                        response = self.webdav.list(self.webdav_path)
-                        xbmc.log(f"WebDAV PROPFIND response status: {response.status_code}", xbmc.LOGINFO)
-                        xbmc.log(f"WebDAV response headers: {response.headers}", xbmc.LOGINFO)
-                        xbmc.log(f"WebDAV response text: {response.text}", xbmc.LOGINFO)
-                        
-                        if response.status_code == 207:  # Multi-status
-                            files = []
-                            # Parse XML response
-                            for line in response.text.split('\n'):
-                                if '<D:href>' in line:
-                                    href = line.strip().replace('<D:href>', '').replace('</D:href>', '')
-                                    if href.endswith('.zip'):
-                                        files.append(href)
-                                elif '<D:displayname>' in line:
-                                    name = line.strip().replace('<D:displayname>', '').replace('</D:displayname>', '')
-                                    if name.endswith('.zip'):
-                                        xbmc.log(f"Found backup file: {name}", xbmc.LOGINFO)
-                                        files.append(name)
-                            
-                            # Remove duplicates and sort
-                            files = sorted(list(set(files)))
-                            xbmc.log(f"Final list of backup files found: {files}", xbmc.LOGINFO)
-                            xbmc.log(f"Found {len(files)} backup files via WebDAV", xbmc.LOGINFO)
-                            return files
-                        else:
-                            xbmc.log(f"WebDAV PROPFIND failed with status: {response.status_code}", xbmc.LOGERROR)
-                            return []
-                            
-                    except Exception as e:
-                        xbmc.log(f"Error listing WebDAV files: {str(e)}", xbmc.LOGERROR)
-                        return []
+                if not self.connect_remote():
+                    xbmc.log("Failed to connect to remote location for listing backups", xbmc.LOGERROR)
+                    return []
+
+                # List files based on remote type
+                files = self.list_remote_files()
+
+                # Filter for backup files (backup_*.zip)
+                backup_files = [f for f in files if f.startswith('backup_') and f.endswith('.zip')]
+
+                # Sort by modification time (newest first) if possible
+                try:
+                    backup_files_with_time = []
+                    for f in backup_files:
+                        # Get file info if available
+                        try:
+                            if self.remote_type == 0:  # SMB
+                                # For SMB, we can't easily get timestamps via xbmcvfs
+                                backup_files_with_time.append((f, 0))
+                            elif self.remote_type == 1:  # NFS
+                                stat = os.stat(os.path.join(self.remote_connection, f))
+                                backup_files_with_time.append((f, stat.st_mtime))
+                            elif self.remote_type == 2:  # FTP
+                                # FTP doesn't provide easy timestamp access
+                                backup_files_with_time.append((f, 0))
+                            elif self.remote_type == 3:  # SFTP
+                                stat = self.remote_connection.stat(f)
+                                backup_files_with_time.append((f, stat.st_mtime))
+                            elif self.remote_type == 4:  # WebDAV
+                                # WebDAV timestamps are complex, use 0
+                                backup_files_with_time.append((f, 0))
+                        except:
+                            backup_files_with_time.append((f, 0))
+
+                    # Sort by timestamp (newest first)
+                    backup_files_with_time.sort(key=lambda x: x[1], reverse=True)
+                    backup_files = [f[0] for f in backup_files_with_time]
+                except Exception as e:
+                    xbmc.log(f"Error sorting backup files by time: {str(e)}", xbmc.LOGWARNING)
+                    # Fall back to alphabetical sorting
+                    backup_files.sort(reverse=True)
+
+                xbmc.log(f"Found {len(backup_files)} backup files: {backup_files}", xbmc.LOGINFO)
+                return backup_files
+
             except Exception as e:
                 xbmc.log(f"Error getting remote backups: {str(e)}", xbmc.LOGERROR)
                 import traceback
                 xbmc.log(f"Traceback: {traceback.format_exc()}", xbmc.LOGERROR)
                 return []
+            finally:
+                # Disconnect from remote location
+                self.disconnect_remote()
     
     def show_rotation_warning(self):
         """Show warning dialog when enabling backup rotation"""
