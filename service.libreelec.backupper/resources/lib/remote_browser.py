@@ -34,26 +34,57 @@ LANGUAGE = ADDON.getLocalizedString
 
 class RemoteBrowser:
     def __init__(self):
+        # Initialize all attributes with defaults to avoid AttributeError
+        self.remote_type = 0
+        self.remote_path = ""
+        self.username = ""
+        self.password = ""
+        self.port = ""
+        self.default_ports = {}
+        
         # Always reload settings to ensure we have the latest values
-        self.reload_settings()
+        try:
+            self.reload_settings()
+        except Exception as e:
+            xbmc.log(f"RemoteBrowser: Error during initialization: {str(e)}", xbmc.LOGERROR)
+            xbmc.log("RemoteBrowser: Using default values due to initialization error", xbmc.LOGWARNING)
     
     def reload_settings(self):
         """Reload settings from Kodi"""
         xbmc.log("RemoteBrowser: Reloading settings from Kodi", xbmc.LOGINFO)
 
-        # Force reload of addon to get fresh settings
-        global ADDON
-        ADDON = xbmcaddon.Addon()
+        try:
+            # Force reload of addon to get fresh settings
+            global ADDON
+            ADDON = xbmcaddon.Addon()
 
-        self.remote_type = int(ADDON.getSetting('remote_location_type'))
-        self.remote_path = ADDON.getSetting('remote_path')
-        self.username = ADDON.getSetting('remote_username')
-        # Don't log password for security
-        self.port = ADDON.getSetting('remote_port')
+            self.remote_type = int(ADDON.getSetting('remote_location_type'))
+            self.remote_path = ADDON.getSetting('remote_path')
+            self.username = ADDON.getSetting('remote_username')
+            # Don't log password for security
+            self.password = ADDON.getSetting('remote_password')
+            self.port = ADDON.getSetting('remote_port')
+            
+            xbmc.log(f"RemoteBrowser: Successfully loaded settings", xbmc.LOGDEBUG)
+        except Exception as e:
+            xbmc.log(f"RemoteBrowser: Error loading settings: {str(e)}", xbmc.LOGERROR)
+            # Ensure attributes are set even if an error occurred
+            if not hasattr(self, 'remote_type'):
+                self.remote_type = 0
+            if not hasattr(self, 'remote_path'):
+                self.remote_path = ""
+            if not hasattr(self, 'username'):
+                self.username = ""
+            if not hasattr(self, 'password'):
+                self.password = ""
+            if not hasattr(self, 'port'):
+                self.port = ""
+            raise
 
-        xbmc.log(f"RemoteBrowser: Remote type = {self.remote_type}", xbmc.LOGINFO)
-        xbmc.log(f"RemoteBrowser: Remote path = {self.remote_path}", xbmc.LOGINFO)
-        xbmc.log(f"RemoteBrowser: Username = {self.username}", xbmc.LOGINFO)
+        xbmc.log(f"RemoteBrowser: Remote type = {self.remote_type}", xbmc.LOGDEBUG)
+        xbmc.log(f"RemoteBrowser: Remote path = {self.remote_path}", xbmc.LOGDEBUG)
+        xbmc.log(f"RemoteBrowser: Username = {self.username if self.username else 'Not Set'}", xbmc.LOGDEBUG)
+        xbmc.log(f"RemoteBrowser: Password = {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
 
         # Default ports if not specified
         self.default_ports = {
@@ -66,9 +97,9 @@ class RemoteBrowser:
 
         if not self.port:
             self.port = str(self.default_ports.get(self.remote_type, 0))
-            xbmc.log(f"RemoteBrowser: Set default port: {self.port}", xbmc.LOGINFO)
+            xbmc.log(f"RemoteBrowser: Set default port: {self.port}", xbmc.LOGDEBUG)
         else:
-            xbmc.log(f"RemoteBrowser: Using configured port: {self.port}", xbmc.LOGINFO)
+            xbmc.log(f"RemoteBrowser: Using configured port: {self.port}", xbmc.LOGDEBUG)
 
         xbmc.log("RemoteBrowser: Settings reloaded successfully", xbmc.LOGINFO)
     
@@ -361,44 +392,69 @@ class RemoteBrowser:
     def test_connection(self):
         """Test the connection to the remote location"""
         dialog = xbmcgui.Dialog()
-        
+
         # Reload settings to ensure we have the latest values
-        self.reload_settings()
+        xbmc.log(f"{ADDON_ID}: test_connection() called", xbmc.LOGINFO)
         
+        try:
+            self.reload_settings()
+            xbmc.log(f"{ADDON_ID}: Settings reloaded successfully in test_connection", xbmc.LOGINFO)
+        except Exception as e:
+            xbmc.log(f"{ADDON_ID}: Error reloading settings in test_connection: {str(e)}", xbmc.LOGERROR)
+            raise
+
         # Force settings to save
         xbmc.executebuiltin('UpdateLocalAddons')
         xbmc.sleep(500)  # Give Kodi time to update
-        
+
         # Check if remote path is set
         if not self.remote_path:
             # Try to reload settings one more time after a short delay
             # This helps in cases where the settings haven't been fully saved yet
             xbmc.sleep(1000)
             self.reload_settings()
-            
+
             # Check again after reload
             if not self.remote_path:
+                xbmc.log(f"{ADDON_ID}: Remote path not set, cannot test connection", xbmc.LOGWARNING)
                 dialog.ok("Missing Information", "Please enter a remote path first.")
                 return False
-        
+
+        # Log all connection parameters for debugging
+        xbmc.log(f"{ADDON_ID}: Testing connection with parameters:", xbmc.LOGINFO)
+        xbmc.log(f"{ADDON_ID}: Remote Type: {self.remote_type}", xbmc.LOGDEBUG)
+        xbmc.log(f"{ADDON_ID}: Remote Path: {self.remote_path}", xbmc.LOGDEBUG)
+        xbmc.log(f"{ADDON_ID}: Username: {self.username if self.username else 'Not Set'}", xbmc.LOGDEBUG)
+        xbmc.log(f"{ADDON_ID}: Password: {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
+        xbmc.log(f"{ADDON_ID}: Port: {self.port}", xbmc.LOGDEBUG)
+
         # Test the connection based on the protocol
         if self.remote_type == 0:  # SMB
+            xbmc.log(f"{ADDON_ID}: Starting SMB connection test", xbmc.LOGINFO)
             return self._test_smb_connection()
         elif self.remote_type == 1:  # NFS
+            xbmc.log(f"{ADDON_ID}: Starting NFS connection test", xbmc.LOGINFO)
             return self._test_nfs_connection()
         elif self.remote_type == 2:  # FTP
+            xbmc.log(f"{ADDON_ID}: Starting FTP connection test", xbmc.LOGINFO)
             return self._test_ftp_connection()
         elif self.remote_type == 3:  # SFTP
+            xbmc.log(f"{ADDON_ID}: Starting SFTP connection test", xbmc.LOGINFO)
             return self._test_sftp_connection()
         elif self.remote_type == 4:  # WebDAV
+            xbmc.log(f"{ADDON_ID}: Starting WebDAV connection test", xbmc.LOGINFO)
             return self._test_webdav_connection()
         else:
+            xbmc.log(f"{ADDON_ID}: Unknown remote type: {self.remote_type}", xbmc.LOGERROR)
             dialog.ok("Error", f"Unknown remote type: {self.remote_type}")
             return False
 
     def test_connection_with_params(self, remote_type, remote_path, username, password, port):
         """Test the connection with directly provided parameters"""
         dialog = xbmcgui.Dialog()
+        
+        xbmc.log(f"{ADDON_ID}: test_connection_with_params() called", xbmc.LOGINFO)
+        xbmc.log(f"{ADDON_ID}: Testing with remote_type={remote_type}, path={remote_path}", xbmc.LOGDEBUG)
         
         # Store the original settings
         orig_remote_type = self.remote_type
@@ -415,27 +471,37 @@ class RemoteBrowser:
             self.password = password
             self.port = port
             
+            xbmc.log(f"{ADDON_ID}: Parameters set successfully for test", xbmc.LOGDEBUG)
+            
             # Check if remote path is set
             if not self.remote_path:
+                xbmc.log(f"{ADDON_ID}: Remote path is empty in test_connection_with_params", xbmc.LOGWARNING)
                 dialog.ok("Missing Information", "Please enter a remote path first.")
                 return False
             
             # Test the connection based on the protocol
             if self.remote_type == 0:  # SMB
+                xbmc.log(f"{ADDON_ID}: Starting SMB connection test with params", xbmc.LOGINFO)
                 return self._test_smb_connection()
             elif self.remote_type == 1:  # NFS
+                xbmc.log(f"{ADDON_ID}: Starting NFS connection test with params", xbmc.LOGINFO)
                 return self._test_nfs_connection()
             elif self.remote_type == 2:  # FTP
+                xbmc.log(f"{ADDON_ID}: Starting FTP connection test with params", xbmc.LOGINFO)
                 return self._test_ftp_connection()
             elif self.remote_type == 3:  # SFTP
+                xbmc.log(f"{ADDON_ID}: Starting SFTP connection test with params", xbmc.LOGINFO)
                 return self._test_sftp_connection()
             elif self.remote_type == 4:  # WebDAV
+                xbmc.log(f"{ADDON_ID}: Starting WebDAV connection test with params", xbmc.LOGINFO)
                 return self._test_webdav_connection()
             else:
+                xbmc.log(f"{ADDON_ID}: Unknown remote type in test_connection_with_params: {self.remote_type}", xbmc.LOGERROR)
                 dialog.ok("Error", f"Unknown remote type: {self.remote_type}")
                 return False
         finally:
             # Restore the original settings
+            xbmc.log(f"{ADDON_ID}: Restoring original settings after test", xbmc.LOGDEBUG)
             self.remote_type = orig_remote_type
             self.remote_path = orig_remote_path
             self.username = orig_username
@@ -448,16 +514,23 @@ class RemoteBrowser:
         progress.create("Testing SMB Connection", "Initializing connection test...")
         
         try:
+            xbmc.log(f"{ADDON_ID}: SMB connection test started", xbmc.LOGINFO)
+            xbmc.log(f"{ADDON_ID}: SMB Path: {self.remote_path}", xbmc.LOGDEBUG)
+            xbmc.log(f"{ADDON_ID}: SMB Username: {self.username if self.username else 'Anonymous'}", xbmc.LOGDEBUG)
+            xbmc.log(f"{ADDON_ID}: SMB Password: {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
+            
             # Construct the full SMB URL
             smb_url = f"smb://"
             if self.username and self.password:
                 smb_url += f"{self.username}:{self.password}@"
             smb_url += self.remote_path
             
+            xbmc.log(f"{ADDON_ID}: Attempting to connect to SMB share", xbmc.LOGINFO)
             progress.update(25, "Connecting to SMB share...")
             # Try to list the directory
             dirs, files = xbmcvfs.listdir(smb_url)
             
+            xbmc.log(f"{ADDON_ID}: SMB connection successful, found {len(dirs)} directories and {len(files)} files", xbmc.LOGINFO)
             progress.update(75, "Verifying access...")
             # Try to get some basic info about the share
             share_info = []
@@ -557,22 +630,30 @@ class RemoteBrowser:
         progress.create("Testing NFS Connection", "Initializing connection test...")
         
         try:
+            xbmc.log(f"{ADDON_ID}: NFS connection test started", xbmc.LOGINFO)
+            xbmc.log(f"{ADDON_ID}: NFS Path: {self.remote_path}", xbmc.LOGDEBUG)
+            
             progress.update(25, "Validating NFS path...")
             # Validate and format NFS path
             nfs_path = self.remote_path.strip()
             
+            xbmc.log(f"{ADDON_ID}: Validating NFS path format: {nfs_path}", xbmc.LOGDEBUG)
+            
             # Check if path has the correct format (contains :/)
             if ':/' not in nfs_path:
+                xbmc.log(f"{ADDON_ID}: NFS path does not contain ':/', attempting to convert", xbmc.LOGDEBUG)
                 # Try to convert to proper format
                 if '/' in nfs_path and ':' not in nfs_path:
                     parts = nfs_path.split('/', 1)
                     if len(parts) == 2:
                         nfs_path = f"{parts[0]}:/{parts[1]}"
+                        xbmc.log(f"{ADDON_ID}: Converted NFS path to: {nfs_path}", xbmc.LOGINFO)
                         # Update the setting with corrected path
                         self.remote_path = nfs_path
                         ADDON.setSetting('remote_path', nfs_path)
                         xbmc.executebuiltin('UpdateLocalAddons')
                     else:
+                        xbmc.log(f"{ADDON_ID}: Failed to parse NFS path, invalid format", xbmc.LOGERROR)
                         progress.close()
                         error_msg = [
                             "[COLOR red]ERROR[/COLOR] Invalid NFS Path Format",
@@ -617,28 +698,36 @@ class RemoteBrowser:
             self.remote_path = nfs_path
             
             progress.update(75, "Verifying NFS configuration...")
+            xbmc.log(f"{ADDON_ID}: Attempting NFS mount test for: {self.remote_path}", xbmc.LOGINFO)
             # Try to mount the share temporarily
             mount_point = "/tmp/nfs_test"
             if not os.path.exists(mount_point):
                 os.makedirs(mount_point)
+                xbmc.log(f"{ADDON_ID}: Created mount point: {mount_point}", xbmc.LOGDEBUG)
             
             # Unmount if already mounted
+            xbmc.log(f"{ADDON_ID}: Unmounting any existing mounts at {mount_point}", xbmc.LOGDEBUG)
             subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
             
             # Try to mount with proper options
             mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2,nolock"]
+            xbmc.log(f"{ADDON_ID}: Executing mount command with options: {' '.join(mount_options)}", xbmc.LOGDEBUG)
             result = subprocess.call(["mount"] + mount_options + [self.remote_path, mount_point],
                                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             
             if result == 0:
+                xbmc.log(f"{ADDON_ID}: NFS mount successful", xbmc.LOGINFO)
                 # Successfully mounted, get some info
                 try:
                     dirs = os.listdir(mount_point)
                     share_info = [f"Items Found: {len(dirs)}"]
-                except:
+                    xbmc.log(f"{ADDON_ID}: Found {len(dirs)} items in NFS share", xbmc.LOGDEBUG)
+                except Exception as e:
                     share_info = ["Share is empty"]
+                    xbmc.log(f"{ADDON_ID}: Error listing NFS share contents: {str(e)}", xbmc.LOGWARNING)
                 
                 # Unmount
+                xbmc.log(f"{ADDON_ID}: Unmounting NFS share", xbmc.LOGDEBUG)
                 subprocess.call(["umount", mount_point])
                 
                 progress.update(100, "Connection successful!")
@@ -681,12 +770,14 @@ class RemoteBrowser:
                 dialog.textviewer("Connection Test Results", "\n".join(success_msg))
                 return True
             else:
+                xbmc.log(f"{ADDON_ID}: NFS mount failed with result code: {result}", xbmc.LOGERROR)
                 progress.close()
                 error_msg = [
                     "[COLOR red]ERROR[/COLOR] NFS Connection Failed",
                     "",
                     "[B]Error Details[/B]:",
                     "Failed to mount NFS share",
+                    f"Mount result code: {result}",
                     "",
                     "[B]Troubleshooting Tips[/B]:",
                     "Verify NFS server is running",
