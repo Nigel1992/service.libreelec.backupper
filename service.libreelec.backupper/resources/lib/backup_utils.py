@@ -36,6 +36,8 @@ class BackupManager:
     
     def __init__(self, addon=None):
         self.addon = addon or xbmcaddon.Addon()
+        self.verbose_logging = False
+        self._refresh_logging_flag()
         self.update_backup_location()
         self._temp_files = set()  # Track temporary files
         self.remote_connection = None
@@ -45,58 +47,97 @@ class BackupManager:
         self.progress_dialog = None  # Initialize progress dialog
         self.current_notification = None  # Track current notification
         self.email_notifier = EmailNotifier()
+
+    def _refresh_logging_flag(self):
+        """Refresh verbose logging flag from settings."""
+        try:
+            self.verbose_logging = self.addon.getSettingBool('enable_verbose_logging')
+        except Exception:
+            self.verbose_logging = False
+
+    def _log(self, message, level=xbmc.LOGINFO):
+        """Centralized logger that elevates debug to info when verbose is enabled."""
+        try:
+            if self.verbose_logging and level == xbmc.LOGDEBUG:
+                xbmc.log(message, xbmc.LOGINFO)
+            else:
+                xbmc.log(message, level)
+        except Exception:
+            xbmc.log(message, level)
+
+    def log_verbose(self, context, **kwargs):
+        """Emit detailed debug logging with structured context."""
+        details = ", ".join([f"{k}={repr(v)}" for k, v in kwargs.items()]) if kwargs else ""
+        self._log(f"BackupManager[{context}]: {details}", xbmc.LOGDEBUG)
     
     def update_backup_location(self):
         """Update backup location from settings"""
-        xbmc.log("BackupManager: Updating backup location settings", xbmc.LOGINFO)
+        self._refresh_logging_flag()
+        self._log("BackupManager: Updating backup location settings", xbmc.LOGINFO)
 
         # Get backup location type from settings
         self.location_type = int(self.addon.getSetting('backup_location_type') or "0")
-        xbmc.log(f"BackupManager: Location type = {self.location_type} (0=Local, 1=Remote)", xbmc.LOGINFO)
+        self._log(f"BackupManager: Location type = {self.location_type} (0=Local, 1=Remote)", xbmc.LOGINFO)
 
         # Define paths for various Kodi directories
         self.kodi_home = xbmcvfs.translatePath('special://home')
         self.kodi_userdata = xbmcvfs.translatePath('special://userdata')
-        xbmc.log(f"BackupManager: Kodi paths - home: {self.kodi_home}, userdata: {self.kodi_userdata}", xbmc.LOGDEBUG)
+        self._log(f"BackupManager: Kodi paths - home: {self.kodi_home}, userdata: {self.kodi_userdata}", xbmc.LOGDEBUG)
 
         # Initialize backup_dir
         self.backup_dir = None
+        # Reset remote password to a safe default each time we reload settings
+        self.remote_password = ""
 
         # Handle local backup location
         if self.location_type == 0:  # Local
             self.backup_dir = self.addon.getSetting('backup_location')
-            xbmc.log(f"BackupManager: Local backup location setting: {self.backup_dir}", xbmc.LOGINFO)
+            self._log(f"BackupManager: Local backup location setting: {self.backup_dir}", xbmc.LOGINFO)
 
             if not self.backup_dir:
                 self.backup_dir = "/storage/backup"  # Default location
-                xbmc.log("BackupManager: Using default local backup location: /storage/backup", xbmc.LOGINFO)
+                self._log("BackupManager: Using default local backup location: /storage/backup", xbmc.LOGINFO)
 
             # Validate that local path doesn't contain network protocols or remote path formats
             if self.backup_dir and (self.backup_dir.startswith(('nfs:', 'smb:', 'ftp:', 'sftp:', 'http:', 'https:')) or '://' in self.backup_dir or ':' in self.backup_dir):
-                xbmc.log(f"BackupManager: Invalid local path detected (contains network protocol or remote path format): {self.backup_dir}", xbmc.LOGWARNING)
+                self._log(f"BackupManager: Invalid local path detected (contains network protocol or remote path format): {self.backup_dir}", xbmc.LOGWARNING)
                 # Reset to default if invalid
                 self.backup_dir = "/storage/backup"
                 self.addon.setSetting('backup_location', self.backup_dir)
-                xbmc.log("BackupManager: Reset backup location to default: /storage/backup", xbmc.LOGINFO)
+                self._log("BackupManager: Reset backup location to default: /storage/backup", xbmc.LOGINFO)
             else:
-                xbmc.log(f"BackupManager: Local backup directory validated: {self.backup_dir}", xbmc.LOGINFO)
+                self._log(f"BackupManager: Local backup directory validated: {self.backup_dir}", xbmc.LOGINFO)
         else:  # Remote
-            xbmc.log("BackupManager: Configuring remote backup settings", xbmc.LOGINFO)
+            self._log("BackupManager: Configuring remote backup settings", xbmc.LOGINFO)
 
             # Get remote settings
             self.remote_type = int(self.addon.getSetting('remote_location_type') or "0")
             self.remote_path = self.addon.getSetting('remote_path')
             self.remote_username = self.addon.getSetting('remote_username')
+            # Don't log actual password; just note whether one is set
+            self.remote_password = self.addon.getSetting('remote_password')
             # Don't log password for security
             self.remote_port = int(self.addon.getSetting('remote_port') or "0")
 
             remote_type_names = ["SMB", "NFS", "FTP", "SFTP", "WebDAV"]
             remote_type_name = remote_type_names[self.remote_type] if self.remote_type < len(remote_type_names) else f"Unknown({self.remote_type})"
 
-            xbmc.log(f"BackupManager: Remote type = {self.remote_type} ({remote_type_name})", xbmc.LOGINFO)
-            xbmc.log(f"BackupManager: Remote path = {self.remote_path}", xbmc.LOGINFO)
-            xbmc.log(f"BackupManager: Remote username = {self.remote_username}", xbmc.LOGINFO)
-            xbmc.log(f"BackupManager: Remote port = {self.remote_port}", xbmc.LOGINFO)
+            self._log(f"BackupManager: Remote type = {self.remote_type} ({remote_type_name})", xbmc.LOGINFO)
+            self._log(f"BackupManager: Remote path = {self.remote_path}", xbmc.LOGINFO)
+            self._log(f"BackupManager: Remote username = {self.remote_username}", xbmc.LOGINFO)
+            self._log(f"BackupManager: Remote password set: {'Yes' if self.remote_password else 'No'}", xbmc.LOGDEBUG)
+            self._log(f"BackupManager: Remote port = {self.remote_port}", xbmc.LOGINFO)
+
+            # Emit consolidated verbose state for easier troubleshooting
+            self.log_verbose(
+                "update_backup_location",
+                location_type=self.location_type,
+                remote_type=remote_type_name,
+                remote_path=self.remote_path,
+                remote_username=self.remote_username,
+                remote_password_set=bool(self.remote_password),
+                remote_port=self.remote_port,
+            )
 
             # Set default ports if not specified
             if self.remote_port == 0:
@@ -110,11 +151,11 @@ class BackupManager:
                     self.remote_port = 22
                 elif self.remote_type == 4:  # WebDAV
                     self.remote_port = 80
-                xbmc.log(f"BackupManager: Set default port for {remote_type_name}: {self.remote_port}", xbmc.LOGINFO)
+                self._log(f"BackupManager: Set default port for {remote_type_name}: {self.remote_port}", xbmc.LOGINFO)
 
             # Create a temporary local directory for staging remote files
             self.backup_dir = os.path.join(xbmcvfs.translatePath('special://temp'), 'libreelec_backupper')
-            xbmc.log(f"BackupManager: Remote staging directory: {self.backup_dir}", xbmc.LOGINFO)
+            self._log(f"BackupManager: Remote staging directory: {self.backup_dir}", xbmc.LOGINFO)
 
         # Ensure backup directory exists (only for remote backups where we create temp dirs)
         if self.location_type != 0:  # Remote
@@ -123,15 +164,15 @@ class BackupManager:
                     os.makedirs(self.backup_dir)
                     xbmc.log(f"BackupManager: Created staging directory: {self.backup_dir}", xbmc.LOGINFO)
                 except Exception as e:
-                    xbmc.log(f"BackupManager: Error creating backup directory: {str(e)}", xbmc.LOGERROR)
+                    self._log(f"BackupManager: Error creating backup directory: {str(e)}", xbmc.LOGERROR)
                     # Fall back to addon profile if custom location can't be created
                     self.backup_dir = xbmcvfs.translatePath(self.addon.getAddonInfo('profile'))
-                    xbmc.log(f"BackupManager: Falling back to addon profile directory: {self.backup_dir}", xbmc.LOGWARNING)
+                    self._log(f"BackupManager: Falling back to addon profile directory: {self.backup_dir}", xbmc.LOGWARNING)
                     if not os.path.exists(self.backup_dir):
                         os.makedirs(self.backup_dir)
-                        xbmc.log("BackupManager: Created fallback directory", xbmc.LOGINFO)
+                        self._log("BackupManager: Created fallback directory", xbmc.LOGINFO)
 
-        xbmc.log(f"BackupManager: Final backup directory: {self.backup_dir}", xbmc.LOGINFO)
+        self._log(f"BackupManager: Final backup directory: {self.backup_dir}", xbmc.LOGINFO)
     
     def _create_webdav_session(self):
         """Create a WebDAV session with retry logic and connection pooling"""
@@ -168,6 +209,15 @@ class BackupManager:
             return True
         
         try:
+            self._log("BackupManager: Starting remote connection", xbmc.LOGINFO)
+            self.log_verbose(
+                "connect_remote:start",
+                remote_type=self.remote_type,
+                remote_path=self.remote_path,
+                remote_username=self.remote_username,
+                remote_password_set=bool(self.remote_password),
+                remote_port=self.remote_port,
+            )
             if self.remote_type == 0:  # SMB
                 # Use Kodi's built-in SMB support via xbmcvfs
                 # Construct SMB URL properly
@@ -181,9 +231,11 @@ class BackupManager:
                 else:
                     remote_url = f"smb://{smb_path}"
 
+                self._log(f"BackupManager: SMB remote URL={remote_url}", xbmc.LOGINFO)
                 self.remote_connection = remote_url
                 # Test connection by trying to list directory
                 dirs, files = xbmcvfs.listdir(remote_url)
+                self._log(f"BackupManager: SMB listdir success dirs={len(dirs)} files={len(files)}", xbmc.LOGINFO)
                 return True
                 
             elif self.remote_type == 1:  # NFS
@@ -223,13 +275,13 @@ class BackupManager:
                 
                 if result == 0:
                     self.remote_connection = mount_point
-                    xbmc.log(f"Successfully mounted NFS share: {nfs_path} to {mount_point}", xbmc.LOGINFO)
+                    self._log(f"BackupManager: Successfully mounted NFS share {nfs_path} to {mount_point}", xbmc.LOGINFO)
                     return True
                 else:
                     error_msg = f"Failed to mount NFS share: {nfs_path}. "
                     error_msg += "Please verify: 1) NFS server is running, 2) Export path is correct (format: server:/export/path), "
                     error_msg += "3) Network connectivity, 4) NFS client is installed"
-                    xbmc.log(error_msg, xbmc.LOGERROR)
+                    self._log(error_msg, xbmc.LOGERROR)
                     return False
                 
             elif self.remote_type == 2:  # FTP
@@ -290,14 +342,14 @@ class BackupManager:
                 
                 if not webdav_url.endswith('/'):
                     webdav_url += '/'
-                xbmc.log(f"Testing WebDAV connection to: {webdav_url}", xbmc.LOGINFO)
+                self._log(f"BackupManager: Testing WebDAV connection to: {webdav_url}", xbmc.LOGINFO)
                 
                 # Get or create WebDAV session
                 try:
                     session = self._create_webdav_session()
-                    xbmc.log("WebDAV session created successfully", xbmc.LOGINFO)
+                    self._log("BackupManager: WebDAV session created successfully", xbmc.LOGINFO)
                 except Exception as e:
-                    xbmc.log(f"Failed to create WebDAV session: {str(e)}", xbmc.LOGERROR)
+                    self._log(f"BackupManager: Failed to create WebDAV session: {str(e)}", xbmc.LOGERROR)
                     return False
                 
                 # Set credentials if provided
@@ -313,33 +365,34 @@ class BackupManager:
                 try:
                     xbmc.log(f"Testing WebDAV connection to: {webdav_url}", xbmc.LOGINFO)
                     response = session.request('PROPFIND', webdav_url, headers={'Depth': '1'})
-                    xbmc.log(f"WebDAV response status: {response.status_code}", xbmc.LOGINFO)
-                    xbmc.log(f"WebDAV response headers: {dict(response.headers)}", xbmc.LOGINFO)
-                    xbmc.log(f"WebDAV response text: {response.text}", xbmc.LOGINFO)
+                    self._log(f"BackupManager: WebDAV response status: {response.status_code}", xbmc.LOGINFO)
+                    self._log(f"BackupManager: WebDAV response headers: {dict(response.headers)}", xbmc.LOGDEBUG)
+                    self._log(f"BackupManager: WebDAV response text: {response.text}", xbmc.LOGDEBUG)
                     
                     if response.status_code in [207, 200]:  # 207 is Multi-Status response
                         self.remote_connection = {
                             'session': session,
                             'base_url': webdav_url
                         }
-                        xbmc.log("WebDAV connection successful", xbmc.LOGINFO)
+                        self._log("BackupManager: WebDAV connection successful", xbmc.LOGINFO)
                         return True
                     else:
-                        xbmc.log(f"WebDAV connection failed with status code: {response.status_code}", xbmc.LOGERROR)
-                        xbmc.log(f"WebDAV response: {response.text}", xbmc.LOGERROR)
+                        self._log(f"BackupManager: WebDAV connection failed with status code: {response.status_code}", xbmc.LOGERROR)
+                        self._log(f"BackupManager: WebDAV response: {response.text}", xbmc.LOGERROR)
                         return False
                 except requests.exceptions.RetryError as e:
-                    xbmc.log(f"WebDAV connection failed after retries: {str(e)}", xbmc.LOGERROR)
+                    self._log(f"BackupManager: WebDAV connection failed after retries: {str(e)}", xbmc.LOGERROR)
                     return False
                 except requests.exceptions.RequestException as e:
-                    xbmc.log(f"WebDAV request failed: {str(e)}", xbmc.LOGERROR)
+                    self._log(f"BackupManager: WebDAV request failed: {str(e)}", xbmc.LOGERROR)
                     return False
                 except Exception as e:
-                    xbmc.log(f"Unexpected error during WebDAV connection: {str(e)}", xbmc.LOGERROR)
+                    self._log(f"BackupManager: Unexpected error during WebDAV connection: {str(e)}", xbmc.LOGERROR)
                     return False
                 
         except Exception as e:
-            xbmc.log(f"Error connecting to remote location: {str(e)}", xbmc.LOGERROR)
+            self._log(f"Error connecting to remote location: {str(e)}", xbmc.LOGERROR)
+            self.log_verbose("connect_remote:error", error=str(e))
             return False
     
     def disconnect_remote(self):
@@ -404,10 +457,12 @@ class BackupManager:
         """Upload a file to the remote location"""
         try:
             if not os.path.exists(local_path):
+                self._log(f"BackupManager: Upload aborted missing local file {local_path}", xbmc.LOGERROR)
                 return False
 
             file_size = os.path.getsize(local_path)
             file_size_str = self.format_size(file_size)
+            self._log(f"BackupManager: Upload start local={local_path} remote={remote_filename} size={file_size_str}", xbmc.LOGINFO)
             
             # Show initial upload notification
             self.notify("Uploading backup...", persistent=True)
@@ -415,6 +470,7 @@ class BackupManager:
 
             if self.remote_type == 0:  # SMB
                 remote_path = self.get_remote_path(remote_filename)
+                self._log(f"BackupManager: SMB upload to {remote_path}", xbmc.LOGINFO)
                 with open(local_path, 'rb') as local_file:
                     with xbmcvfs.File(remote_path, 'wb') as remote_file:
                         bytes_uploaded = 0
@@ -448,6 +504,7 @@ class BackupManager:
                 if not self.remote_connection:
                     return False
                 dest_path = os.path.join(self.remote_connection, remote_filename)
+                self._log(f"BackupManager: NFS upload dest={dest_path}", xbmc.LOGINFO)
                 self.buffered_copy(local_path, dest_path, file_size, 0, file_size)
                 
             elif self.remote_type == 2:  # FTP
@@ -455,6 +512,7 @@ class BackupManager:
                     return False
                     
                 with open(local_path, 'rb') as local_file:
+                    self._log(f"BackupManager: FTP STOR {remote_filename}", xbmc.LOGINFO)
                     self.remote_connection.storbinary(
                         f'STOR {remote_filename}',
                         local_file,
@@ -465,6 +523,7 @@ class BackupManager:
                 if not self.remote_connection:
                     return False
                     
+                self._log(f"BackupManager: SFTP upload {remote_filename}", xbmc.LOGINFO)
                 def progress_callback(sent, total):
                     self._upload_progress_callback(sent, total)
                 
@@ -476,20 +535,23 @@ class BackupManager:
                     
                 url = self.remote_connection['base_url'].rstrip('/') + '/' + remote_filename
                 session = self.remote_connection['session']
+                self._log(f"BackupManager: WebDAV PUT {url}", xbmc.LOGINFO)
                 
                 with open(local_path, 'rb') as local_file:
                     response = session.put(url, data=self._create_upload_generator(local_file, file_size))
                     
                 if response.status_code not in [200, 201, 204]:
+                    self._log(f"BackupManager: WebDAV upload failed status={response.status_code} text={response.text}", xbmc.LOGERROR)
                     return False
 
             # Show completion notification
             self.notify("Upload complete", persistent=True)
             self.update_progress(100, "Upload complete")
+            self._log("BackupManager: Upload finished", xbmc.LOGINFO)
             return True
                 
         except Exception as e:
-            xbmc.log(f"Error uploading file: {str(e)}", xbmc.LOGERROR)
+            self._log(f"Error uploading file: {str(e)}", xbmc.LOGERROR)
             return False
             
     def _upload_progress_callback(self, sent, total):
@@ -581,16 +643,16 @@ class BackupManager:
         try:
             if self.remote_type == 0:  # SMB
                 # Use xbmcvfs to list files
-                xbmc.log(f"Listing SMB files from: {self.remote_connection}", xbmc.LOGINFO)
+                self._log(f"Listing SMB files from: {self.remote_connection}", xbmc.LOGINFO)
                 _, files = xbmcvfs.listdir(self.remote_connection)
-                xbmc.log(f"Found {len(files)} files via SMB", xbmc.LOGINFO)
+                self._log(f"Found {len(files)} files via SMB", xbmc.LOGINFO)
                 return files
                 
             elif self.remote_type == 1:  # NFS
                 # List files in the mounted directory
-                xbmc.log(f"Listing NFS files from: {self.remote_connection}", xbmc.LOGINFO)
+                self._log(f"Listing NFS files from: {self.remote_connection}", xbmc.LOGINFO)
                 files = [f for f in os.listdir(self.remote_connection) if os.path.isfile(os.path.join(self.remote_connection, f))]
-                xbmc.log(f"Found {len(files)} files via NFS", xbmc.LOGINFO)
+                self._log(f"Found {len(files)} files via NFS", xbmc.LOGINFO)
                 return files
                 
             elif self.remote_type == 2:  # FTP
@@ -611,8 +673,8 @@ class BackupManager:
                 
             elif self.remote_type == 4:  # WebDAV
                 # List files via WebDAV
-                xbmc.log(f"Listing WebDAV files from: {self.remote_connection['base_url']}", xbmc.LOGINFO)
-                xbmc.log(f"Using WebDAV credentials: username={self.remote_username}, password=****************", xbmc.LOGINFO)
+                self._log(f"Listing WebDAV files from: {self.remote_connection['base_url']}", xbmc.LOGINFO)
+                self._log(f"Using WebDAV credentials: username={self.remote_username}, password=****************", xbmc.LOGINFO)
                 
                 response = self.remote_connection['session'].request(
                     'PROPFIND', 
@@ -981,6 +1043,7 @@ class BackupManager:
         bytes_copied = 0
         last_update = time.time()
         update_interval = 0.5  # Update every 0.5 seconds
+        self._log(f"BackupManager: buffered_copy source={source} dest={dest} size={self.format_size(file_size)}", xbmc.LOGINFO)
         
         with open(source, 'rb') as src, open(dest, 'wb') as dst:
             while True:
@@ -1018,13 +1081,27 @@ class BackupManager:
                     
                     last_update = current_time
         
+        self._log(f"BackupManager: buffered_copy complete bytes={bytes_copied}", xbmc.LOGINFO)
         return bytes_copied
 
     def create_backup(self, backup_name=None):
         """Create a backup of the selected items"""
         try:
+            self._refresh_logging_flag()
+            self.log_verbose(
+                "create_backup:start",
+                backup_name=backup_name,
+                location_type=self.location_type,
+                backup_dir=self.backup_dir,
+                remote_type=getattr(self, "remote_type", None),
+                remote_path=getattr(self, "remote_path", None),
+                remote_username=getattr(self, "remote_username", None),
+                remote_password_set=bool(getattr(self, "remote_password", "")),
+                remote_port=getattr(self, "remote_port", None),
+            )
             # Notify backup start
             backup_type = "scheduled" if backup_name else "manual"
+            self._log(f"BackupManager: create_backup type={backup_type} location_type={self.location_type}", xbmc.LOGINFO)
             self.email_notifier.notify_backup_started(backup_type)
             
             # Show initial progress
@@ -1053,9 +1130,11 @@ class BackupManager:
             # Get paths to backup
             self.notify("Gathering files to backup...", persistent=True)
             paths = self.get_backup_paths()
+            self._log(f"BackupManager: Paths to backup resolved {list(paths.keys())}", xbmc.LOGINFO)
             
             # Log the paths that will be backed up
             xbmc.log(f"Paths to backup: {paths}", xbmc.LOGINFO)
+            self.log_verbose("create_backup:paths", paths=list(paths.keys()))
             
             # Don't create empty backups
             if not paths:
@@ -1079,6 +1158,7 @@ class BackupManager:
             # Add items to backup name
             items_str = '-'.join(backup_items) if backup_items else 'empty'
             backup_name = f'backup_{items_str}_{timestamp}'
+            self._log(f"BackupManager: Backup name {backup_name}", xbmc.LOGINFO)
             
             # Create backup path in temp directory
             backup_path = os.path.join(self.temp_dir, f'{backup_name}.zip')
@@ -1155,10 +1235,10 @@ class BackupManager:
                                         xbmc.log(f"Error getting size for {file_path}: {str(e)}", xbmc.LOGWARNING)
                                         continue
                 
-                xbmc.log(f"Total files to backup: {len(files_to_backup)}", xbmc.LOGINFO)
+                self._log(f"BackupManager: Total files to backup {len(files_to_backup)}", xbmc.LOGINFO)
                 total_size_formatted = self.format_size(total_size)
                 self.notify("Starting backup", f"Total size: {total_size_formatted}")
-                xbmc.log(f"Total backup size: {total_size_formatted} ({total_size} bytes)", xbmc.LOGINFO)
+                self._log(f"BackupManager: Total backup size {total_size_formatted} ({total_size} bytes)", xbmc.LOGINFO)
                 
                 # Create manifest
                 manifest = {
@@ -1187,9 +1267,11 @@ class BackupManager:
                     last_update_time = time.time()
                     update_interval = 0.5  # Update progress every 0.5 seconds
                     batch_size = 0  # Track size of current batch
+                    self._log(f"BackupManager: ZIP compression method={compression_method} level={compression_strength}", xbmc.LOGINFO)
                     
                     for file_path, arcname, file_size in files_to_backup:
                         try:
+                            self._log(f"BackupManager: Adding to zip {file_path} -> {arcname} size={self.format_size(file_size)}", xbmc.LOGDEBUG)
                             # Read and write directly to zip
                             with open(file_path, 'rb') as source:
                                 # Create a ZipInfo object for more control
@@ -1222,19 +1304,21 @@ class BackupManager:
                                             
                                             # Update progress notification
                                             self.notify("Backing up files", f"{processed_formatted} / {total_formatted} ({progress}%)")
+                                            self._log(f"BackupManager: Zip progress {progress}% processed={processed_formatted}/{total_formatted}", xbmc.LOGDEBUG)
                                             last_update_time = current_time
                                             batch_size = 0  # Reset batch size
                         
                             manifest['backed_up_files'].append(arcname)
                             
                         except Exception as e:
-                            xbmc.log(f"Error backing up file {file_path}: {str(e)}", xbmc.LOGERROR)
+                            self._log(f"Error backing up file {file_path}: {str(e)}", xbmc.LOGERROR)
                     
                     # Show final progress
                     progress = int((processed_size / total_size) * 100) if total_size > 0 else 0
                     processed_formatted = self.format_size(processed_size)
                     total_formatted = self.format_size(total_size)
                     self.notify("Backing up files", f"{processed_formatted} / {total_formatted} ({progress}%)")
+                    self._log(f"BackupManager: Final zip progress {progress}% size={processed_formatted}/{total_formatted}", xbmc.LOGINFO)
                     
                     # Add manifest file
                     zipf.writestr('manifest.json', json.dumps(manifest, indent=4))
@@ -1247,11 +1331,14 @@ class BackupManager:
                 final_size_formatted = self.format_size(final_size)
                 compression_ratio = (1 - (final_size / total_size)) * 100 if total_size > 0 else 0
                 size_info = f"Original: {total_size_formatted}, Compressed: {final_size_formatted} ({compression_ratio:.1f}% saved)"
+                self._log(f"BackupManager: Zip complete {size_info}", xbmc.LOGINFO)
                 
                 # Upload to remote location if needed
                 if self.location_type != 0:  # Remote
                     self.notify("Uploading backup...", size_info)
-                    if not self.upload_file(backup_path, f'{backup_name}.zip'):
+                    upload_target = f'{backup_name}.zip'
+                    self._log(f"BackupManager: Uploading {backup_path} -> {upload_target}", xbmc.LOGINFO)
+                    if not self.upload_file(backup_path, upload_target):
                         self.notify("Backup failed", "Failed to upload to remote location", persistent=True)
                         self.close_progress()
                         self.disconnect_remote()
@@ -1271,7 +1358,7 @@ class BackupManager:
                 
                 # Show completion notification with persistent notification
                 self.notify("Backup completed successfully", size_info, True)
-                xbmc.log(f"Backup completed: {size_info}", xbmc.LOGINFO)
+                self._log(f"Backup completed: {size_info}", xbmc.LOGINFO)
                 
                 # On success, notify completion with backup info
                 backup_info = {
@@ -1315,7 +1402,10 @@ class BackupManager:
     
     def get_all_backups(self):
         """Get list of all available backup files"""
+        self.log_verbose("get_all_backups:start", location_type=self.location_type, backup_dir=self.backup_dir)
         self.update_backup_location()
+
+        self._log(f"BackupManager: get_all_backups location_type={self.location_type} dir={self.backup_dir}", xbmc.LOGINFO)
 
         if self.location_type == 0:  # Local
             backup_pattern = os.path.join(self.backup_dir, 'backup_*.zip')
@@ -1324,7 +1414,7 @@ class BackupManager:
             try:
                 # Connect to remote location
                 if not self.connect_remote():
-                    xbmc.log("Failed to connect to remote location for listing backups", xbmc.LOGERROR)
+                    self._log("Failed to connect to remote location for listing backups", xbmc.LOGERROR)
                     return []
 
                 # List files based on remote type
@@ -1365,13 +1455,13 @@ class BackupManager:
                     # Fall back to alphabetical sorting
                     backup_files.sort(reverse=True)
 
-                xbmc.log(f"Found {len(backup_files)} backup files: {backup_files}", xbmc.LOGINFO)
+                self._log(f"Found {len(backup_files)} backup files: {backup_files}", xbmc.LOGINFO)
                 return backup_files
 
             except Exception as e:
-                xbmc.log(f"Error getting remote backups: {str(e)}", xbmc.LOGERROR)
+                self._log(f"Error getting remote backups: {str(e)}", xbmc.LOGERROR)
                 import traceback
-                xbmc.log(f"Traceback: {traceback.format_exc()}", xbmc.LOGERROR)
+                self._log(f"Traceback: {traceback.format_exc()}", xbmc.LOGERROR)
                 return []
             finally:
                 # Disconnect from remote location
@@ -1916,6 +2006,14 @@ class BackupManager:
     
     def restore_backup(self, backup_file=None):
         """Restore a backup from a file"""
+        self.log_verbose(
+            "restore_backup:start",
+            backup_file=backup_file,
+            location_type=self.location_type,
+            backup_dir=self.backup_dir,
+            remote_type=getattr(self, "remote_type", None),
+            remote_path=getattr(self, "remote_path", None),
+        )
         try:
             if backup_file is None:
                 # Get list of available backups

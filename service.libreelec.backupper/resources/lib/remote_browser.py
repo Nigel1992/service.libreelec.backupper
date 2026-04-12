@@ -41,6 +41,10 @@ class RemoteBrowser:
         self.password = ""
         self.port = ""
         self.default_ports = {}
+        self.verbose_logging = False
+
+        # Verbose logging helper
+        self._debug_prefix = "RemoteBrowser"
         
         # Always reload settings to ensure we have the latest values
         try:
@@ -48,10 +52,31 @@ class RemoteBrowser:
         except Exception as e:
             xbmc.log(f"RemoteBrowser: Error during initialization: {str(e)}", xbmc.LOGERROR)
             xbmc.log("RemoteBrowser: Using default values due to initialization error", xbmc.LOGWARNING)
+
+    def _refresh_logging_flag(self):
+        try:
+            self.verbose_logging = ADDON.getSettingBool('enable_verbose_logging')
+        except Exception:
+            self.verbose_logging = False
+
+    def _log(self, message, level=xbmc.LOGINFO):
+        try:
+            if self.verbose_logging and level == xbmc.LOGDEBUG:
+                xbmc.log(message, xbmc.LOGINFO)
+            else:
+                xbmc.log(message, level)
+        except Exception:
+            xbmc.log(message, level)
+
+    def log_verbose(self, context, **kwargs):
+        """Emit structured verbose logging for troubleshooting."""
+        details = ", ".join([f"{k}={repr(v)}" for k, v in kwargs.items()]) if kwargs else ""
+        self._log(f"{self._debug_prefix}[{context}]: {details}", xbmc.LOGDEBUG)
     
     def reload_settings(self):
         """Reload settings from Kodi"""
-        xbmc.log("RemoteBrowser: Reloading settings from Kodi", xbmc.LOGINFO)
+        self._refresh_logging_flag()
+        self._log("RemoteBrowser: Reloading settings from Kodi", xbmc.LOGINFO)
 
         try:
             # Force reload of addon to get fresh settings
@@ -65,7 +90,7 @@ class RemoteBrowser:
             self.password = ADDON.getSetting('remote_password')
             self.port = ADDON.getSetting('remote_port')
             
-            xbmc.log(f"RemoteBrowser: Successfully loaded settings", xbmc.LOGDEBUG)
+            self._log(f"RemoteBrowser: Successfully loaded settings", xbmc.LOGDEBUG)
         except Exception as e:
             xbmc.log(f"RemoteBrowser: Error loading settings: {str(e)}", xbmc.LOGERROR)
             # Ensure attributes are set even if an error occurred
@@ -81,10 +106,11 @@ class RemoteBrowser:
                 self.port = ""
             raise
 
-        xbmc.log(f"RemoteBrowser: Remote type = {self.remote_type}", xbmc.LOGDEBUG)
-        xbmc.log(f"RemoteBrowser: Remote path = {self.remote_path}", xbmc.LOGDEBUG)
-        xbmc.log(f"RemoteBrowser: Username = {self.username if self.username else 'Not Set'}", xbmc.LOGDEBUG)
-        xbmc.log(f"RemoteBrowser: Password = {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
+        self._log(f"RemoteBrowser: Remote type = {self.remote_type}", xbmc.LOGDEBUG)
+        self._log(f"RemoteBrowser: Remote path = {self.remote_path}", xbmc.LOGDEBUG)
+        self._log(f"RemoteBrowser: Username = {self.username if self.username else 'Not Set'}", xbmc.LOGDEBUG)
+        self._log(f"RemoteBrowser: Password = {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
+        self._log(f"RemoteBrowser: Port = {self.port}", xbmc.LOGDEBUG)
 
         # Default ports if not specified
         self.default_ports = {
@@ -97,17 +123,27 @@ class RemoteBrowser:
 
         if not self.port:
             self.port = str(self.default_ports.get(self.remote_type, 0))
-            xbmc.log(f"RemoteBrowser: Set default port: {self.port}", xbmc.LOGDEBUG)
+            self._log(f"RemoteBrowser: Set default port: {self.port}", xbmc.LOGDEBUG)
         else:
-            xbmc.log(f"RemoteBrowser: Using configured port: {self.port}", xbmc.LOGDEBUG)
+            self._log(f"RemoteBrowser: Using configured port: {self.port}", xbmc.LOGDEBUG)
 
-        xbmc.log("RemoteBrowser: Settings reloaded successfully", xbmc.LOGINFO)
+        self._log("RemoteBrowser: Settings reloaded successfully", xbmc.LOGINFO)
     
     def browse(self, mode='backup'):
         """Main method to browse remote locations based on type
         mode: 'backup' for folder selection, 'restore' for file selection"""
         # Reload settings to ensure we have the latest values
         self.reload_settings()
+
+        self.log_verbose(
+            "browse:start",
+            mode=mode,
+            remote_type=self.remote_type,
+            remote_path=self.remote_path,
+            username=self.username,
+            password_set=bool(self.password),
+            port=self.port,
+        )
         
         remote_types = ["SMB", "NFS", "FTP", "SFTP", "WebDAV"]
         current_type = remote_types[self.remote_type]
@@ -394,14 +430,23 @@ class RemoteBrowser:
         dialog = xbmcgui.Dialog()
 
         # Reload settings to ensure we have the latest values
-        xbmc.log(f"{ADDON_ID}: test_connection() called", xbmc.LOGINFO)
+        self._log(f"{ADDON_ID}: test_connection() called", xbmc.LOGINFO)
         
         try:
             self.reload_settings()
-            xbmc.log(f"{ADDON_ID}: Settings reloaded successfully in test_connection", xbmc.LOGINFO)
+            self._log(f"{ADDON_ID}: Settings reloaded successfully in test_connection", xbmc.LOGINFO)
         except Exception as e:
             xbmc.log(f"{ADDON_ID}: Error reloading settings in test_connection: {str(e)}", xbmc.LOGERROR)
             raise
+
+        self.log_verbose(
+            "test_connection:start",
+            remote_type=self.remote_type,
+            remote_path=self.remote_path,
+            username=self.username,
+            password_set=bool(self.password),
+            port=self.port,
+        )
 
         # Force settings to save
         xbmc.executebuiltin('UpdateLocalAddons')
@@ -421,31 +466,31 @@ class RemoteBrowser:
                 return False
 
         # Log all connection parameters for debugging
-        xbmc.log(f"{ADDON_ID}: Testing connection with parameters:", xbmc.LOGINFO)
-        xbmc.log(f"{ADDON_ID}: Remote Type: {self.remote_type}", xbmc.LOGDEBUG)
-        xbmc.log(f"{ADDON_ID}: Remote Path: {self.remote_path}", xbmc.LOGDEBUG)
-        xbmc.log(f"{ADDON_ID}: Username: {self.username if self.username else 'Not Set'}", xbmc.LOGDEBUG)
-        xbmc.log(f"{ADDON_ID}: Password: {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
-        xbmc.log(f"{ADDON_ID}: Port: {self.port}", xbmc.LOGDEBUG)
+        self._log(f"{ADDON_ID}: Testing connection with parameters:", xbmc.LOGINFO)
+        self._log(f"{ADDON_ID}: Remote Type: {self.remote_type}", xbmc.LOGDEBUG)
+        self._log(f"{ADDON_ID}: Remote Path: {self.remote_path}", xbmc.LOGDEBUG)
+        self._log(f"{ADDON_ID}: Username: {self.username if self.username else 'Not Set'}", xbmc.LOGDEBUG)
+        self._log(f"{ADDON_ID}: Password: {'Set' if self.password else 'Not Set'}", xbmc.LOGDEBUG)
+        self._log(f"{ADDON_ID}: Port: {self.port}", xbmc.LOGDEBUG)
 
         # Test the connection based on the protocol
         if self.remote_type == 0:  # SMB
-            xbmc.log(f"{ADDON_ID}: Starting SMB connection test", xbmc.LOGINFO)
+            self._log(f"{ADDON_ID}: Starting SMB connection test", xbmc.LOGINFO)
             return self._test_smb_connection()
         elif self.remote_type == 1:  # NFS
-            xbmc.log(f"{ADDON_ID}: Starting NFS connection test", xbmc.LOGINFO)
+            self._log(f"{ADDON_ID}: Starting NFS connection test", xbmc.LOGINFO)
             return self._test_nfs_connection()
         elif self.remote_type == 2:  # FTP
-            xbmc.log(f"{ADDON_ID}: Starting FTP connection test", xbmc.LOGINFO)
+            self._log(f"{ADDON_ID}: Starting FTP connection test", xbmc.LOGINFO)
             return self._test_ftp_connection()
         elif self.remote_type == 3:  # SFTP
-            xbmc.log(f"{ADDON_ID}: Starting SFTP connection test", xbmc.LOGINFO)
+            self._log(f"{ADDON_ID}: Starting SFTP connection test", xbmc.LOGINFO)
             return self._test_sftp_connection()
         elif self.remote_type == 4:  # WebDAV
-            xbmc.log(f"{ADDON_ID}: Starting WebDAV connection test", xbmc.LOGINFO)
+            self._log(f"{ADDON_ID}: Starting WebDAV connection test", xbmc.LOGINFO)
             return self._test_webdav_connection()
         else:
-            xbmc.log(f"{ADDON_ID}: Unknown remote type: {self.remote_type}", xbmc.LOGERROR)
+            self._log(f"{ADDON_ID}: Unknown remote type: {self.remote_type}", xbmc.LOGERROR)
             dialog.ok("Error", f"Unknown remote type: {self.remote_type}")
             return False
 
@@ -453,8 +498,8 @@ class RemoteBrowser:
         """Test the connection with directly provided parameters"""
         dialog = xbmcgui.Dialog()
         
-        xbmc.log(f"{ADDON_ID}: test_connection_with_params() called", xbmc.LOGINFO)
-        xbmc.log(f"{ADDON_ID}: Testing with remote_type={remote_type}, path={remote_path}", xbmc.LOGDEBUG)
+        self._log(f"{ADDON_ID}: test_connection_with_params() called", xbmc.LOGINFO)
+        self._log(f"{ADDON_ID}: Testing with remote_type={remote_type}, path={remote_path}", xbmc.LOGDEBUG)
         
         # Store the original settings
         orig_remote_type = self.remote_type
@@ -471,37 +516,37 @@ class RemoteBrowser:
             self.password = password
             self.port = port
             
-            xbmc.log(f"{ADDON_ID}: Parameters set successfully for test", xbmc.LOGDEBUG)
+            self._log(f"{ADDON_ID}: Parameters set successfully for test", xbmc.LOGDEBUG)
             
             # Check if remote path is set
             if not self.remote_path:
-                xbmc.log(f"{ADDON_ID}: Remote path is empty in test_connection_with_params", xbmc.LOGWARNING)
+                self._log(f"{ADDON_ID}: Remote path is empty in test_connection_with_params", xbmc.LOGWARNING)
                 dialog.ok("Missing Information", "Please enter a remote path first.")
                 return False
             
             # Test the connection based on the protocol
             if self.remote_type == 0:  # SMB
-                xbmc.log(f"{ADDON_ID}: Starting SMB connection test with params", xbmc.LOGINFO)
+                self._log(f"{ADDON_ID}: Starting SMB connection test with params", xbmc.LOGINFO)
                 return self._test_smb_connection()
             elif self.remote_type == 1:  # NFS
-                xbmc.log(f"{ADDON_ID}: Starting NFS connection test with params", xbmc.LOGINFO)
+                self._log(f"{ADDON_ID}: Starting NFS connection test with params", xbmc.LOGINFO)
                 return self._test_nfs_connection()
             elif self.remote_type == 2:  # FTP
-                xbmc.log(f"{ADDON_ID}: Starting FTP connection test with params", xbmc.LOGINFO)
+                self._log(f"{ADDON_ID}: Starting FTP connection test with params", xbmc.LOGINFO)
                 return self._test_ftp_connection()
             elif self.remote_type == 3:  # SFTP
-                xbmc.log(f"{ADDON_ID}: Starting SFTP connection test with params", xbmc.LOGINFO)
+                self._log(f"{ADDON_ID}: Starting SFTP connection test with params", xbmc.LOGINFO)
                 return self._test_sftp_connection()
             elif self.remote_type == 4:  # WebDAV
-                xbmc.log(f"{ADDON_ID}: Starting WebDAV connection test with params", xbmc.LOGINFO)
+                self._log(f"{ADDON_ID}: Starting WebDAV connection test with params", xbmc.LOGINFO)
                 return self._test_webdav_connection()
             else:
-                xbmc.log(f"{ADDON_ID}: Unknown remote type in test_connection_with_params: {self.remote_type}", xbmc.LOGERROR)
+                self._log(f"{ADDON_ID}: Unknown remote type in test_connection_with_params: {self.remote_type}", xbmc.LOGERROR)
                 dialog.ok("Error", f"Unknown remote type: {self.remote_type}")
                 return False
         finally:
             # Restore the original settings
-            xbmc.log(f"{ADDON_ID}: Restoring original settings after test", xbmc.LOGDEBUG)
+            self._log(f"{ADDON_ID}: Restoring original settings after test", xbmc.LOGDEBUG)
             self.remote_type = orig_remote_type
             self.remote_path = orig_remote_path
             self.username = orig_username

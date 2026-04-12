@@ -2,6 +2,7 @@
 <settings>
     <category label="32001"><!-- General Settings -->
         <setting label="32110" type="lsep"/><!-- Backup Location -->
+        <setting id="enable_verbose_logging" type="bool" label="32170" default="true"/>
         <setting id="backup_location_type" type="enum" label="32016" values="Local|Remote" default="0"/>
         <setting id="backup_location" type="folder" label="32010" default="/storage/backup" option="writeable" visible="eq(-1,0)"/>
         <setting id="remote_location_type" type="enum" label="32017" values="SMB|NFS|FTP|SFTP|WebDAV" default="0" visible="eq(-2,1)"/>

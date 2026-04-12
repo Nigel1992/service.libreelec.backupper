@@ -293,6 +293,10 @@ msgctxt "#32112"
 msgid "General Notifications"
 msgstr "General Notifications"
 
+msgctxt "#32170"
+msgid "Verbose debug logging"
+msgstr "Verbose debug logging"
+
 # Author Information
 msgctxt "#32113"
 msgid "Author"
