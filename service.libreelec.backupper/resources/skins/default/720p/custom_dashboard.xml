@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+    <defaultcontrol always="true">1000</defaultcontrol>
+    <controls>
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1280</width>
+            <height>720</height>
+            <texture colordiffuse="DD10151C">white.png</texture>
+        </control>
+
+        <control type="image">
+            <left>40</left>
+            <top>30</top>
+            <width>1200</width>
+            <height>660</height>
+            <texture colordiffuse="E61E2A36">white.png</texture>
+        </control>
+
+        <control type="label" id="1100">
+            <left>70</left>
+            <top>58</top>
+            <width>1140</width>
+            <height>36</height>
+            <font>font13</font>
+            <textcolor>FF4FC3F7</textcolor>
+            <label>Backup Dashboard</label>
+        </control>
+
+        <control type="label" id="1101">
+            <left>70</left>
+            <top>94</top>
+            <width>1140</width>
+            <height>28</height>
+            <font>font12</font>
+            <textcolor>FFB0BEC5</textcolor>
+            <label>Choose an action</label>
+        </control>
+
+        <control type="list" id="1000">
+            <left>70</left>
+            <top>140</top>
+            <width>600</width>
+            <height>500</height>
+            <pagecontrol>1010</pagecontrol>
+            <onup>1000</onup>
+            <ondown>1000</ondown>
+            <itemlayout height="58" width="580">
+                <control type="label">
+                    <left>10</left>
+                    <top>4</top>
+                    <width>560</width>
+                    <height>27</height>
+                    <font>font12</font>
+                    <textcolor>FFE3EEF7</textcolor>
+                    <label>$INFO[ListItem.Label]</label>
+                </control>
+                <control type="label">
+                    <left>10</left>
+                    <top>31</top>
+                    <width>560</width>
+                    <height>23</height>
+                    <font>font11</font>
+                    <textcolor>FF9CB5C8</textcolor>
+                    <label>$INFO[ListItem.Label2]</label>
+                </control>
+            </itemlayout>
+            <focusedlayout height="58" width="580">
+                <control type="image">
+                    <left>0</left>
+                    <top>0</top>
+                    <width>580</width>
+                    <height>58</height>
+                    <texture colordiffuse="FF2E4C63">white.png</texture>
+                </control>
+                <control type="label">
+                    <left>10</left>
+                    <top>4</top>
+                    <width>560</width>
+                    <height>27</height>
+                    <font>font12</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <label>$INFO[ListItem.Label]</label>
+                </control>
+                <control type="label">
+                    <left>10</left>
+                    <top>31</top>
+                    <width>560</width>
+                    <height>23</height>
+                    <font>font11</font>
+                    <textcolor>FFC6DBEA</textcolor>
+                    <label>$INFO[ListItem.Label2]</label>
+                </control>
+            </focusedlayout>
+        </control>
+
+        <control type="scrollbar" id="1010">
+            <left>675</left>
+            <top>140</top>
+            <width>14</width>
+            <height>500</height>
+            <orientation>vertical</orientation>
+        </control>
+
+        <control type="image">
+            <left>710</left>
+            <top>140</top>
+            <width>500</width>
+            <height>500</height>
+            <texture colordiffuse="88142634">white.png</texture>
+        </control>
+
+        <control type="textbox" id="2100">
+            <left>730</left>
+            <top>160</top>
+            <width>460</width>
+            <height>95</height>
+            <font>font11</font>
+            <textcolor>FFD9E8F2</textcolor>
+            <autoscroll>false</autoscroll>
+        </control>
+
+        <control type="label" id="2200">
+            <left>730</left>
+            <top>275</top>
+            <width>460</width>
+            <height>28</height>
+            <font>font12</font>
+            <textcolor>FF90CAF9</textcolor>
+            <label>Backups Available: 0</label>
+        </control>
+
+        <control type="label" id="2201">
+            <left>730</left>
+            <top>308</top>
+            <width>460</width>
+            <height>28</height>
+            <font>font12</font>
+            <textcolor>FF90CAF9</textcolor>
+            <label>Stored Size: 0 B</label>
+        </control>
+
+        <control type="label" id="2202">
+            <left>730</left>
+            <top>341</top>
+            <width>460</width>
+            <height>28</height>
+            <font>font12</font>
+            <textcolor>FF90CAF9</textcolor>
+            <label>Last Backup: No backup yet</label>
+        </control>
+
+        <control type="label" id="2203">
+            <left>730</left>
+            <top>374</top>
+            <width>460</width>
+            <height>28</height>
+            <font>font12</font>
+            <textcolor>FF90CAF9</textcolor>
+            <label>Location: Unknown</label>
+        </control>
+
+        <control type="label" id="2204">
+            <left>730</left>
+            <top>407</top>
+            <width>460</width>
+            <height>28</height>
+            <font>font12</font>
+            <textcolor>FF90CAF9</textcolor>
+            <label>Scheduler: Disabled</label>
+        </control>
+
+        <control type="label">
+            <left>70</left>
+            <top>655</top>
+            <width>1140</width>
+            <height>25</height>
+            <font>font11</font>
+            <textcolor>FFB0BEC5</textcolor>
+            <label>Press Enter to continue, Esc/Back to close dashboard</label>
+        </control>
+    </controls>
+</window>

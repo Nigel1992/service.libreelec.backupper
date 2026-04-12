@@ -11,7 +11,7 @@ def main():
     
     # Set author and version in settings
     addon.setSetting('author', 'Nigel1992')
-    addon.setSetting('version', 'Version 1.4.1.7')
+    addon.setSetting('version', 'Version 1.5.0')
     
     # Get command line arguments
     if len(sys.argv) < 2:
@@ -20,9 +20,17 @@ def main():
     command = sys.argv[1]
     
     if command == 'backup_now':
-        backup_manager.create_backup()
+        success, message = backup_manager.create_backup()
+        if success:
+            backup_manager.show_last_operation_summary()
+        else:
+            xbmcgui.Dialog().ok(addon.getAddonInfo("name"), f"Backup failed: {message}")
     elif command == 'restore':
-        backup_manager.restore_backup()
+        success, message = backup_manager.restore_backup()
+        if success:
+            backup_manager.show_last_operation_summary()
+        elif message not in ("Backup restore cancelled", "No backup files found"):
+            xbmcgui.Dialog().ok(addon.getAddonInfo("name"), f"Restore failed: {message}")
     elif command == 'view':
         backup_manager.view_backups()
     elif command == 'test_connection':

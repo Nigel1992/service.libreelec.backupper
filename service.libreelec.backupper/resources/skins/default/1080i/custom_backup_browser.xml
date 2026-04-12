@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+    <defaultcontrol always="true">1000</defaultcontrol>
+    <controls>
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>1920</width>
+            <height>1080</height>
+            <texture colordiffuse="DD10151C">white.png</texture>
+        </control>
+
+        <control type="image">
+            <left>60</left>
+            <top>50</top>
+            <width>1800</width>
+            <height>980</height>
+            <texture colordiffuse="E61E2A36">white.png</texture>
+        </control>
+
+        <control type="label" id="1100">
+            <left>100</left>
+            <top>85</top>
+            <width>1680</width>
+            <height>45</height>
+            <font>font16</font>
+            <textcolor>FF4FC3F7</textcolor>
+            <label>Backup Browser</label>
+        </control>
+
+        <control type="label" id="1101">
+            <left>100</left>
+            <top>130</top>
+            <width>1680</width>
+            <height>30</height>
+            <font>font12</font>
+            <textcolor>FFB0BEC5</textcolor>
+            <label>Select a backup</label>
+        </control>
+
+        <control type="list" id="1000">
+            <left>100</left>
+            <top>190</top>
+            <width>900</width>
+            <height>760</height>
+            <pagecontrol>1010</pagecontrol>
+            <onup>1000</onup>
+            <ondown>1000</ondown>
+            <itemlayout height="72" width="880">
+                <control type="label">
+                    <left>14</left>
+                    <top>8</top>
+                    <width>850</width>
+                    <height>30</height>
+                    <font>font13</font>
+                    <textcolor>FFE3EEF7</textcolor>
+                    <label>$INFO[ListItem.Label]</label>
+                </control>
+                <control type="label">
+                    <left>14</left>
+                    <top>40</top>
+                    <width>850</width>
+                    <height>24</height>
+                    <font>font12</font>
+                    <textcolor>FF9CB5C8</textcolor>
+                    <label>$INFO[ListItem.Label2]</label>
+                </control>
+            </itemlayout>
+            <focusedlayout height="72" width="880">
+                <control type="image">
+                    <left>0</left>
+                    <top>0</top>
+                    <width>880</width>
+                    <height>72</height>
+                    <texture colordiffuse="FF2E4C63">white.png</texture>
+                </control>
+                <control type="label">
+                    <left>14</left>
+                    <top>8</top>
+                    <width>850</width>
+                    <height>30</height>
+                    <font>font13</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <label>$INFO[ListItem.Label]</label>
+                </control>
+                <control type="label">
+                    <left>14</left>
+                    <top>40</top>
+                    <width>850</width>
+                    <height>24</height>
+                    <font>font12</font>
+                    <textcolor>FFC6DBEA</textcolor>
+                    <label>$INFO[ListItem.Label2]</label>
+                </control>
+            </focusedlayout>
+        </control>
+
+        <control type="scrollbar" id="1010">
+            <left>1008</left>
+            <top>190</top>
+            <width>18</width>
+            <height>760</height>
+            <orientation>vertical</orientation>
+        </control>
+
+        <control type="image">
+            <left>1060</left>
+            <top>190</top>
+            <width>760</width>
+            <height>760</height>
+            <texture colordiffuse="88142634">white.png</texture>
+        </control>
+
+        <control type="textbox" id="2100">
+            <left>1090</left>
+            <top>220</top>
+            <width>700</width>
+            <height>660</height>
+            <font>font12</font>
+            <textcolor>FFD9E8F2</textcolor>
+            <autoscroll>false</autoscroll>
+        </control>
+
+        <control type="label" id="2200">
+            <left>1090</left>
+            <top>900</top>
+            <width>700</width>
+            <height>35</height>
+            <font>font13</font>
+            <textcolor>FF90CAF9</textcolor>
+            <label>Backups Found: 0</label>
+        </control>
+
+        <control type="label">
+            <left>100</left>
+            <top>965</top>
+            <width>1720</width>
+            <height>30</height>
+            <font>font12</font>
+            <textcolor>FFB0BEC5</textcolor>
+            <label>Press Enter to select backup, Esc/Back to cancel</label>
+        </control>
+    </controls>
+</window>

@@ -59,6 +59,10 @@ def save_last_attempt_time(attempt_time):
 
 def check_reminders(current_time, schedule_time):
     """Check if we should show any reminder notifications"""
+    # Don't show reminders if scheduler is disabled
+    if not ADDON.getSettingBool('enable_scheduler'):
+        return False, None
+    
     if not ADDON.getSettingBool('enable_reminders'):
         return False, None
 
