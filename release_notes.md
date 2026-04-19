@@ -1,39 +1,26 @@
-# Initial Release of LibreELEC Backupper v1.0.0
-Full backup and restore functionality with automated scheduling support. Compatible with LibreELEC 12.0.2 and Kodi 20 (Nexus). See README.md for complete features and documentation.
+# LibreELEC Backupper Release Notes
 
-Release version 1.1.0 includes:
+## Latest Release: 1.5.0 (Compared to 1.4.1.7)
 
-- Simplified backup items focusing on essential components
-- Improved WebDAV connection handling to prevent '429 Too Many Requests' errors by:
-  - Adding connection pooling
-  - Implementing retry logic with exponential backoff
-  - Maintaining persistent sessions
-  - Proper resource cleanup
-- Comprehensive wiki documentation
-- Various bug fixes and improvements
+- New custom GUI windows for dashboard, settings, backup browser, and dialogs (1080i/720p)
+- New per-setting help text and read-only Credits handling in custom settings
+- New optional post-backup summary popup setting
+- New remote storage usage status details in dashboard (with fallback detection)
+- Improved navigation reliability in custom settings (single-step category switching)
+- Improved dashboard layout clarity by separating guidance and system status sections
+- Improved Remote Settings Test Connection output with cleaner, structured per-protocol reports
+- Changed popup handling to consistently use custom GUI dialogs with native fallback
+- Fixed duplicate Enter popup activation and Credits editability edge cases
+- Improved WebDAV storage-size detection with multiple quota fallback methods
 
-# Version 1.1.0
+## Release Note Files
 
-Changes:
-- Fixed settings labels for Configuration Files and Test Connection
-- Improved backup process with proper compression level handling
-- Removed schedule-related code and settings
-- Made ZIP creation mandatory for all backups
-- Fixed GitHub Actions workflow to properly check addon
-- Fixed issue with large temporary files (100+ GB) in userdata directory by implementing proper cleanup
-- Made backup/restore notifications stay on screen until operation completes
-
-⚠️ CRITICAL WARNING ⚠️
-The restore functionality may cause Kodi to crash when restoring backups that contain items requiring read/write access (such as add-on user data and settings). This is a known issue that will be fixed in an upcoming release.
-
-Safety Precautions:
-1. ALWAYS test restore functionality in a safe environment first
-2. Be cautious when selecting items to backup/restore that require read/write access
-3. If possible, avoid restoring add-on user data and settings until this issue is fixed
-4. Make sure to have a separate backup of your system before attempting any restore operations
-
-This issue primarily affects:
-- Add-on User Data and Settings
-- Other items requiring read/write access during restore
-
-A fix is being developed and will be included in the next release.
+- [release_notes_1.5.0.md](release_notes_1.5.0.md)
+- [release_notes_1.4.1.7.md](release_notes_1.4.1.7.md)
+- [release_notes_1.4.1.6.md](release_notes_1.4.1.6.md)
+- [release_notes_1.4.1.5.md](release_notes_1.4.1.5.md)
+- [release_notes_1.4.1.3.md](release_notes_1.4.1.3.md)
+- [release_notes_1.4.1.2.md](release_notes_1.4.1.2.md)
+- [release_notes_1.3.0.md](release_notes_1.3.0.md)
+- [release_notes_1.2.1.1.md](release_notes_1.2.1.1.md)
+- [release_notes_1.2.1.md](release_notes_1.2.1.md)

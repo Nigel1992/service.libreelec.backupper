@@ -14,10 +14,15 @@ from resources.lib.remote_browser import RemoteBrowser
 from resources.lib.email_utils import EmailNotifier
 
 try:
-    from resources.lib.custom_gui import CustomDashboardWindow, CustomBackupBrowserWindow
+    from resources.lib.custom_gui import CustomDashboardWindow, CustomBackupBrowserWindow, CustomSettingsWindow, show_textviewer, ask_yesno, show_message
 except Exception:
     CustomDashboardWindow = None
     CustomBackupBrowserWindow = None
+    CustomSettingsWindow = None
+    show_textviewer = None
+    ask_yesno = None
+    show_message = None
+# Custom GUI will be used if available (CustomDashboardWindow / CustomBackupBrowserWindow)
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -27,6 +32,52 @@ ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo('path'))
 # Log function
 def log(message, level=xbmc.LOGINFO):
     xbmc.log(f'{ADDON_ID}: {message}', level)
+
+
+def should_show_backup_summary_popup():
+    """Return True when the post-backup summary popup is enabled by user setting."""
+    try:
+        return ADDON.getSettingBool('show_backup_summary_popup')
+    except Exception:
+        try:
+            return str(ADDON.getSetting('show_backup_summary_popup')).lower() in ('true', '1')
+        except Exception:
+            return False
+
+
+def popup_message(title, text):
+    """Show a message popup using the custom GUI when available."""
+    try:
+        if 'show_message' in globals() and show_message is not None:
+            show_message(title, text)
+        else:
+            xbmcgui.Dialog().ok(title, text)
+    except Exception:
+        xbmcgui.Dialog().ok(title, text)
+
+
+def popup_confirm(title, text, yes_label='Yes', no_label='No'):
+    """Show a yes/no popup using the custom GUI when available."""
+    try:
+        if 'ask_yesno' in globals() and ask_yesno is not None:
+            return ask_yesno(title, text, yes_label=yes_label, no_label=no_label)
+        return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
+    except Exception:
+        try:
+            return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
+        except Exception:
+            return False
+
+
+def popup_text(title, text):
+    """Show scrollable text using the custom GUI when available."""
+    try:
+        if 'show_textviewer' in globals() and show_textviewer is not None:
+            show_textviewer(title, text)
+        else:
+            xbmcgui.Dialog().textviewer(title, text)
+    except Exception:
+        popup_message(title, text)
 
 class BackupBrowser:
     """GUI for browsing and restoring backups"""
@@ -61,12 +112,12 @@ class BackupBrowser:
             except Exception as exc:
                 lines.append(f"[COLOR FFEF5350]Failed to read remote backup info:[/COLOR] {exc}")
 
-            xbmcgui.Dialog().textviewer(f"{ADDON_NAME} - Backup Details", "\n".join(lines))
+            popup_text(f"{ADDON_NAME} - Backup Details", "\n".join(lines))
             return
 
         if not os.path.exists(backup_path):
             lines.append("[COLOR FFEF5350]Backup file is not available locally.[/COLOR]")
-            xbmcgui.Dialog().textviewer(f"{ADDON_NAME} - Backup Details", "\n".join(lines))
+            popup_text(f"{ADDON_NAME} - Backup Details", "\n".join(lines))
             return
 
         try:
@@ -113,7 +164,7 @@ class BackupBrowser:
         except Exception as exc:
             lines.append(f"[COLOR FFEF5350]Failed to inspect backup content:[/COLOR] {exc}")
 
-        xbmcgui.Dialog().textviewer(f"{ADDON_NAME} - Backup Details", "\n".join(lines))
+        popup_text(f"{ADDON_NAME} - Backup Details", "\n".join(lines))
 
     def show_backups(self, mode='view'):
         """Display a list of available backups for selection
@@ -127,7 +178,7 @@ class BackupBrowser:
 
         if not backups:
             xbmc.log("BackupBrowser: No backup files found", xbmc.LOGWARNING)
-            xbmcgui.Dialog().ok(
+            popup_message(
                 ADDON_NAME,
                 "No backup files were found.\n\n"
                 "Tip: Create your first backup from the main menu, then return here to restore or inspect it."
@@ -145,14 +196,18 @@ class BackupBrowser:
                 # Get backup date from filename/metadata (supports old and new formats)
                 backup_date = self.backup_utils.format_backup_date(backup)
 
-                # Get backup size
+                # Get backup size (local or remote via WebDAV when available)
                 try:
                     if self.backup_utils.location_type == 0:  # Local
                         backup_size = os.path.getsize(backup)
                     else:
-                        # For remote backups, size info may not be available
-                        backup_size = 0
-                    backup_size_formatted = self.backup_utils.format_size(backup_size)
+                        # Attempt to get remote file info (WebDAV cached PROPFIND)
+                        info = self.backup_utils.get_remote_file_info(backup)
+                        backup_size = info.get('size') if isinstance(info, dict) else None
+                        if backup_size is None:
+                            backup_size = 0
+
+                    backup_size_formatted = self.backup_utils.format_size(backup_size) if backup_size and backup_size > 0 else "Unknown size"
                 except Exception as e:
                     xbmc.log(f"BackupBrowser: Error getting backup size for {backup_name}: {str(e)}", xbmc.LOGWARNING)
                     backup_size_formatted = "Unknown size"
@@ -180,7 +235,7 @@ class BackupBrowser:
 
         if not backup_options:
             xbmc.log("BackupBrowser: No valid backup options created", xbmc.LOGWARNING)
-            xbmcgui.Dialog().ok(ADDON_NAME, "No valid backup files found")
+            popup_message(ADDON_NAME, "No valid backup files found")
             return
 
         dialog = xbmcgui.Dialog()
@@ -215,16 +270,16 @@ class BackupBrowser:
         if mode == 'restore':
             # Confirm restore
             xbmc.log("BackupBrowser: Showing restore confirmation dialog", xbmc.LOGDEBUG)
-            confirmed = dialog.yesno(
+            confirmed = popup_confirm(
                 ADDON_NAME,
                 f"Restore backup: {os.path.basename(selected_backup)}?",
-                nolabel="No",
-                yeslabel="Yes"
+                yes_label="Yes",
+                no_label="No"
             )
 
             if confirmed:
                 # Show detailed warning about what will happen
-                final_confirm = dialog.yesno(
+                final_confirm = popup_confirm(
                     ADDON_NAME,
                     "This will restore the following:\n"
                     "• User settings and Kodi configuration\n"
@@ -232,8 +287,8 @@ class BackupBrowser:
                     "• Userdata (settings, databases, etc.)\n\n"
                     "Existing files will be overwritten.\n"
                     "This process cannot be undone.",
-                    nolabel="Cancel",
-                    yeslabel="Restore"
+                    yes_label="Restore",
+                    no_label="Cancel"
                 )
                 
                 if final_confirm:
@@ -244,7 +299,7 @@ class BackupBrowser:
                         self.backup_utils.show_last_operation_summary()
                     else:
                         xbmc.log(f"BackupBrowser: Backup restoration failed: {message}", xbmc.LOGERROR)
-                        dialog.ok(ADDON_NAME, f"Failed to restore backup: {message}")
+                        popup_message(ADDON_NAME, f"Failed to restore backup: {message}")
                 else:
                     xbmc.log("BackupBrowser: User cancelled restore after warning", xbmc.LOGINFO)
             else:
@@ -263,27 +318,22 @@ def show_main_menu():
         {
             'action': 'backup',
             'label': 'Create Backup',
-            'description': 'Create a fresh backup using your current settings.'
         },
         {
             'action': 'restore',
             'label': 'Restore Backup',
-            'description': 'Restore Kodi data from an existing backup archive.'
         },
         {
             'action': 'browse',
-            'label': 'Browse Backup Details',
-            'description': 'Inspect backup contents, size, and included sections.'
+            'label': 'Browse Backups',
         },
         {
             'action': 'settings',
-            'label': 'Open Settings',
-            'description': 'Configure backup items, schedule, locations, and notifications.'
+            'label': 'Settings',
         },
         {
             'action': 'exit',
-            'label': 'Close Dashboard',
-            'description': 'Exit the addon dashboard.'
+            'label': 'Exit',
         },
     ]
 
@@ -294,6 +344,7 @@ def show_main_menu():
         last_backup = backup_utils.get_last_successful_backup()
 
         total_backup_size = 0
+        remote_storage_status = None
         if backup_utils.location_type == 0:
             for backup_path in backups:
                 if os.path.exists(backup_path):
@@ -301,27 +352,64 @@ def show_main_menu():
                         total_backup_size += os.path.getsize(backup_path)
                     except Exception:
                         pass
+        else:
+            try:
+                remote_storage_status = backup_utils.get_remote_storage_status(backup_files=backups)
+            except Exception as e:
+                xbmc.log(f"MainMenu: Failed to get remote storage status: {str(e)}", xbmc.LOGWARNING)
+                remote_storage_status = None
 
         if backup_utils.location_type == 0:
             location_text = f"Local ({backup_utils.backup_dir})"
         else:
             location_text = f"Remote ({getattr(backup_utils, 'remote_path', 'Not configured')})"
 
+        # Truncate long location text for compact display
+        if len(location_text) > 40:
+            location_text = location_text[:37] + '...'
+
         scheduler_text = "Enabled" if ADDON.getSettingBool('enable_scheduler') else "Disabled"
+
+        if backup_utils.location_type == 0:
+            stored_label = "Stored"
+            stored_value = backup_utils.format_size(total_backup_size)
+        else:
+            stored_label = "Storage"
+            storage_used = None
+            storage_total = None
+            storage_free = None
+            backups_used = 0
+
+            if isinstance(remote_storage_status, dict):
+                storage_used = remote_storage_status.get('used_bytes')
+                storage_total = remote_storage_status.get('total_bytes')
+                storage_free = remote_storage_status.get('free_bytes')
+                backups_used = remote_storage_status.get('backups_bytes') or 0
+
+            if isinstance(storage_used, int) and isinstance(storage_total, int) and storage_total > 0:
+                stored_value = f"Used {backup_utils.format_size(storage_used)} / {backup_utils.format_size(storage_total)}"
+                if isinstance(storage_free, int) and storage_free >= 0:
+                    stored_value += f" (Free {backup_utils.format_size(storage_free)})"
+            elif backups_used > 0:
+                stored_value = f"Backups use {backup_utils.format_size(backups_used)} (Total unknown)"
+            else:
+                stored_value = "Usage unavailable"
 
         selected_action = None
         custom_window_loaded = False
 
         if CustomDashboardWindow is not None:
             try:
+                # Short, compact dashboard info for cleaner main menu
+                # Colored compact dashboard entries: label (blue), value (muted grey)
                 dashboard_info = {
                     'title': ADDON_NAME,
-                    'subtitle': 'Professional Backup Dashboard',
-                    'backup_count': f"Backups Available: {backup_count}",
-                    'stored_size': f"Stored Size: {backup_utils.format_size(total_backup_size)}",
-                    'last_backup': f"Last Backup: {last_backup}",
-                    'location': f"Location: {location_text}",
-                    'scheduler': f"Scheduler: {scheduler_text}",
+                    'subtitle': 'Backup Dashboard',
+                    'backup_count': f"[COLOR FF90CAF9]Backups:[/COLOR] [COLOR FFB0BEC5]{backup_count}[/COLOR]",
+                    'stored_size': f"[COLOR FF90CAF9]{stored_label}:[/COLOR] [COLOR FFB0BEC5]{stored_value}[/COLOR]",
+                    'last_backup': f"[COLOR FF90CAF9]Last:[/COLOR] [COLOR FFB0BEC5]{last_backup}[/COLOR]",
+                    'location': f"[COLOR FF90CAF9]Loc:[/COLOR] [COLOR FF80CBC4]{location_text}[/COLOR]",
+                    'scheduler': f"[COLOR FF90CAF9]Sched:[/COLOR] [COLOR FFB0BEC5]{scheduler_text}[/COLOR]",
                 }
                 dashboard_window = CustomDashboardWindow('custom_dashboard.xml', ADDON_PATH, 'default', '1080i')
                 dashboard_window.set_data(menu_items, dashboard_info)
@@ -333,12 +421,13 @@ def show_main_menu():
                 xbmc.log(f"MainMenu: Custom dashboard failed, falling back to default dialog: {str(e)}", xbmc.LOGWARNING)
 
         if not custom_window_loaded:
+            # Short option labels for the fallback dialog
             fallback_options = [
-                "Create Backup - Save selected items",
-                "Restore Backup - Recover from an existing backup",
-                "Browse Backup Details - Inspect backup contents",
-                "Settings - Configure addon options",
-                "Close"
+                "Create Backup",
+                "Restore Backup",
+                "Browse Backups",
+                "Settings",
+                "Exit"
             ]
             selected = xbmcgui.Dialog().select(ADDON_NAME, fallback_options)
             if selected == -1 or selected == 4:
@@ -351,16 +440,17 @@ def show_main_menu():
         if selected_action == 'backup':
             success, message = backup_utils.create_backup()
             if success:
-                if not backup_utils.show_last_operation_summary():
-                    xbmcgui.Dialog().ok(ADDON_NAME, "Backup completed successfully")
+                if should_show_backup_summary_popup():
+                    if not backup_utils.show_last_operation_summary():
+                        popup_message(ADDON_NAME, "Backup completed successfully")
             else:
-                xbmcgui.Dialog().ok(ADDON_NAME, f"Backup failed: {message}")
+                popup_message(ADDON_NAME, f"Backup failed: {message}")
                 if "No items selected" in str(message):
-                    open_settings = xbmcgui.Dialog().yesno(
+                    open_settings = popup_confirm(
                         ADDON_NAME,
                         "No backup items are selected.\n\nOpen settings now to choose what to include?",
-                        yeslabel="Open Settings",
-                        nolabel="Not Now"
+                        yes_label="Open Settings",
+                        no_label="Not Now"
                     )
                     if open_settings:
                         ADDON.openSettings()
@@ -369,16 +459,27 @@ def show_main_menu():
         elif selected_action == 'browse':
             browser.show_backups(mode='view')
         elif selected_action == 'settings':
-            ADDON.openSettings()
+            # Prefer the custom settings window if available
+            if 'CustomSettingsWindow' in globals() and CustomSettingsWindow is not None:
+                try:
+                    settings_window = CustomSettingsWindow('custom_settings.xml', ADDON_PATH, 'default', '1080i')
+                    settings_window.doModal()
+                    del settings_window
+                except Exception as e:
+                    xbmc.log(f"MainMenu: Custom settings window failed, falling back to native settings: {str(e)}", xbmc.LOGWARNING)
+                    ADDON.openSettings()
+            else:
+                ADDON.openSettings()
 
 def backup():
     """Create a backup"""
     backup_utils = BackupManager()
     success, message = backup_utils.create_backup()
     if success:
-        backup_utils.show_last_operation_summary()
+        if should_show_backup_summary_popup():
+            backup_utils.show_last_operation_summary()
     else:
-        xbmcgui.Dialog().ok(ADDON_NAME, f"Backup failed: {message}")
+        popup_message(ADDON_NAME, f"Backup failed: {message}")
     return success
 
 def test_email():
@@ -404,12 +505,12 @@ def test_email():
     success, message = email_notifier.test_email()
     
     if success:
-        dialog.ok(
+        popup_message(
             ADDON.getLocalizedString(32130),  # "Email Test Successful"
             ADDON.getLocalizedString(32133)   # "Test email sent successfully!"
         )
     else:
-        dialog.ok(
+        popup_message(
             ADDON.getLocalizedString(32131),  # "Email Test Failed"
             f"{ADDON.getLocalizedString(32134)}: {message}"  # "Failed to send test email: {error}"
         )
@@ -468,14 +569,14 @@ def main():
                 progress.close()
                 
                 if result:
-                    xbmcgui.Dialog().ok(ADDON_NAME, "Connection successful!")
+                    popup_message(ADDON_NAME, "Connection successful!")
                 # No else needed as test_connection_with_params will show error dialogs
                 
             except Exception as e:
                 if 'progress' in locals() and progress:
                     progress.close()
                 log(f"Error during test_connection: {str(e)}", xbmc.LOGERROR)
-                xbmcgui.Dialog().ok(ADDON_NAME, f"Error testing connection: {str(e)}")
+                popup_message(ADDON_NAME, f"Error testing connection: {str(e)}")
         elif args == 'test_email':
             test_email()
         elif args == 'menu':

@@ -18,11 +18,56 @@ import ftplib
 import socket
 import urllib.parse
 import requests
+import xml.etree.ElementTree as ET
 import textwrap
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import xbmcgui
 from .email_utils import EmailNotifier
+
+try:
+    from .custom_gui import ask_yesno, show_message, show_textviewer
+except Exception:
+    ask_yesno = None
+    show_message = None
+    show_textviewer = None
+
+
+def popup_message(title, text):
+    """Show an OK-style popup preferring custom GUI."""
+    try:
+        if show_message is not None:
+            show_message(title, text)
+        else:
+            xbmcgui.Dialog().ok(title, text)
+    except Exception:
+        xbmcgui.Dialog().ok(title, text)
+
+
+def popup_confirm(title, text, yes_label='Yes', no_label='No'):
+    """Show a yes/no popup preferring custom GUI."""
+    try:
+        if ask_yesno is not None:
+            return ask_yesno(title, text, yes_label=yes_label, no_label=no_label)
+        return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
+    except Exception:
+        try:
+            return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
+        except Exception:
+            return False
+
+
+def popup_text(title, text):
+    """Show a scrollable text popup preferring custom GUI."""
+    try:
+        if show_textviewer is not None:
+            show_textviewer(title, text)
+        elif show_message is not None:
+            show_message(title, text)
+        else:
+            xbmcgui.Dialog().textviewer(title, text)
+    except Exception:
+        popup_message(title, text)
 
 # Try to import paramiko, but don't fail if it's not available
 try:
@@ -213,6 +258,8 @@ class BackupManager:
             session.auth = (self.remote_username, self.remote_password)
             
         self._webdav_session = session
+        # Cache for last WebDAV listing (filename -> info)
+        self._last_webdav_listing = {}
         return session
 
     def connect_remote(self):
@@ -238,61 +285,63 @@ class BackupManager:
                 smb_path = self.remote_path.replace(':', '/')  # Just in case there's still a colon
                 if self.remote_username and self.remote_password:
                     remote_url = f"smb://{self.remote_username}:{urllib.parse.quote(self.remote_password)}@{smb_path}"
-                elif self.remote_username:
-                    remote_url = f"smb://{self.remote_username}@{smb_path}"
-                else:
-                    remote_url = f"smb://{smb_path}"
+                elif self.remote_type == 4:  # WebDAV
+                    # List files via WebDAV
+                    base = self.remote_connection.get('base_url') if isinstance(self.remote_connection, dict) else None
+                    session = self.remote_connection.get('session') if isinstance(self.remote_connection, dict) else None
+                    self._log(f"Listing WebDAV files from: {base}", xbmc.LOGINFO)
+                    self._log(f"Using WebDAV credentials: username={self.remote_username}, password=****************", xbmc.LOGDEBUG)
 
-                self._log(f"BackupManager: SMB remote URL={remote_url}", xbmc.LOGINFO)
-                self.remote_connection = remote_url
-                # Test connection by trying to list directory
-                dirs, files = xbmcvfs.listdir(remote_url)
-                self._log(f"BackupManager: SMB listdir success dirs={len(dirs)} files={len(files)}", xbmc.LOGINFO)
-                return True
-                
-            elif self.remote_type == 1:  # NFS
-                # Validate and format NFS path
-                # NFS requires format: server:/export/path or server:/export
-                nfs_path = self.remote_path.strip()
-                
-                # Check if path already has the correct format (contains :/)
-                if ':/' not in nfs_path:
-                    # Try to convert IP or hostname to proper NFS format
-                    # If it's just an IP or hostname, we need the export path
-                    if '/' not in nfs_path:
-                        self._log(f"Invalid NFS path format: {nfs_path}. Expected format: server:/export/path", xbmc.LOGERROR)
-                        return False
-                    # If it has / but no :, assume it's server/export format and convert
-                    if ':' not in nfs_path:
-                        parts = nfs_path.split('/', 1)
-                        if len(parts) == 2:
-                            nfs_path = f"{parts[0]}:/{parts[1]}"
-                        else:
-                            self._log(f"Invalid NFS path format: {nfs_path}. Expected format: server:/export/path", xbmc.LOGERROR)
-                            return False
-                
-                # Mount NFS share
-                mount_point = os.path.join(self.backup_dir, "nfs_mount")
-                if not os.path.exists(mount_point):
-                    os.makedirs(mount_point)
-                
-                # Unmount if already mounted
-                subprocess.call(["umount", mount_point], stderr=subprocess.DEVNULL)
-                
-                # Mount the NFS share with proper options
-                # Use soft mount, shorter timeout, and nolock for better compatibility
-                mount_options = ["-t", "nfs", "-o", "soft,timeo=10,retrans=2,nolock"]
-                result = subprocess.call(["mount"] + mount_options + [nfs_path, mount_point],
-                                        stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                
-                if result == 0:
-                    self.remote_connection = mount_point
-                    self._log(f"BackupManager: Successfully mounted NFS share {nfs_path} to {mount_point}", xbmc.LOGINFO)
-                    return True
-                else:
-                    error_msg = f"Failed to mount NFS share: {nfs_path}. "
-                    error_msg += "Please verify: 1) NFS server is running, 2) Export path is correct (format: server:/export/path), "
-                    error_msg += "3) Network connectivity, 4) NFS client is installed"
+                    if not session or not base:
+                        self._log("BackupManager: WebDAV session or base_url missing", xbmc.LOGERROR)
+                        return []
+
+                    try:
+                        response = session.request('PROPFIND', base, headers={'Depth': '1'})
+                    except Exception as e:
+                        self._log(f"BackupManager: WebDAV PROPFIND request failed: {str(e)}", xbmc.LOGERROR)
+                        return []
+
+                    self._log(f"WebDAV PROPFIND response status: {response.status_code}", xbmc.LOGINFO)
+                    self._log(f"WebDAV response headers: {dict(response.headers)}", xbmc.LOGDEBUG)
+                    self._log(f"Raw response text: {response.text}", xbmc.LOGDEBUG)
+
+                    # Accept both 207 (Multi-Status) and 200 OK responses
+                    if response.status_code not in (207, 200):
+                        self._log(f"WebDAV PROPFIND failed with status code: {response.status_code}", xbmc.LOGERROR)
+                        self._log(f"WebDAV response: {response.text}", xbmc.LOGERROR)
+                        return []
+
+                    files = []
+                    try:
+                        # Parse XML response robustly using ElementTree and namespace-agnostic matching
+                        root = ET.fromstring(response.content)
+                        for elem in root.iter():
+                            tag = elem.tag
+                            local = tag.split('}', 1)[1] if '}' in tag else tag
+                            if local.lower() == 'href':
+                                href = elem.text or ''
+                                # Extract filename from href path
+                                parsed = urllib.parse.urlparse(href)
+                                path = parsed.path or href
+                                name = os.path.basename(path.rstrip('/'))
+                                if not name:
+                                    continue
+                                name = urllib.parse.unquote(name)
+                                if name.endswith('.zip') and name not in files:
+                                    files.append(name)
+                            elif local.lower() == 'displayname':
+                                name = (elem.text or '').strip()
+                                if name.endswith('.zip') and name not in files:
+                                    files.append(name)
+                    except Exception as e:
+                        self._log(f"BackupManager: Failed to parse WebDAV PROPFIND response: {str(e)}", xbmc.LOGERROR)
+                        self._log(f"Response text: {response.text}", xbmc.LOGDEBUG)
+                        return []
+
+                    self._log(f"Final list of backup files found: {files}", xbmc.LOGINFO)
+                    self._log(f"Found {len(files)} backup files via WebDAV", xbmc.LOGINFO)
+                    return files
                     self._log(error_msg, xbmc.LOGERROR)
                     return False
                 
@@ -684,57 +733,87 @@ class BackupManager:
                 return files
                 
             elif self.remote_type == 4:  # WebDAV
-                # List files via WebDAV
-                self._log(f"Listing WebDAV files from: {self.remote_connection['base_url']}", xbmc.LOGINFO)
-                self._log(f"Using WebDAV credentials: username={self.remote_username}, password=****************", xbmc.LOGINFO)
-                
-                response = self.remote_connection['session'].request(
-                    'PROPFIND', 
-                    self.remote_connection['base_url'], 
-                    headers={'Depth': '1'}
-                )
-                
+                # List files via WebDAV using robust XML parsing
+                base = self.remote_connection.get('base_url') if isinstance(self.remote_connection, dict) else None
+                session = self.remote_connection.get('session') if isinstance(self.remote_connection, dict) else None
+                self._log(f"Listing WebDAV files from: {base}", xbmc.LOGINFO)
+                self._log(f"Using WebDAV credentials: username={self.remote_username}, password=****************", xbmc.LOGDEBUG)
+
+                if not session or not base:
+                    self._log("BackupManager: WebDAV session or base_url missing", xbmc.LOGERROR)
+                    return []
+
+                try:
+                    response = session.request('PROPFIND', base, headers={'Depth': '1'})
+                except Exception as e:
+                    self._log(f"BackupManager: WebDAV PROPFIND request failed: {str(e)}", xbmc.LOGERROR)
+                    return []
+
                 self._log(f"WebDAV PROPFIND response status: {response.status_code}", xbmc.LOGINFO)
-                self._log(f"WebDAV response headers: {dict(response.headers)}", xbmc.LOGINFO)
-                self._log(f"WebDAV response text: {response.text}", xbmc.LOGINFO)
-                
-                if response.status_code != 207:  # Multi-Status response
+                self._log(f"WebDAV response headers: {dict(response.headers)}", xbmc.LOGDEBUG)
+                self._log(f"Raw response text: {response.text}", xbmc.LOGDEBUG)
+
+                # Accept both 207 (Multi-Status) and 200 OK responses
+                if response.status_code not in (207, 200):
                     self._log(f"WebDAV PROPFIND failed with status code: {response.status_code}", xbmc.LOGERROR)
                     self._log(f"WebDAV response: {response.text}", xbmc.LOGERROR)
                     return []
-                
-                # Parse XML response to get file names
+
                 files = []
-                
-                # Log the raw response text for debugging
-                self._log(f"Raw response text: {response.text}", xbmc.LOGINFO)
-                
-                # Look for both href and displayname tags (case insensitive)
-                response_lines = response.text.splitlines()
-                
-                for line in response_lines:
-                    # Check for href tags (case insensitive)
-                    if '<D:href>' in line and '</D:href>' in line:
-                        href = line[line.find('<D:href>')+8:line.find('</D:href>')]
-                        filename = href.split('/')[-1] if href.split('/')[-1] else href.split('/')[-2]
-                        filename = urllib.parse.unquote(filename)
-                        self._log(f"Found href: {filename}", xbmc.LOGINFO)
-                        
-                        if filename.endswith('.zip'):
-                            if filename not in files:  # Avoid duplicates
-                                files.append(filename)
-                                self._log(f"Added file from href: {filename}", xbmc.LOGINFO)
-                    
-                    # Check for displayname tags (case insensitive)
-                    if '<D:displayname>' in line and '</D:displayname>' in line:
-                        filename = line[line.find('<D:displayname>')+14:line.find('</D:displayname>')]
-                        self._log(f"Found displayname: {filename}", xbmc.LOGINFO)
-                        
-                        if filename.endswith('.zip'):
-                            if filename not in files:  # Avoid duplicates
-                                files.append(filename)
-                                self._log(f"Added file from displayname: {filename}", xbmc.LOGINFO)
-                
+                try:
+                    # Parse PROPFIND Multi-Status response and extract per-response details
+                    root = ET.fromstring(response.content)
+                    # Reset cached listing
+                    self._last_webdav_listing = {}
+
+                    for resp in root.findall('.//{DAV:}response'):
+                        try:
+                            href_elem = resp.find('{DAV:}href')
+                            if href_elem is None or not href_elem.text:
+                                continue
+                            href = href_elem.text
+                            parsed = urllib.parse.urlparse(href)
+                            path = parsed.path or href
+                            name = os.path.basename(path.rstrip('/'))
+                            if not name:
+                                continue
+                            name = urllib.parse.unquote(name)
+
+                            # Attempt to read getcontentlength and getlastmodified
+                            size = None
+                            mtime = None
+                            size_elem = resp.find('.//{DAV:}getcontentlength')
+                            if size_elem is not None and size_elem.text:
+                                try:
+                                    size = int(size_elem.text)
+                                except Exception:
+                                    size = None
+
+                            mtime_elem = resp.find('.//{DAV:}getlastmodified')
+                            if mtime_elem is not None and mtime_elem.text:
+                                try:
+                                    from email.utils import parsedate_to_datetime
+                                    dt = parsedate_to_datetime(mtime_elem.text)
+                                    mtime = dt.timestamp()
+                                except Exception:
+                                    mtime = None
+
+                            if name.endswith('.zip'):
+                                if name not in files:
+                                    files.append(name)
+                                # Cache info
+                                self._last_webdav_listing[name] = {
+                                    'size': size,
+                                    'mtime': mtime,
+                                    'href': href
+                                }
+                        except Exception:
+                            continue
+                except Exception as e:
+                    self._log(f"BackupManager: Failed to parse WebDAV PROPFIND response: {str(e)}", xbmc.LOGERROR)
+                    self._log(f"Response text: {response.text}", xbmc.LOGDEBUG)
+                    return []
+
                 self._log(f"Final list of backup files found: {files}", xbmc.LOGINFO)
                 self._log(f"Found {len(files)} backup files via WebDAV", xbmc.LOGINFO)
                 return files
@@ -753,6 +832,477 @@ class BackupManager:
             except:
                 return False
         return False
+
+    def get_remote_file_info(self, filename):
+        """Return cached or fetched info for a remote file (size, mtime, href).
+
+        Returns a dict with keys: 'size' (int or None), 'mtime' (epoch or None), 'href' (str or None)
+        """
+        try:
+            if self.location_type == 0:
+                local_path = os.path.join(self.backup_dir, filename)
+                if os.path.exists(local_path):
+                    return {'size': os.path.getsize(local_path), 'mtime': os.path.getmtime(local_path), 'href': local_path}
+                return {'size': None, 'mtime': None, 'href': local_path}
+
+            if self.remote_type == 4:
+                # Check cached listing first
+                if hasattr(self, '_last_webdav_listing') and filename in self._last_webdav_listing:
+                    return self._last_webdav_listing.get(filename, {})
+
+                # Attempt to fetch file-specific PROPFIND (Depth: 0)
+                try:
+                    session = self._create_webdav_session()
+                    base = self.remote_connection.get('base_url') if isinstance(self.remote_connection, dict) else None
+                    if not base:
+                        return {}
+                    file_url = base.rstrip('/') + '/' + urllib.parse.quote(filename)
+                    response = session.request('PROPFIND', file_url, headers={'Depth': '0'})
+                    if response.status_code not in (200, 207):
+                        return {}
+
+                    root = ET.fromstring(response.content)
+                    for resp in root.findall('.//{DAV:}response'):
+                        href_elem = resp.find('{DAV:}href')
+                        if href_elem is None or not href_elem.text:
+                            continue
+                        href = href_elem.text
+                        parsed = urllib.parse.urlparse(href)
+                        path = parsed.path or href
+                        name = os.path.basename(path.rstrip('/'))
+                        name = urllib.parse.unquote(name)
+                        if name != filename:
+                            continue
+
+                        size = None
+                        mtime = None
+                        size_elem = resp.find('.//{DAV:}getcontentlength')
+                        if size_elem is not None and size_elem.text:
+                            try:
+                                size = int(size_elem.text)
+                            except Exception:
+                                size = None
+                        mtime_elem = resp.find('.//{DAV:}getlastmodified')
+                        if mtime_elem is not None and mtime_elem.text:
+                            try:
+                                from email.utils import parsedate_to_datetime
+                                dt = parsedate_to_datetime(mtime_elem.text)
+                                mtime = dt.timestamp()
+                            except Exception:
+                                mtime = None
+
+                        info = {'size': size, 'mtime': mtime, 'href': href}
+                        # Cache
+                        if not hasattr(self, '_last_webdav_listing'):
+                            self._last_webdav_listing = {}
+                        self._last_webdav_listing[name] = info
+                        return info
+                except Exception as e:
+                    self._log(f"BackupManager: Error fetching WebDAV file info: {str(e)}", xbmc.LOGERROR)
+                    return {}
+
+            # Fallback for other remote types: return empty info
+            return {}
+        except Exception as e:
+            self._log(f"get_remote_file_info error: {str(e)}", xbmc.LOGERROR)
+            return {}
+
+    def _extract_xml_int_by_local_name(self, xml_root, local_names):
+        """Return the first integer XML value matching one of the local tag names."""
+        try:
+            wanted = {str(name).lower() for name in local_names}
+            values = []
+            for elem in xml_root.iter():
+                tag = elem.tag
+                local = tag.split('}', 1)[1] if '}' in tag else tag
+                if str(local).lower() not in wanted:
+                    continue
+                raw = (elem.text or '').strip()
+                if not raw:
+                    continue
+                parsed = self._parse_storage_int(raw)
+                if parsed is not None:
+                    values.append(parsed)
+        except Exception:
+            pass
+        return max(values) if values else None
+
+    def _parse_storage_int(self, raw_value):
+        """Parse storage byte values from XML/header strings in a tolerant way."""
+        try:
+            text = str(raw_value).strip()
+            if not text:
+                return None
+
+            lowered = text.lower()
+            if lowered in ('none', 'unknown', 'unlimited', 'infinite', 'nan', '-'):
+                return None
+
+            # Handle values like "123,456" or "123 456" or "123.0".
+            cleaned = text.replace(',', '').replace(' ', '')
+            match = re.search(r'-?\d+(?:\.\d+)?', cleaned)
+            if not match:
+                return None
+
+            value = int(float(match.group(0)))
+            if value < 0:
+                # Some servers return negative sentinels for unlimited/unknown quota.
+                return None
+            return value
+        except Exception:
+            return None
+
+    def _build_webdav_probe_urls(self, base_url, max_levels=3):
+        """Build a small set of candidate URLs (base, parent, root) for quota probes."""
+        try:
+            parsed = urllib.parse.urlsplit(base_url)
+            path = parsed.path or '/'
+            if not path.startswith('/'):
+                path = '/' + path
+
+            segments = [seg for seg in path.split('/') if seg]
+            urls = []
+
+            for idx in range(len(segments), -1, -1):
+                candidate_path = '/' + '/'.join(segments[:idx])
+                if not candidate_path.endswith('/'):
+                    candidate_path += '/'
+                candidate = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, candidate_path, '', ''))
+                if candidate not in urls:
+                    urls.append(candidate)
+                if len(urls) >= max_levels:
+                    break
+
+            root_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, '/', '', ''))
+            if root_url not in urls and len(urls) < max_levels:
+                urls.append(root_url)
+
+            return urls if urls else [base_url]
+        except Exception:
+            return [base_url]
+
+    def _extract_webdav_quota_from_headers(self, headers):
+        """Try to parse quota values from response headers."""
+        try:
+            if not headers:
+                return {}
+
+            normalized = {str(k).lower(): v for k, v in headers.items()}
+
+            def get_first(keys):
+                for key in keys:
+                    if key in normalized:
+                        parsed = self._parse_storage_int(normalized.get(key))
+                        if parsed is not None:
+                            return parsed
+                return None
+
+            used_bytes = get_first([
+                'x-quota-used-bytes',
+                'x-account-disk-usage',
+                'x-storage-used',
+                'x-disk-usage',
+            ])
+            free_bytes = get_first([
+                'x-quota-available-bytes',
+                'x-storage-free',
+                'x-disk-free',
+            ])
+            total_bytes = get_first([
+                'x-quota-total-bytes',
+                'x-account-disk-limit',
+                'x-storage-total',
+                'x-disk-total',
+            ])
+
+            result = {
+                'used_bytes': used_bytes,
+                'free_bytes': free_bytes,
+                'total_bytes': total_bytes,
+            }
+            if used_bytes is None and free_bytes is None and total_bytes is None:
+                return {}
+            return result
+        except Exception:
+            return {}
+
+    def _parse_webdav_quota_from_response(self, response, source_name):
+        """Extract quota values from a WebDAV response body and headers."""
+        quota = {
+            'used_bytes': None,
+            'free_bytes': None,
+            'total_bytes': None,
+            'source': source_name,
+        }
+
+        try:
+            xml_root = ET.fromstring(response.content)
+            quota['used_bytes'] = self._extract_xml_int_by_local_name(
+                xml_root,
+                {
+                    'quota-used-bytes',
+                    'quotaused',
+                    'quota-used',
+                    'quota_used_bytes',
+                },
+            )
+            quota['free_bytes'] = self._extract_xml_int_by_local_name(
+                xml_root,
+                {
+                    'quota-available-bytes',
+                    'quotaavailable',
+                    'quota-available',
+                    'quota-free-bytes',
+                    'quota_available_bytes',
+                },
+            )
+            quota['total_bytes'] = self._extract_xml_int_by_local_name(
+                xml_root,
+                {
+                    'quota',
+                    'quota-total-bytes',
+                    'quota-total',
+                    'quota_total_bytes',
+                },
+            )
+        except Exception:
+            # Some servers return no XML body for certain methods; headers may still help.
+            pass
+
+        header_quota = self._extract_webdav_quota_from_headers(getattr(response, 'headers', None))
+        for key in ('used_bytes', 'free_bytes', 'total_bytes'):
+            if quota.get(key) is None and header_quota.get(key) is not None:
+                quota[key] = header_quota.get(key)
+
+        used_bytes = quota.get('used_bytes')
+        free_bytes = quota.get('free_bytes')
+        total_bytes = quota.get('total_bytes')
+
+        if total_bytes is None and used_bytes is not None and free_bytes is not None:
+            total_bytes = used_bytes + free_bytes
+        if total_bytes is not None and used_bytes is None and free_bytes is not None:
+            used_bytes = max(total_bytes - free_bytes, 0)
+        if total_bytes is not None and free_bytes is None and used_bytes is not None:
+            free_bytes = max(total_bytes - used_bytes, 0)
+
+        if total_bytes is not None and used_bytes is not None and used_bytes > total_bytes:
+            used_bytes = None
+        if total_bytes is not None and free_bytes is not None and free_bytes > total_bytes:
+            free_bytes = None
+
+        quota['used_bytes'] = used_bytes
+        quota['free_bytes'] = free_bytes
+        quota['total_bytes'] = total_bytes
+
+        if used_bytes is None and free_bytes is None and total_bytes is None:
+            return {}
+        return quota
+
+    def _get_webdav_quota_status(self):
+        """Best-effort WebDAV quota lookup using multiple methods."""
+        try:
+            session = self.remote_connection.get('session') if isinstance(self.remote_connection, dict) else None
+            base = self.remote_connection.get('base_url') if isinstance(self.remote_connection, dict) else None
+            if not session or not base:
+                return {}
+
+            propfind_body = (
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                "<d:propfind xmlns:d=\"DAV:\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\">"
+                "<d:prop>"
+                "<d:quota-used-bytes/><d:quota-available-bytes/><d:quota/><d:quotaused/>"
+                "<oc:quota-used-bytes/><oc:quota-available-bytes/><oc:quota/>"
+                "<nc:quota-used-bytes/><nc:quota-available-bytes/><nc:quota/>"
+                "</d:prop>"
+                "</d:propfind>"
+            )
+
+            best_result = {}
+
+            def score(candidate):
+                if not candidate:
+                    return 0
+                result = 0
+                if isinstance(candidate.get('total_bytes'), int):
+                    result += 4
+                if isinstance(candidate.get('used_bytes'), int):
+                    result += 2
+                if isinstance(candidate.get('free_bytes'), int):
+                    result += 2
+                return result
+
+            probe_urls = self._build_webdav_probe_urls(base)
+            for idx, probe_url in enumerate(probe_urls):
+                depths = ('0', '1') if idx == 0 else ('0',)
+                for depth in depths:
+                    try:
+                        response = session.request(
+                            'PROPFIND',
+                            probe_url,
+                            headers={
+                                'Depth': depth,
+                                'Content-Type': 'text/xml; charset=utf-8',
+                            },
+                            data=propfind_body,
+                        )
+                    except Exception:
+                        continue
+
+                    if response.status_code not in (200, 207):
+                        continue
+
+                    candidate = self._parse_webdav_quota_from_response(
+                        response,
+                        f'webdav-propfind-d{depth}',
+                    )
+                    if score(candidate) > score(best_result):
+                        best_result = candidate
+                    if isinstance(candidate.get('total_bytes'), int):
+                        return candidate
+
+                # Header-only fallback for servers that expose quota in custom headers.
+                try:
+                    head_response = session.request('HEAD', probe_url)
+                    if head_response.status_code in (200, 204, 207):
+                        header_candidate = self._extract_webdav_quota_from_headers(head_response.headers)
+                        if header_candidate:
+                            header_candidate['source'] = 'webdav-head-headers'
+                            if score(header_candidate) > score(best_result):
+                                best_result = header_candidate
+                            if isinstance(header_candidate.get('total_bytes'), int):
+                                return header_candidate
+                except Exception:
+                    pass
+
+            return best_result
+        except Exception as e:
+            self._log(f"BackupManager: Unable to read WebDAV quota info: {str(e)}", xbmc.LOGWARNING)
+            return {}
+
+    def _get_remote_file_size_bytes(self, filename):
+        """Best-effort remote file size lookup across supported protocols."""
+        try:
+            info = self.get_remote_file_info(filename)
+            if isinstance(info, dict):
+                size = info.get('size')
+                if isinstance(size, int) and size >= 0:
+                    return size
+        except Exception:
+            pass
+
+        try:
+            if self.remote_type == 2 and self.remote_connection:  # FTP
+                size = self.remote_connection.size(filename)
+                if size is not None:
+                    return int(size)
+            elif self.remote_type == 3 and self.remote_connection:  # SFTP
+                return int(self.remote_connection.stat(filename).st_size)
+            elif self.remote_type == 1 and isinstance(self.remote_connection, str):  # NFS mount path
+                file_path = os.path.join(self.remote_connection, filename)
+                if os.path.exists(file_path):
+                    return int(os.path.getsize(file_path))
+            elif self.remote_type == 0 and self.remote_connection:  # SMB
+                remote_path = self.get_remote_path(filename)
+                stat_obj = xbmcvfs.Stat(remote_path)
+                if hasattr(stat_obj, 'st_size'):
+                    size_attr = getattr(stat_obj, 'st_size')
+                    size = size_attr() if callable(size_attr) else size_attr
+                    if size is not None:
+                        return int(size)
+        except Exception:
+            pass
+
+        return None
+
+    def get_remote_storage_status(self, backup_files=None):
+        """Return best-effort remote storage stats for dashboard system status.
+
+        Keys in returned dict:
+        - used_bytes: remote used bytes (when available)
+        - free_bytes: remote free bytes (when available)
+        - total_bytes: remote total bytes (when available)
+        - backups_bytes: bytes used by known backup zip files
+        - source: where quota values came from
+        """
+        status = {
+            'used_bytes': None,
+            'free_bytes': None,
+            'total_bytes': None,
+            'backups_bytes': 0,
+            'source': 'unknown',
+        }
+
+        if self.location_type == 0:
+            return status
+
+        try:
+            if not self.connect_remote():
+                return status
+
+            # Protocol-specific storage quota lookups.
+            if self.remote_type == 4:  # WebDAV
+                status.update(self._get_webdav_quota_status())
+            elif self.remote_type == 3 and self.remote_connection and hasattr(self.remote_connection, 'statvfs'):
+                try:
+                    stat = self.remote_connection.statvfs('.')
+                    block_size = int(getattr(stat, 'f_frsize', 0) or getattr(stat, 'f_bsize', 0) or 0)
+                    blocks_total = int(getattr(stat, 'f_blocks', 0) or 0)
+                    blocks_avail = int(getattr(stat, 'f_bavail', 0) or 0)
+                    if block_size > 0 and blocks_total > 0:
+                        total_bytes = blocks_total * block_size
+                        free_bytes = max(blocks_avail * block_size, 0)
+                        used_bytes = max(total_bytes - free_bytes, 0)
+                        status.update({
+                            'used_bytes': used_bytes,
+                            'free_bytes': free_bytes,
+                            'total_bytes': total_bytes,
+                            'source': 'sftp-statvfs',
+                        })
+                except Exception as e:
+                    self._log(f"BackupManager: Unable to read SFTP statvfs info: {str(e)}", xbmc.LOGWARNING)
+            elif self.remote_type == 1 and isinstance(self.remote_connection, str):
+                # NFS may be mounted to a local path; if so, statvfs can provide capacity.
+                try:
+                    if os.path.exists(self.remote_connection):
+                        stat = os.statvfs(self.remote_connection)
+                        total_bytes = int(stat.f_blocks) * int(stat.f_frsize)
+                        free_bytes = int(stat.f_bavail) * int(stat.f_frsize)
+                        used_bytes = max(total_bytes - free_bytes, 0)
+                        status.update({
+                            'used_bytes': used_bytes,
+                            'free_bytes': free_bytes,
+                            'total_bytes': total_bytes,
+                            'source': 'nfs-statvfs',
+                        })
+                except Exception as e:
+                    self._log(f"BackupManager: Unable to read NFS statvfs info: {str(e)}", xbmc.LOGWARNING)
+
+            files = backup_files if backup_files is not None else self.list_remote_files()
+            backup_bytes = 0
+            for filename in files or []:
+                name = str(filename)
+                if not name.lower().endswith('.zip'):
+                    continue
+                size = self._get_remote_file_size_bytes(name)
+                if isinstance(size, int) and size > 0:
+                    backup_bytes += size
+
+            status['backups_bytes'] = backup_bytes
+
+            # When storage-wide quota is unavailable, at least show known backup consumption.
+            if status.get('used_bytes') is None and backup_bytes > 0:
+                status['used_bytes'] = backup_bytes
+                if status.get('source') == 'unknown':
+                    status['source'] = 'backup-files'
+        except Exception as e:
+            self._log(f"BackupManager: Error getting remote storage status: {str(e)}", xbmc.LOGWARNING)
+        finally:
+            try:
+                self.disconnect_remote()
+            except Exception:
+                pass
+
+        return status
     
     def delete_remote_file(self, filename):
         """Delete a file from the remote location"""
@@ -1013,7 +1563,16 @@ class BackupManager:
             add_wrapped_bullet(lines, details.get('message'))
 
         title = f"{self.addon.getAddonInfo('name')} - {operation} Summary"
-        xbmcgui.Dialog().textviewer(title, "\n".join(lines))
+        summary_text = "\n".join(lines)
+
+        # Prefer the custom message window so the summary matches addon UI style.
+        try:
+            popup_text(title, summary_text)
+            return True
+        except Exception:
+            pass
+
+        popup_message(title, summary_text)
         return True
     
     def format_size(self, size_bytes):
@@ -1762,12 +2321,11 @@ class BackupManager:
     
     def show_rotation_warning(self):
         """Show warning dialog when enabling backup rotation"""
-        dialog = xbmcgui.Dialog()
-        confirmed = dialog.yesno(
+        confirmed = popup_confirm(
             "Warning",
             "Backup rotation will automatically delete old backups when enabled.\n\nAre you sure you want to continue?",
-            nolabel="No, Disable",
-            yeslabel="Yes, Enable"
+            yes_label="Yes, Enable",
+            no_label="No, Disable"
         )
         
         if not confirmed:

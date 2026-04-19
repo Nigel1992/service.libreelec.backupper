@@ -21,6 +21,10 @@ msgctxt "#32001"
 msgid "General Settings"
 msgstr "General Settings"
 
+msgctxt "#32002"
+msgid "Remote Settings"
+msgstr "Remote Settings"
+
 msgctxt "#32003"
 msgid "Backup Items"
 msgstr "Backup Items"
@@ -297,6 +301,10 @@ msgctxt "#32170"
 msgid "Verbose debug logging"
 msgstr "Verbose debug logging"
 
+msgctxt "#32171"
+msgid "Show backup summary popup after completion"
+msgstr "Show backup summary popup after completion"
+
 # Author Information
 msgctxt "#32113"
 msgid "Author"
@@ -307,8 +315,8 @@ msgid "Nigel1992"
 msgstr "Nigel1992"
 
 msgctxt "#32115"
-msgid "Version 1.4.1.1"
-msgstr "Version 1.4.1.1"
+msgid "Version 1.5.0"
+msgstr "Version 1.5.0"
 
 # Email Notification Settings
 msgctxt "#32120"

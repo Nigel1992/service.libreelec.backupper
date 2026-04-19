@@ -15,11 +15,19 @@
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
                 <news>v1.5.0 (2026-04-12) - FEATURE RELEASE
+            - Compared to v1.4.1.7
             - Added fully custom dashboard and backup browser windows with skin XML layouts (1080i/720p)
+            - Added custom settings/help details with clearer guidance per setting
+            - Added optional backup summary popup toggle in Notifications settings
+            - Added remote storage usage status details to dashboard when available
             - Improved restore UX with reliable progress updates and reduced notification noise
             - Added detailed, colorized operation summaries with scroll-friendly formatting
             - Improved backup detection and date parsing for legacy and current backup naming formats
             - Hardened restore handling for non-critical file errors (permissions/long names/.git metadata)
+            - Improved Remote Settings Test Connection output with cleaner structured protocol diagnostics
+            - Changed message/confirm/text popups to consistently use custom GUI dialogs with fallback
+            - Fixed Credits entries to remain informational and non-editable
+            - Fixed duplicate setting popup activation and tab navigation edge cases
 
     v1.4.1.7 (2026-01-12) - TEST RELEASE
             - Added switchable verbose logging that elevates debug details into the Kodi log

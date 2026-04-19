@@ -4,7 +4,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.4.1.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -41,11 +41,19 @@
 
 ## 📦 Latest Updates
 
-### Version 1.4.1.2 (December 30, 2025)
-- **Fixed restore from backup failing due to read-only file system error**
-- Added automatic mounting/unmounting of addons directory during restore operations
-- Fixed path resolution for addons and repository files during restore
-- Improved error handling for filesystem mount operations
+### Version 1.5.0 (April 12, 2026)
+- Compared to 1.4.1.7
+- Added fully custom GUI windows for dashboard, settings, backup browser, and dialogs
+- Added concise per-setting help text in custom settings details panel
+- Added optional backup summary popup setting after successful backup
+- Added remote storage usage details in dashboard status when available
+- Improved dashboard layout separation between guidance and system status
+- Improved settings navigation reliability (single-step category movement, stable Up/Down behavior)
+- Improved Remote Settings Test Connection output with cleaner, structured protocol reports
+- Changed addon popups to consistently use custom GUI dialogs (with native fallback)
+- Fixed duplicate settings popup trigger on Enter
+- Fixed Credits entries to remain information-only and non-editable
+- Improved WebDAV storage quota detection with additional fallback methods
 
 ### Version 1.4.1.1 (March 29, 2025)
 - Fixed datetime parsing issue in scheduler
@@ -101,13 +109,15 @@ The backup rotation feature helps manage your backup files automatically. [Learn
 - **SFTP** - Secure File Transfer Protocol
 - **WebDAV** - Web-based Distributed Authoring and Versioning
 
-## 🆕 What's New in 1.4.0
+## 🆕 What's New in 1.5.0
 
-- Added backup rotation feature with configurable retention policies
-- Added dedicated wiki documentation for backup rotation
-- Improved settings organization with subcategories
-- Enhanced warning system for potentially destructive features
-- Added visual separators in settings for better organization
+- New fully custom dashboard/settings/backup browser experience (1080i + 720p)
+- Better navigation and usability across settings tabs and lists
+- Clear per-setting help text and read-only handling for Credits entries
+- Optional backup summary popup with matching custom GUI style
+- Unified popup/message/confirm/textviewer handling through custom GUI wrappers
+- Cleaner Test Connection output for SMB/NFS/FTP/SFTP/WebDAV with concise diagnostics
+- Enhanced remote storage status reporting including WebDAV quota fallbacks
 
 [View Full Changelog](CHANGELOG.md)
 

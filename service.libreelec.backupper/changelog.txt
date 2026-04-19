@@ -1,9 +1,23 @@
 [B]1.5.0[/B] (2026-04-12)
-- Added a fully custom dashboard and backup browser GUI (1080i/720p skin layouts)
-- Improved restore progress behavior and reduced intrusive restore notifications
-- Added professional, colorized operation summaries with scroll-friendly formatting
-- Improved backup listing/date detection for legacy and new backup naming formats
-- Hardened restore behavior for non-critical permission/long-name/git-metadata file issues
+- Compared to [B]1.4.1.7[/B]
+- Added custom GUI windows for dashboard, settings, backup browser, and dialogs (1080i/720p)
+- Added per-setting help text in custom settings with clearer short explanations
+- Added optional post-backup summary popup toggle in Notifications settings
+- Added remote storage status details in dashboard (used/total/free when available)
+- Changed settings navigation for reliable one-step left/right category switching
+- Changed dashboard right panel to separate guidance and system status areas
+- Changed operation summaries to prefer the custom GUI text viewer style
+- Changed popup handling to route message/confirm/textviewer dialogs through custom GUI wrappers
+- Fixed backup defaults so first-run backups are not blocked by empty item selection
+- Fixed duplicate Enter activation opening setting popup twice
+- Fixed Credits category handling so entries are always information-only
+- Fixed settings list Up/Down behavior and category skip-by-two edge cases
+- Improved Remote Settings Test Connection result screens with consistent structured diagnostics
+- Improved WebDAV storage-size detection with multiple quota fallback methods
+
+[B]1.4.1.7[/B] (2026-01-12)
+- Added toggleable verbose logging for troubleshooting test builds
+- Expanded backup/restore/remote diagnostic logging across core flows
 
 [B]1.4.1.1[/B] (2025-03-29)
 - Fixed datetime parsing issue in scheduler

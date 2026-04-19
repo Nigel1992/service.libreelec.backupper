@@ -4,6 +4,36 @@ import xbmcaddon
 import xbmcgui
 from resources.lib.backup_utils import BackupManager
 
+try:
+    from resources.lib.custom_gui import ask_yesno, show_message
+except Exception:
+    ask_yesno = None
+    show_message = None
+
+
+def popup_message(title, text):
+    """Show a message popup using custom GUI when available."""
+    try:
+        if show_message is not None:
+            show_message(title, text)
+        else:
+            xbmcgui.Dialog().ok(title, text)
+    except Exception:
+        xbmcgui.Dialog().ok(title, text)
+
+
+def popup_confirm(title, text, yes_label='Yes', no_label='No'):
+    """Show a yes/no popup using custom GUI when available."""
+    try:
+        if ask_yesno is not None:
+            return ask_yesno(title, text, yes_label=yes_label, no_label=no_label)
+        return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
+    except Exception:
+        try:
+            return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
+        except Exception:
+            return False
+
 def main():
     """Main entry point"""
     addon = xbmcaddon.Addon()
@@ -22,15 +52,21 @@ def main():
     if command == 'backup_now':
         success, message = backup_manager.create_backup()
         if success:
-            backup_manager.show_last_operation_summary()
+            try:
+                show_popup = addon.getSettingBool('show_backup_summary_popup')
+            except Exception:
+                show_popup = str(addon.getSetting('show_backup_summary_popup')).lower() in ('true', '1')
+
+            if show_popup:
+                backup_manager.show_last_operation_summary()
         else:
-            xbmcgui.Dialog().ok(addon.getAddonInfo("name"), f"Backup failed: {message}")
+            popup_message(addon.getAddonInfo("name"), f"Backup failed: {message}")
     elif command == 'restore':
         success, message = backup_manager.restore_backup()
         if success:
             backup_manager.show_last_operation_summary()
         elif message not in ("Backup restore cancelled", "No backup files found"):
-            xbmcgui.Dialog().ok(addon.getAddonInfo("name"), f"Restore failed: {message}")
+            popup_message(addon.getAddonInfo("name"), f"Restore failed: {message}")
     elif command == 'view':
         backup_manager.view_backups()
     elif command == 'test_connection':
@@ -42,18 +78,17 @@ def main():
     elif command == 'rotation_warning':
         # Show warning dialog when enabling rotation
         addon = xbmcaddon.Addon()
-        dialog = xbmcgui.Dialog()
         
         # Get the current setting value
         is_enabled = addon.getSettingBool('enable_rotation')
         
         # Only show warning if trying to enable
         if is_enabled:
-            confirmed = dialog.yesno(
+            confirmed = popup_confirm(
                 "Warning",
                 "Backup rotation will automatically delete old backups when enabled.\n\nAre you sure you want to continue?",
-                nolabel="No, Disable",
-                yeslabel="Yes, Enable"
+                no_label="No, Disable",
+                yes_label="Yes, Enable"
             )
             
             if not confirmed:
