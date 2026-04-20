@@ -14,58 +14,19 @@
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-                <news>v1.5.0 (2026-04-12) - FEATURE RELEASE
-            - Compared to v1.4.1.7
-            - Added fully custom dashboard and backup browser windows with skin XML layouts (1080i/720p)
-            - Added custom settings/help details with clearer guidance per setting
-            - Added optional backup summary popup toggle in Notifications settings
-            - Added remote storage usage status details to dashboard when available
-            - Improved restore UX with reliable progress updates and reduced notification noise
-            - Added detailed, colorized operation summaries with scroll-friendly formatting
-            - Improved backup detection and date parsing for legacy and current backup naming formats
-            - Hardened restore handling for non-critical file errors (permissions/long names/.git metadata)
-            - Improved Remote Settings Test Connection output with cleaner structured protocol diagnostics
-            - Changed message/confirm/text popups to consistently use custom GUI dialogs with fallback
-            - Fixed Credits entries to remain informational and non-editable
-            - Fixed duplicate setting popup activation and tab navigation edge cases
-
-    v1.4.1.7 (2026-01-12) - TEST RELEASE
-            - Added switchable verbose logging that elevates debug details into the Kodi log
-            - Expanded diagnostic logging for backup creation, uploads, and remote connections
-            - Default verbose logging enabled for this test build to aid investigation
-
-    v1.4.1.6 (2026-01-09) - TEST RELEASE
-            - Fixed RemoteBrowser password initialization that broke Test Connection dialogs
-            - Restored remote password loading in BackupManager for all remote protocols
-            - Added structured verbose debug logging across backup, restore, and remote connection flows
-            - Rebuilt zip with correct addon folder structure for installation
-
-    v1.4.1.5 (2026-01-05) - TEST RELEASE
-- Fixed NFS remote browsing with improved user feedback and validation
-- Fixed SMB backup creation by correcting path format handling
-- Fixed View Backups and Restore Backup operations to show backup lists instead of remote browser dialogues
-- Enhanced get_all_backups method to support all remote protocols (NFS, SMB, FTP, SFTP, WebDAV)
-- Improved local backup path validation to prevent issues with NFS mount paths
-- Fixed backup listing to show proper dates, sizes, and selection interface
-
-v1.4.1.4 (2026-01-04) - FIX RELEASE
-- Fixed NFS mounting with nolock option for better compatibility
-- Fixed SMB browsing path conversion (smb://server/share -> server:/share)
-- Fixed local backup path handling for NFS mounts
-- Improved error handling for remote connections
-
-v1.4.1.3 (2026-01-04) - FIX RELEASE
-- Fixed addon zip structure for proper Kodi installation
-
-v1.4.1.3 (2025-12-30) - TEST RELEASE
-- Fixed NFS connection and path format handling
-- Improved SMB browsing with better path validation
-- Enhanced SFTP error messages and paramiko handling
-- Settings now auto-save immediately when changed
-
-v1.4.1.2 (2025-12-30)
-- Fixed restore from backup failing due to read-only file system error
-- Added automatic mounting/unmounting of addons directory during restore</news>
+                <news><news>v1.5.0 (2026-04-12) - FEATURE RELEASE
+- Added custom dashboard and backup browser windows with skin XML layouts.
+- New custom settings/help details for better guidance.
+- Added backup summary popup toggle in Notifications.
+- Remote storage usage now visible on dashboard.
+- Improved restore UX with reliable progress and less notification noise.
+- Detailed, colorized operation summaries added.
+- Improved backup detection and date parsing for all naming formats.
+- Hardened restore handling for file permission/path errors.
+- Cleaned up Remote Settings Test Connection diagnostics.
+- Switched all popups to custom GUI dialogs with fallback support.
+- Fixed Credits display and settings navigation edge cases.
+- Automatic mounting/unmounting of addons directory during restore.</news>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
