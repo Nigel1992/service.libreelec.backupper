@@ -14,7 +14,7 @@
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-                <news><news>v1.5.0 (2026-04-12) - FEATURE RELEASE
+                <news>v1.5.0 (2026-04-12) - FEATURE RELEASE
 - Added custom dashboard and backup browser windows with skin XML layouts.
 - New custom settings/help details for better guidance.
 - Added backup summary popup toggle in Notifications.
