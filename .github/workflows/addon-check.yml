@@ -29,62 +29,56 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install addon-check
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install kodi-addon-checker
 
-      - name: Read addon id from addon.xml
+      - name: Locate Addon and Read ID
         id: addon_meta
         run: |
-          set -euo pipefail
-          ADDON_ID="$(python - <<'PY'
-          from xml.etree import ElementTree as ET
-          root = ET.parse('addon.xml').getroot()
-          print(root.attrib['id'])
-          PY
-          )"
+          # Find where addon.xml is actually located
+          XML_PATH=$(find . -name "addon.xml" -not -path "*/.*" | head -n 1)
+          if [ -z "$XML_PATH" ]; then
+            echo "Error: addon.xml not found in repository!"
+            exit 1
+          fi
+          
+          # Get the directory containing the xml
+          ADDON_DIR=$(dirname "$XML_PATH")
+          
+          # Extract ID using Python
+          ADDON_ID=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('$XML_PATH').getroot().attrib['id'])")
+          
           echo "addon_id=${ADDON_ID}" >> "${GITHUB_OUTPUT}"
+          echo "addon_dir=${ADDON_DIR}" >> "${GITHUB_OUTPUT}"
+          echo "Found addon ${ADDON_ID} in ${ADDON_DIR}"
 
-      - name: Prepare addon-check source directory
+      - name: Prepare Clean Source Directory
         id: source_dir
         run: |
           set -euo pipefail
           WORKDIR="${RUNNER_TEMP}/addon-check-src"
           TARGET_DIR="${WORKDIR}/${{ steps.addon_meta.outputs.addon_id }}"
-          rm -rf "${WORKDIR}"
           mkdir -p "${TARGET_DIR}"
-          rsync -a ./ "${TARGET_DIR}/" \
+          
+          # Sync from the discovered addon directory only
+          rsync -a "${{ steps.addon_meta.outputs.addon_dir }}/" "${TARGET_DIR}/" \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.venv/' \
             --exclude 'venv/' \
             --exclude '.env/' \
-            --exclude '.vscode/' \
-            --exclude '.idea/' \
-            --exclude '.cache/' \
-            --exclude 'cache/' \
             --exclude '__pycache__/' \
             --exclude '.pytest_cache/' \
-            --exclude '.mypy_cache/' \
-            --exclude '.ruff_cache/' \
-            --exclude '.tox/' \
-            --exclude '.nox/' \
-            --exclude '.addon-check-run.log' \
-            --exclude '*.pyc' \
-            --exclude '*.pyo' \
-            --exclude '.DS_Store' \
             --exclude 'tests/' \
-            --exclude 'scripts/' \
-            --exclude 'package_build/' \
-            --exclude 'package_clean/' \
             --exclude '*.zip' \
             --exclude '.gitignore'
+            
           echo "addon_path=${TARGET_DIR}" >> "${GITHUB_OUTPUT}"
 
       - name: Run addon-check
         run: |
-          set -euo pipefail
           EXTRA_ARGS=""
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             EXTRA_ARGS="--PR"
@@ -94,16 +88,14 @@ jobs:
   python-syntax:
     name: Python Syntax Check
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Compile Python files
         run: |
-          python -m compileall default.py resources
+          # Compiles everything in the repo to check for syntax errors
+          python -m compileall .
