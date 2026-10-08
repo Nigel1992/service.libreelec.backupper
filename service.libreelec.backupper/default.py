@@ -41,7 +41,7 @@ def main():
     
     # Set author and version in settings
     addon.setSetting('author', 'Nigel1992')
-    addon.setSetting('version', 'Version 1.5.0')
+    addon.setSetting('version', 'Version 1.5.1')
     
     # Get command line arguments
     if len(sys.argv) < 2:
