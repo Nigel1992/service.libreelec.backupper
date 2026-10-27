@@ -1,6 +1,13 @@
 # LibreELEC Backupper Release Notes
 
-## Latest Release: 1.5.0 (Compared to 1.4.1.7)
+## Latest Release: 1.5.2 (2026-10-27)
+
+- Added optional Kodi video database backups to preserve watch status and resume positions
+- Uses SQLite online backup for a consistent snapshot while Kodi runs, including committed WAL data
+- Automatically detects the MyVideos database version
+- Validates database integrity and preserves an installed database of the same or newer version
+
+## Previous Release: 1.5.0 (Compared to 1.4.1.7)
 
 - New custom GUI windows for dashboard, settings, backup browser, and dialogs (1080i/720p)
 - New per-setting help text and read-only Credits handling in custom settings
@@ -15,6 +22,7 @@
 
 ## Release Note Files
 
+- [release_notes_1.5.2.md](release_notes_1.5.2.md)
 - [release_notes_1.5.0.md](release_notes_1.5.0.md)
 - [release_notes_1.4.1.7.md](release_notes_1.4.1.7.md)
 - [release_notes_1.4.1.6.md](release_notes_1.4.1.6.md)

@@ -652,6 +652,7 @@ class CustomSettingsWindow(xbmcgui.WindowXMLDialog):
             'backup_userdata': 'Include userdata such as add-on settings and databases.',
             'backup_repositories': 'Include repository add-ons so sources can be restored quickly.',
             'backup_sources': 'Include your media source definitions and source files.',
+            'backup_video_database': 'Include Kodi watch status and resume positions using a live SQLite snapshot.',
             'backup_now': 'Start a backup immediately using current selections.',
             'restore_backup': 'Restore files from a selected backup archive.',
             'view_backups': 'Browse existing backups and inspect their details.',

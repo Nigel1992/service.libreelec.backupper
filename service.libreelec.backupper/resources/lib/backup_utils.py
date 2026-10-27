@@ -10,6 +10,7 @@ import xbmcvfs
 import subprocess
 from datetime import datetime, timedelta
 import zipfile
+import sqlite3
 import json
 import time
 import gc  # Add garbage collector import
@@ -1637,6 +1638,7 @@ class BackupManager:
         self._log(f"Repositories: {self.addon.getSettingBool('backup_repositories')}", xbmc.LOGINFO)
         self._log(f"Userdata: {self.addon.getSettingBool('backup_userdata')}", xbmc.LOGINFO)
         self._log(f"Sources: {self.addon.getSettingBool('backup_sources')}", xbmc.LOGINFO)
+        self._log(f"Kodi video database: {self.addon.getSettingBool('backup_video_database')}", xbmc.LOGINFO)
         
         # Configuration Files
         if self.addon.getSettingBool('backup_configs'):
@@ -1698,6 +1700,34 @@ class BackupManager:
             if os.path.exists(addon_data_path):
                 paths['addon_data'] = addon_data_path
                 self._log("Added addon data path", xbmc.LOGINFO)
+
+        # Snapshot Kodi's active video database through SQLite's online backup API.
+        # This produces a self-contained database including committed WAL contents.
+        if self.addon.getSettingBool('backup_video_database'):
+            database_dir = os.path.join(self.kodi_userdata, 'Database')
+            databases = sorted(glob.glob(os.path.join(database_dir, 'MyVideos*.db')))
+            databases = [path for path in databases if re.fullmatch(r'MyVideos\d+\.db', os.path.basename(path))]
+            if databases:
+                source_path = databases[-1]
+                snapshot_path = os.path.join(self.temp_dir or xbmcvfs.translatePath('special://temp'), os.path.basename(source_path))
+                if not self.temp_dir:
+                    os.makedirs(os.path.dirname(snapshot_path), exist_ok=True)
+                try:
+                    with sqlite3.connect(source_path, timeout=30) as source_db:
+                        with sqlite3.connect(snapshot_path) as snapshot_db:
+                            source_db.backup(snapshot_db)
+                    self._temp_files.add(snapshot_path)
+                    paths['video_database'] = snapshot_path
+                    self._log(f"Created consistent video database snapshot: {os.path.basename(source_path)}", xbmc.LOGINFO)
+                except Exception as e:
+                    try:
+                        if os.path.exists(snapshot_path):
+                            os.remove(snapshot_path)
+                    except OSError:
+                        pass
+                    self._log(f"Failed to snapshot Kodi video database {source_path}: {e}", xbmc.LOGERROR)
+            else:
+                self._log("No Kodi MyVideos database found; video database not included", xbmc.LOGWARNING)
         
         self._log(f"Final backup paths: {list(paths.keys())}", xbmc.LOGINFO)
         return paths
@@ -1913,6 +1943,8 @@ class BackupManager:
                 backup_items.append('userdata')
             if self.addon.getSettingBool('backup_sources'):
                 backup_items.append('src')
+            if self.addon.getSettingBool('backup_video_database'):
+                backup_items.append('video')
             
             # Add items to backup name
             items_str = '-'.join(backup_items) if backup_items else 'empty'
@@ -1958,6 +1990,8 @@ class BackupManager:
                                     arcname = 'userdata/advancedsettings.xml'
                                 elif item_name == 'keyboard':
                                     arcname = 'userdata/keyboard.xml'
+                                elif item_name == 'video_database':
+                                    arcname = f"userdata/Database/{os.path.basename(path)}"
                                 else:
                                     arcname = item_name
                                 arcname = self.sanitize_string_encoding(arcname)
@@ -2731,6 +2765,39 @@ class BackupManager:
     def restore_file(self, zip_file, file_info, extract_path):
         """Restore a single file with special handling for config.txt, userdata, and addons"""
         try:
+            video_db_match = re.fullmatch(r'MyVideos(\d+)\.db', os.path.basename(extract_path))
+            if video_db_match and os.path.dirname(extract_path) == os.path.join(self.kodi_userdata, 'Database'):
+                archived_version = int(video_db_match.group(1))
+                existing_versions = []
+                for candidate in glob.glob(os.path.join(self.kodi_userdata, 'Database', 'MyVideos*.db')):
+                    match = re.fullmatch(r'MyVideos(\d+)\.db', os.path.basename(candidate))
+                    if match:
+                        existing_versions.append((int(match.group(1)), candidate))
+                if existing_versions:
+                    current_version, current_path = max(existing_versions)
+                    if current_version > archived_version:
+                        self._log(f"Skipping archived MyVideos{archived_version}.db because newer {os.path.basename(current_path)} exists", xbmc.LOGWARNING)
+                        return True, None
+                    if current_version == archived_version:
+                        self._log(f"Skipping archived MyVideos{archived_version}.db because that database version already exists", xbmc.LOGWARNING)
+                        return True, None
+
+                # Replace via a staged file and atomic rename after validating SQLite.
+                staged_path = f"{extract_path}.backupper-tmp"
+                os.makedirs(os.path.dirname(extract_path), exist_ok=True)
+                try:
+                    with zip_file.open(file_info) as source, open(staged_path, 'wb') as target:
+                        shutil.copyfileobj(source, target)
+                    with sqlite3.connect(staged_path) as check_db:
+                        result = check_db.execute('PRAGMA quick_check').fetchone()
+                        if not result or result[0] != 'ok':
+                            raise ValueError('Video database snapshot failed SQLite integrity check')
+                    os.replace(staged_path, extract_path)
+                    return True, None
+                finally:
+                    if os.path.exists(staged_path):
+                        os.remove(staged_path)
+
             # Handle configuration files that need /flash to be writable
             if extract_path == '/flash/config.txt' or extract_path.startswith('/flash/'):
                 xbmc.log(f"Preparing to restore configuration file: {extract_path}", xbmc.LOGINFO)

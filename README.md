@@ -7,7 +7,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -39,10 +39,16 @@
 - 📁 System Configuration Files
 - 🔌 Installed Add-ons
 - 🎮 Add-on User Data and Settings
+- ▶️ Kodi Video Database (watch status and resume positions)
 - 📦 Repositories
 - 🔗 Media Sources
 
 ## 📦 Latest Updates
+
+### Version 1.5.2 (October 27, 2026)
+- Added an optional Kodi video database backup to preserve resume positions and watch status
+- Uses SQLite's online backup API for a consistent snapshot while Kodi is running, including WAL data
+- Detects the MyVideos database version automatically and safely skips restore when an equal or newer version already exists
 
 ### Version 1.5.0 (April 12, 2026)
 - Compared to 1.4.1.7
@@ -121,6 +127,12 @@ The backup rotation feature helps manage your backup files automatically. [Learn
 - Unified popup/message/confirm/textviewer handling through custom GUI wrappers
 - Cleaner Test Connection output for SMB/NFS/FTP/SFTP/WebDAV with concise diagnostics
 - Enhanced remote storage status reporting including WebDAV quota fallbacks
+
+## 🆕 What's New in 1.5.2
+
+- Optional Kodi video database backup for watch status and resume positions
+- Consistent SQLite snapshots made while Kodi is running, with WAL data included
+- Version-aware restore that preserves an existing database of the same or newer version
 
 [View Full Changelog](CHANGELOG.md)
 

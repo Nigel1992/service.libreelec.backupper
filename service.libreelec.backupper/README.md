@@ -2,6 +2,14 @@
 
 A Kodi add-on for LibreELEC that allows you to backup and restore your system configuration, add-ons, and user data.
 
+## What's New in 1.5.2 (October 27, 2026)
+- Added an optional Kodi video database backup to preserve watched status and resume positions.
+- Uses SQLite's online backup API for a consistent snapshot while Kodi is running, including committed WAL data.
+- Detects MyVideos database versions automatically and validates integrity before restore.
+- Skips restoring the database if a version equal to or newer than the archived version already exists.
+
+Enable **Kodi Video Database (resume points)** under **Backup Items** to include it in local or remote backups.
+
 ## 🎯 What's New in 1.5.0 (April 12, 2026)
 - Compared to 1.4.1.7
 - Added fully custom GUI windows for dashboard, settings, backup browser, and dialogs
@@ -205,4 +213,4 @@ This add-on is licensed under the GNU General Public License v3.0.
 
 - Created by Nigel1992
 - Icon by Smashicon @ flaticon.com/4275334
-- Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html 
+- Fanart: Low Poly Mountain by Design+Code @ wallpaperswide.com/low_poly_mountain_2-wallpapers.html

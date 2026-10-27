@@ -127,6 +127,10 @@ msgctxt "#32034"
 msgid "Sources"
 msgstr "Sources"
 
+msgctxt "#32036"
+msgid "Kodi Video Database (resume points)"
+msgstr "Kodi Video Database (resume points)"
+
 msgctxt "#32035"
 msgid "Create ZIP Archive"
 msgstr "Create ZIP Archive"
@@ -315,8 +319,8 @@ msgid "Nigel1992"
 msgstr "Nigel1992"
 
 msgctxt "#32115"
-msgid "Version 1.5.0"
-msgstr "Version 1.5.0"
+msgid "Version 1.5.2"
+msgstr "Version 1.5.2"
 
 # Email Notification Settings
 msgctxt "#32120"
@@ -398,4 +402,4 @@ msgstr "[COLOR red]Warning:[/COLOR] The below feature will automatically delete 
 
 msgctxt "#32150"
 msgid "Maximum Number of Backups"
-msgstr "Maximum Number of Backups" 
+msgstr "Maximum Number of Backups"

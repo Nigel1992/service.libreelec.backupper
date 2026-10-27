@@ -34,6 +34,7 @@
         <setting id="backup_userdata" type="bool" label="32032" default="true"/><!-- Add-on User Data and Settings -->
         <setting id="backup_repositories" type="bool" label="32033" default="true"/><!-- Repositories -->
         <setting id="backup_sources" type="bool" label="32034" default="true"/><!-- Sources -->
+        <setting id="backup_video_database" type="bool" label="32036" default="false"/><!-- Kodi Video Database -->
     </category>
 
     <category label="32004"><!-- Actions -->
@@ -64,7 +65,7 @@
         <setting id="reminder_30min" type="bool" label="32102" default="true" enable="eq(-2,true)" subsetting="true"/>
         <setting id="reminder_10min" type="bool" label="32103" default="true" enable="eq(-3,true)" subsetting="true"/>
         <setting id="reminder_1min" type="bool" label="32104" default="true" enable="eq(-4,true)" subsetting="true"/>
-        
+
         <setting type="sep"/>
         <setting label="32120" type="lsep"/><!-- Email Notifications -->
         <setting id="enable_email" type="bool" label="32121" default="false"/>
@@ -87,4 +88,4 @@
         <setting id="author" type="text" label="32114" enable="false"/>
         <setting id="version" type="text" label="32115" enable="false"/>
     </category>
-</settings> 
+</settings>

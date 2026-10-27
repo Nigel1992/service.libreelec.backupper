@@ -38,17 +38,17 @@ def main():
     """Main entry point"""
     addon = xbmcaddon.Addon()
     backup_manager = BackupManager(addon)
-    
+
     # Set author and version in settings
     addon.setSetting('author', 'Nigel1992')
-    addon.setSetting('version', 'Version 1.5.1')
-    
+    addon.setSetting('version', 'Version 1.5.2')
+
     # Get command line arguments
     if len(sys.argv) < 2:
         return
-        
+
     command = sys.argv[1]
-    
+
     if command == 'backup_now':
         success, message = backup_manager.create_backup()
         if success:
@@ -78,10 +78,10 @@ def main():
     elif command == 'rotation_warning':
         # Show warning dialog when enabling rotation
         addon = xbmcaddon.Addon()
-        
+
         # Get the current setting value
         is_enabled = addon.getSettingBool('enable_rotation')
-        
+
         # Only show warning if trying to enable
         if is_enabled:
             confirmed = popup_confirm(
@@ -90,7 +90,7 @@ def main():
                 no_label="No, Disable",
                 yes_label="Yes, Enable"
             )
-            
+
             if not confirmed:
                 # User chose to disable rotation
                 addon.setSetting('enable_rotation', 'false')
@@ -103,4 +103,4 @@ def main():
                 )
 
 if __name__ == '__main__':
-    main() 
+    main()

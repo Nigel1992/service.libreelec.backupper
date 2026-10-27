@@ -1,3 +1,9 @@
+[B]1.5.2[/B] (2026-10-27)
+- Added optional Kodi video database backup to preserve watch status and resume positions
+- Created consistent live SQLite snapshots that include committed WAL data
+- Added automatic MyVideos database version detection and safe, integrity-checked restore
+- Preserve an existing video database when it has the same or a newer version
+
 [B]1.5.0[/B] (2026-04-12)
 - Compared to [B]1.4.1.7[/B]
 - Added custom GUI windows for dashboard, settings, backup browser, and dialogs (1080i/720p)
@@ -54,4 +60,4 @@
 - Support for local storage
 - Configuration file backup
 - Addon backup
-- User data backup 
+- User data backup
