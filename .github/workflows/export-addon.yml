@@ -5,10 +5,10 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'service.libreelec.backupper/addon.xml'
-      - 'service.libreelec.backupper/service.py'
-      - 'service.libreelec.backupper/addon.py'
-      - 'service.libreelec.backupper/resources/**'
+      - '/addon.xml'
+      - '/service.py'
+      - '/addon.py'
+      - '/resources/**'
       - '.github/workflows/export-addon.yml'
 
 jobs:
