@@ -5,78 +5,78 @@
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1920</width>
-            <height>1080</height>
+            <width>1280</width>
+            <height>720</height>
             <texture colordiffuse="F20B1118">white.png</texture>
         </control>
 
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1920</width>
-            <height>300</height>
+            <width>1280</width>
+            <height>200</height>
             <texture colordiffuse="551A384C">white.png</texture>
         </control>
 
         <control type="image">
-            <left>40</left>
-            <top>34</top>
-            <width>1840</width>
-            <height>1012</height>
+            <left>27</left>
+            <top>23</top>
+            <width>1227</width>
+            <height>675</height>
             <texture colordiffuse="E015202B">white.png</texture>
         </control>
 
         <control type="image">
-            <left>40</left>
-            <top>34</top>
-            <width>1840</width>
-            <height>4</height>
+            <left>27</left>
+            <top>23</top>
+            <width>1227</width>
+            <height>3</height>
             <texture colordiffuse="FF34B6FF">white.png</texture>
         </control>
 
         <control type="label" id="1100">
-            <left>90</left>
-            <top>78</top>
-            <width>1740</width>
-            <height>48</height>
+            <left>60</left>
+            <top>52</top>
+            <width>1160</width>
+            <height>32</height>
             <font>font16</font>
             <textcolor>FF61C8FF</textcolor>
             <label>Backup Command Center</label>
         </control>
 
         <control type="label" id="1101">
-            <left>90</left>
-            <top>126</top>
-            <width>1740</width>
-            <height>28</height>
+            <left>60</left>
+            <top>84</top>
+            <width>1160</width>
+            <height>19</height>
             <font>font12</font>
             <textcolor>FFB5C7D8</textcolor>
             <label>Choose an action to run, then review guidance and system status</label>
         </control>
 
         <control type="image">
-            <left>78</left>
-            <top>180</top>
-            <width>1000</width>
-            <height>820</height>
+            <left>52</left>
+            <top>120</top>
+            <width>667</width>
+            <height>547</height>
             <texture colordiffuse="8C1B2D3D">white.png</texture>
         </control>
 
         <control type="label">
-            <left>106</left>
-            <top>198</top>
-            <width>930</width>
-            <height>30</height>
+            <left>71</left>
+            <top>132</top>
+            <width>620</width>
+            <height>20</height>
             <font>font13</font>
             <textcolor>FFA7D4F5</textcolor>
             <label>Actions</label>
         </control>
 
         <control type="list" id="1000">
-            <left>96</left>
-            <top>236</top>
-            <width>952</width>
-            <height>728</height>
+            <left>64</left>
+            <top>157</top>
+            <width>635</width>
+            <height>485</height>
             <pagecontrol>1010</pagecontrol>
             <onup>1000</onup>
             <ondown>1000</ondown>
@@ -84,24 +84,24 @@
                 <control type="image">
                     <left>0</left>
                     <top>0</top>
-                    <width>930</width>
-                    <height>84</height>
+                    <width>620</width>
+                    <height>56</height>
                     <texture colordiffuse="661B2D3D">white.png</texture>
                 </control>
                 <control type="label">
-                    <left>18</left>
-                    <top>12</top>
-                    <width>892</width>
-                    <height>36</height>
+                    <left>12</left>
+                    <top>8</top>
+                    <width>595</width>
+                    <height>24</height>
                     <font>font13</font>
                     <textcolor>FFE5EFF7</textcolor>
                     <label>$INFO[ListItem.Label]</label>
                 </control>
                 <control type="label">
-                    <left>18</left>
-                    <top>46</top>
-                    <width>892</width>
-                    <height>30</height>
+                    <left>12</left>
+                    <top>31</top>
+                    <width>595</width>
+                    <height>20</height>
                     <font>font12</font>
                     <textcolor>FF9FB5C8</textcolor>
                     <label>$INFO[ListItem.Label2]</label>
@@ -111,31 +111,31 @@
                 <control type="image">
                     <left>0</left>
                     <top>0</top>
-                    <width>930</width>
-                    <height>84</height>
+                    <width>620</width>
+                    <height>56</height>
                     <texture colordiffuse="FF234157">white.png</texture>
                 </control>
                 <control type="image">
                     <left>0</left>
                     <top>0</top>
-                    <width>7</width>
-                    <height>84</height>
+                    <width>5</width>
+                    <height>56</height>
                     <texture colordiffuse="FF34B6FF">white.png</texture>
                 </control>
                 <control type="label">
-                    <left>18</left>
-                    <top>12</top>
-                    <width>892</width>
-                    <height>36</height>
+                    <left>12</left>
+                    <top>8</top>
+                    <width>595</width>
+                    <height>24</height>
                     <font>font13</font>
                     <textcolor>FFFFFFFF</textcolor>
                     <label>$INFO[ListItem.Label]</label>
                 </control>
                 <control type="label">
-                    <left>18</left>
-                    <top>46</top>
-                    <width>892</width>
-                    <height>30</height>
+                    <left>12</left>
+                    <top>31</top>
+                    <width>595</width>
+                    <height>20</height>
                     <font>font12</font>
                     <textcolor>FFD3E7F7</textcolor>
                     <label>$INFO[ListItem.Label2]</label>
@@ -144,120 +144,120 @@
         </control>
 
         <control type="scrollbar" id="1010">
-            <left>1055</left>
-            <top>236</top>
-            <width>14</width>
-            <height>728</height>
+            <left>703</left>
+            <top>157</top>
+            <width>9</width>
+            <height>485</height>
             <orientation>vertical</orientation>
         </control>
 
         <control type="image">
-            <left>1110</left>
-            <top>180</top>
-            <width>730</width>
-            <height>820</height>
+            <left>740</left>
+            <top>120</top>
+            <width>487</width>
+            <height>547</height>
             <texture colordiffuse="8C1B2D3D">white.png</texture>
         </control>
 
         <control type="image">
-            <left>1128</left>
-            <top>232</top>
-            <width>694</width>
-            <height>308</height>
+            <left>752</left>
+            <top>155</top>
+            <width>463</width>
+            <height>205</height>
             <texture colordiffuse="33264155">white.png</texture>
         </control>
 
         <control type="image">
-            <left>1138</left>
-            <top>540</top>
-            <width>674</width>
-            <height>2</height>
+            <left>759</left>
+            <top>360</top>
+            <width>449</width>
+            <height>1</height>
             <texture colordiffuse="6634B6FF">white.png</texture>
         </control>
 
         <control type="image">
-            <left>1128</left>
-            <top>548</top>
-            <width>694</width>
-            <height>244</height>
+            <left>752</left>
+            <top>365</top>
+            <width>463</width>
+            <height>163</height>
             <texture colordiffuse="2622384A">white.png</texture>
         </control>
 
         <control type="label">
-            <left>1138</left>
-            <top>198</top>
-            <width>674</width>
-            <height>30</height>
+            <left>759</left>
+            <top>132</top>
+            <width>449</width>
+            <height>20</height>
             <font>font13</font>
             <textcolor>FFA7D4F5</textcolor>
             <label>Selection Guidance</label>
         </control>
 
         <control type="textbox" id="2100">
-            <left>1138</left>
-            <top>236</top>
-            <width>674</width>
-            <height>300</height>
+            <left>759</left>
+            <top>157</top>
+            <width>449</width>
+            <height>200</height>
             <font>font12</font>
             <textcolor>FFD9E8F2</textcolor>
             <autoscroll>false</autoscroll>
         </control>
 
         <control type="label">
-            <left>1138</left>
-            <top>548</top>
-            <width>674</width>
-            <height>30</height>
+            <left>759</left>
+            <top>365</top>
+            <width>449</width>
+            <height>20</height>
             <font>font13</font>
             <textcolor>FFA7D4F5</textcolor>
             <label>System Status</label>
         </control>
 
         <control type="label" id="2200">
-            <left>1138</left>
-            <top>586</top>
-            <width>674</width>
-            <height>34</height>
+            <left>759</left>
+            <top>391</top>
+            <width>449</width>
+            <height>23</height>
             <font>font13</font>
             <textcolor>FF9ED7FF</textcolor>
             <label>Backups: 0</label>
         </control>
 
         <control type="label" id="2201">
-            <left>1138</left>
-            <top>626</top>
-            <width>674</width>
-            <height>34</height>
+            <left>759</left>
+            <top>417</top>
+            <width>449</width>
+            <height>23</height>
             <font>font13</font>
             <textcolor>FF9ED7FF</textcolor>
             <label>Stored Size: 0 B</label>
         </control>
 
         <control type="label" id="2202">
-            <left>1138</left>
-            <top>666</top>
-            <width>674</width>
-            <height>34</height>
+            <left>759</left>
+            <top>444</top>
+            <width>449</width>
+            <height>23</height>
             <font>font13</font>
             <textcolor>FF9ED7FF</textcolor>
             <label>Last Backup: No backup yet</label>
         </control>
 
         <control type="label" id="2203">
-            <left>1138</left>
-            <top>706</top>
-            <width>674</width>
-            <height>34</height>
+            <left>759</left>
+            <top>471</top>
+            <width>449</width>
+            <height>23</height>
             <font>font13</font>
             <textcolor>FF80CBC4</textcolor>
             <label>Location: Unknown</label>
         </control>
 
         <control type="label" id="2204">
-            <left>1138</left>
-            <top>746</top>
-            <width>674</width>
-            <height>34</height>
+            <left>759</left>
+            <top>497</top>
+            <width>449</width>
+            <height>23</height>
             <font>font13</font>
             <textcolor>FF9ED7FF</textcolor>
             <label>Scheduler: Disabled</label>

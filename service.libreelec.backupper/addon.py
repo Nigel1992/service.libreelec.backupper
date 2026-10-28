@@ -45,10 +45,20 @@ def should_show_backup_summary_popup():
             return False
 
 
+def use_custom_gui():
+    """Return True when the user wants custom GUI windows/dialogs."""
+    try:
+        return ADDON.getSettingBool('use_custom_gui')
+    except Exception:
+        try:
+            return str(ADDON.getSetting('use_custom_gui')).lower() in ('true', '1', 'yes')
+        except Exception:
+            return True
+
 def popup_message(title, text):
     """Show a message popup using the custom GUI when available."""
     try:
-        if 'show_message' in globals() and show_message is not None:
+        if use_custom_gui() and 'show_message' in globals() and show_message is not None:
             show_message(title, text)
         else:
             xbmcgui.Dialog().ok(title, text)
@@ -59,7 +69,7 @@ def popup_message(title, text):
 def popup_confirm(title, text, yes_label='Yes', no_label='No'):
     """Show a yes/no popup using the custom GUI when available."""
     try:
-        if 'ask_yesno' in globals() and ask_yesno is not None:
+        if use_custom_gui() and 'ask_yesno' in globals() and ask_yesno is not None:
             return ask_yesno(title, text, yes_label=yes_label, no_label=no_label)
         return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
     except Exception:
@@ -72,7 +82,7 @@ def popup_confirm(title, text, yes_label='Yes', no_label='No'):
 def popup_text(title, text):
     """Show scrollable text using the custom GUI when available."""
     try:
-        if 'show_textviewer' in globals() and show_textviewer is not None:
+        if use_custom_gui() and 'show_textviewer' in globals() and show_textviewer is not None:
             show_textviewer(title, text)
         else:
             xbmcgui.Dialog().textviewer(title, text)
@@ -243,7 +253,7 @@ class BackupBrowser:
         custom_window_loaded = False
 
         # Prefer custom backup browser window for a polished, cross-Kodi UI.
-        if CustomBackupBrowserWindow is not None:
+        if use_custom_gui() and CustomBackupBrowserWindow is not None:
             try:
                 backup_window = CustomBackupBrowserWindow('custom_backup_browser.xml', ADDON_PATH, 'default', '1080i')
                 backup_window.set_data(backup_options, mode, ADDON_NAME)
@@ -398,7 +408,7 @@ def show_main_menu():
         selected_action = None
         custom_window_loaded = False
 
-        if CustomDashboardWindow is not None:
+        if use_custom_gui() and CustomDashboardWindow is not None:
             try:
                 # Short, compact dashboard info for cleaner main menu
                 # Colored compact dashboard entries: label (blue), value (muted grey)
@@ -460,7 +470,7 @@ def show_main_menu():
             browser.show_backups(mode='view')
         elif selected_action == 'settings':
             # Prefer the custom settings window if available
-            if 'CustomSettingsWindow' in globals() and CustomSettingsWindow is not None:
+            if use_custom_gui() and 'CustomSettingsWindow' in globals() and CustomSettingsWindow is not None:
                 try:
                     settings_window = CustomSettingsWindow('custom_settings.xml', ADDON_PATH, 'default', '1080i')
                     settings_window.doModal()

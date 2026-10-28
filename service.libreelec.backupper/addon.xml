@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.5.2" provider-name="Nigel">
+<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.5.3" provider-name="Nigel">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
@@ -14,7 +14,13 @@
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-                <news>v1.5.2 (2026-10-27)
+                <news>v1.5.3 (2026-10-28)
+- Added SSH key authentication for SFTP remote backups, including optional key passphrase.
+- Added interactive SFTP remote browsing and a built-in CLI backend for environments where paramiko cannot be imported.
+- Bundled paramiko and dependencies for common architectures.
+- Added a toggle to use native Kodi dialogs instead of the custom GUI.
+
+v1.5.2 (2026-10-27)
 - Added optional Kodi video database backups using a consistent SQLite snapshot, including WAL data.
 - Restore detects database versions, validates integrity, and preserves an existing database of the same or newer version.
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import glob
 import shutil
 import xbmc
@@ -37,7 +38,7 @@ except Exception:
 def popup_message(title, text):
     """Show an OK-style popup preferring custom GUI."""
     try:
-        if show_message is not None:
+        if xbmcaddon.Addon().getSettingBool('use_custom_gui') and show_message is not None:
             show_message(title, text)
         else:
             xbmcgui.Dialog().ok(title, text)
@@ -48,7 +49,7 @@ def popup_message(title, text):
 def popup_confirm(title, text, yes_label='Yes', no_label='No'):
     """Show a yes/no popup preferring custom GUI."""
     try:
-        if ask_yesno is not None:
+        if xbmcaddon.Addon().getSettingBool('use_custom_gui') and ask_yesno is not None:
             return ask_yesno(title, text, yes_label=yes_label, no_label=no_label)
         return xbmcgui.Dialog().yesno(title, text, yeslabel=yes_label, nolabel=no_label)
     except Exception:
@@ -61,9 +62,9 @@ def popup_confirm(title, text, yes_label='Yes', no_label='No'):
 def popup_text(title, text):
     """Show a scrollable text popup preferring custom GUI."""
     try:
-        if show_textviewer is not None:
+        if xbmcaddon.Addon().getSettingBool('use_custom_gui') and show_textviewer is not None:
             show_textviewer(title, text)
-        elif show_message is not None:
+        elif xbmcaddon.Addon().getSettingBool('use_custom_gui') and show_message is not None:
             show_message(title, text)
         else:
             xbmcgui.Dialog().textviewer(title, text)
@@ -75,8 +76,63 @@ try:
     import paramiko
     PARAMIKO_AVAILABLE = True
 except ImportError:
-    PARAMIKO_AVAILABLE = False
-    xbmc.log("Paramiko module not available. SFTP functionality will be disabled.", xbmc.LOGWARNING)
+    # Fall back to the copy bundled with the addon (if present)
+    try:
+        import platform
+        _machine = (platform.machine() or "").lower()
+        if _machine in ("aarch64", "arm64"):
+            _vendor_name = "vendor_aarch64"
+        elif _machine in ("x86_64", "amd64"):
+            _vendor_name = "vendor_x86_64"
+        else:
+            _vendor_name = None
+        if _vendor_name:
+            _vendor_dir = os.path.join(os.path.dirname(__file__), _vendor_name)
+            if os.path.isdir(_vendor_dir) and _vendor_dir not in sys.path:
+                sys.path.insert(0, _vendor_dir)
+        import paramiko
+        PARAMIKO_AVAILABLE = True
+    except Exception as e:
+        import traceback
+        xbmc.log("BackupUtils paramiko import failed: %r" % e, xbmc.LOGERROR)
+        xbmc.log(traceback.format_exc(), xbmc.LOGERROR)
+        PARAMIKO_AVAILABLE = False
+        xbmc.log("Paramiko module not available. SFTP functionality will be disabled.", xbmc.LOGWARNING)
+
+# Setting/attribute aliases for SFTP key-based authentication
+SFTP_USE_KEY_ATTRS = [
+    "remote_sftp_use_key", "sftp_use_key", "remote_use_ssh_key", "sftp_key_auth",
+    "remote_sftp_key_auth", "use_ssh_key", "ssh_key_auth", "remote_use_key",
+    "use_key", "sftp_auth_mode", "remote_sftp_auth_mode",
+]
+SFTP_USE_KEY_SETTING_IDS = [
+    "remote_sftp_use_key", "sftp_use_key", "remote_use_ssh_key", "sftp_key_auth",
+    "remote_sftp_key_auth", "use_ssh_key", "ssh_key_auth", "remote_use_key",
+]
+SFTP_AUTH_MODE_ATTRS = ["remote_sftp_auth_mode", "sftp_auth_mode", "remote_auth_mode"]
+SFTP_AUTH_MODE_SETTING_IDS = ["remote_sftp_auth_mode", "sftp_auth_mode", "remote_auth_mode"]
+SFTP_PRIVATE_KEY_ATTRS = [
+    "remote_private_key", "remote_sftp_private_key", "sftp_private_key",
+    "remote_ssh_key", "remote_ssh_private_key", "ssh_private_key",
+    "private_key_path", "remote_key_file", "sftp_key_file", "remote_sftp_key_file",
+    "ssh_key_file", "private_key", "key_file",
+]
+SFTP_PRIVATE_KEY_SETTING_IDS = [
+    "remote_private_key", "remote_sftp_private_key", "sftp_private_key",
+    "remote_ssh_key", "remote_ssh_private_key", "ssh_private_key",
+    "private_key_path", "remote_key_file", "sftp_key_file", "remote_sftp_key_file",
+    "ssh_key_file", "private_key", "key_file",
+]
+SFTP_PASSPHRASE_ATTRS = [
+    "remote_key_passphrase", "remote_sftp_passphrase", "sftp_key_passphrase",
+    "ssh_key_passphrase", "private_key_passphrase", "key_passphrase",
+    "remote_passphrase", "sftp_passphrase", "passphrase",
+]
+SFTP_PASSPHRASE_SETTING_IDS = [
+    "remote_key_passphrase", "remote_sftp_passphrase", "sftp_key_passphrase",
+    "ssh_key_passphrase", "private_key_passphrase", "key_passphrase",
+    "remote_passphrase", "sftp_passphrase", "passphrase",
+]
 
 class BackupManager:
     """Utility class to manage config backups"""
@@ -177,6 +233,11 @@ class BackupManager:
             # Don't log password for security
             self.remote_port = int(self.addon.getSetting('remote_port') or "0")
 
+            # Resolve SFTP key authentication settings (if applicable)
+            self.remote_sftp_use_key = self._sftp_use_key()
+            self.remote_private_key = self._sftp_private_key_path()
+            self.remote_key_passphrase = self._sftp_key_passphrase()
+
             remote_type_names = ["SMB", "NFS", "FTP", "SFTP", "WebDAV"]
             remote_type_name = remote_type_names[self.remote_type] if self.remote_type < len(remote_type_names) else f"Unknown({self.remote_type})"
 
@@ -262,6 +323,114 @@ class BackupManager:
         # Cache for last WebDAV listing (filename -> info)
         self._last_webdav_listing = {}
         return session
+
+    def _first_attr_value(self, names):
+        """Return first non-empty attribute value from a list of names."""
+        for name in names:
+            value = getattr(self, name, None)
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+            if value is not None and not isinstance(value, (list, dict, tuple, set)):
+                text = str(value).strip()
+                if text:
+                    return text
+        return None
+
+    def _get_setting_value(self, setting_ids):
+        """Return first non-empty setting value from a list of ids."""
+        for sid in setting_ids:
+            try:
+                value = self.addon.getSetting(sid)
+            except Exception:
+                value = None
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+            if value not in (None, ''):
+                return value
+        return ""
+
+    def _sftp_private_key_path(self):
+        """Resolve the configured SFTP private key path."""
+        value = self._first_attr_value(SFTP_PRIVATE_KEY_ATTRS)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        value = self._get_setting_value(SFTP_PRIVATE_KEY_SETTING_IDS)
+        return str(value).strip() if value not in (None, "") else ""
+
+    def _sftp_key_passphrase(self):
+        """Resolve the configured SFTP key passphrase."""
+        value = self._first_attr_value(SFTP_PASSPHRASE_ATTRS)
+        if isinstance(value, str):
+            return value
+        value = self._get_setting_value(SFTP_PASSPHRASE_SETTING_IDS)
+        return str(value) if value not in (None, "") else ""
+
+    def _sftp_use_key(self):
+        """Determine whether SFTP key authentication should be used."""
+        # Attribute-based booleans / modes
+        for name in SFTP_USE_KEY_ATTRS:
+            value = getattr(self, name, None)
+            if isinstance(value, bool):
+                if value:
+                    return True
+            elif isinstance(value, str):
+                low = value.strip().lower()
+                if low in ("true", "1", "yes", "on", "key", "private key", "ssh key", "enabled"):
+                    return True
+                if low in ("password", "false", "0", "no", "off", "disabled"):
+                    continue
+        for name in SFTP_AUTH_MODE_ATTRS:
+            value = getattr(self, name, None)
+            if value is not None:
+                low = str(value).strip().lower()
+                if low in ("1", "key", "private key", "ssh key", "true"):
+                    return True
+
+        # Setting-based booleans / modes
+        for sid in SFTP_USE_KEY_SETTING_IDS:
+            try:
+                if hasattr(self.addon, "getSettingBool"):
+                    try:
+                        if self.addon.getSettingBool(sid):
+                            return True
+                    except Exception:
+                        pass
+                value = self.addon.getSetting(sid)
+            except Exception:
+                value = None
+            if isinstance(value, bool) and value:
+                return True
+            if isinstance(value, str):
+                low = value.strip().lower()
+                if low in ("true", "1", "yes", "on", "key", "private key", "ssh key"):
+                    return True
+        for sid in SFTP_AUTH_MODE_SETTING_IDS:
+            try:
+                value = self.addon.getSetting(sid)
+            except Exception:
+                value = None
+            if value is not None:
+                low = str(value).strip().lower()
+                if low in ("1", "key", "private key", "ssh key", "true"):
+                    return True
+
+        # Fallback: use key auth when a key path is configured and no password is set
+        key_path = self._sftp_private_key_path()
+        password = getattr(self, "remote_password", "")
+        try:
+            if not str(password).strip():
+                password = self.addon.getSetting("remote_password") or ""
+        except Exception:
+            pass
+        if key_path and not str(password).strip():
+            return True
+        return False
+
+    def connect_sftp(self):
+        """Compatibility alias for SFTP connection testing/usage."""
+        return self.connect_remote()
 
     def connect_remote(self):
         """Connect to the remote location"""
@@ -362,28 +531,54 @@ class BackupManager:
                 return True
                 
             elif self.remote_type == 3:  # SFTP
-                # Check if paramiko is available
-                if not PARAMIKO_AVAILABLE:
-                    self._log("Cannot use SFTP: Paramiko module not available", xbmc.LOGERROR)
-                    return False
-                
-                # Connect to SFTP server
-                ssh = paramiko.SSHClient()
-                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                
                 host = self.remote_path.split('/')[0]
-                ssh.connect(host, port=self.remote_port, username=self.remote_username, password=self.remote_password)
-                
-                sftp = ssh.open_sftp()
-                
-                # Change to the specified directory if provided
-                if '/' in self.remote_path:
-                    remote_dir = '/'.join(self.remote_path.split('/')[1:])
+                remote_dir = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
+
+                if PARAMIKO_AVAILABLE:
+                    # Check if paramiko is available
+                    # Connect to SFTP server
+                    ssh = paramiko.SSHClient()
+                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+                    if self._sftp_use_key():
+                        key_path = self._sftp_private_key_path()
+                        passphrase = self._sftp_key_passphrase()
+                        self._log(f"BackupManager: SFTP using key authentication: {key_path}", xbmc.LOGINFO)
+                        ssh.connect(
+                            host,
+                            port=self.remote_port,
+                            username=self.remote_username,
+                            key_filename=key_path if key_path else None,
+                            passphrase=passphrase if passphrase else None,
+                        )
+                    else:
+                        ssh.connect(host, port=self.remote_port, username=self.remote_username, password=self.remote_password)
+
+                    sftp = ssh.open_sftp()
+
+                    # Change to the specified directory if provided
                     if remote_dir:
                         sftp.chdir(remote_dir)
-                
-                self.remote_connection = sftp
-                return True
+
+                    self.remote_connection = sftp
+                    return True
+                else:
+                    # Fall back to a CLI-based SFTP client (works in Kodi subinterpreters)
+                    self._log("BackupManager: Paramiko unavailable, using CLI-based SFTP backend", xbmc.LOGINFO)
+                    if not self._sftp_use_key():
+                        self._log("CLI SFTP backend requires key-based authentication", xbmc.LOGERROR)
+                        return False
+                    key_path = self._sftp_private_key_path()
+                    passphrase = self._sftp_key_passphrase()
+                    try:
+                        from .sftp_cli import CLISFTPClient
+                    except Exception:
+                        from sftp_cli import CLISFTPClient
+                    client = CLISFTPClient(host, self.remote_port, self.remote_username, key_path, passphrase)
+                    if remote_dir:
+                        client.chdir(remote_dir)
+                    self.remote_connection = client
+                    return True
                 
             elif self.remote_type == 4:  # WebDAV
                 # Use the entire WebDAV URL from settings
@@ -2416,13 +2611,13 @@ class BackupManager:
                             file_path = os.path.join(self.backup_dir, file)
                             backup_files.append((file_path, os.path.getmtime(file_path)))
                 elif self.remote_type == 2:  # FTP
-                    for file in self.ftp.nlst():
+                    for file in self.remote_connection.nlst():
                         if file.endswith('.zip'):
-                            backup_files.append((file, self.ftp.voidcmd(f'MDTM {file}')[4:]))
+                            backup_files.append((file, self.remote_connection.voidcmd(f'MDTM {file}')[4:]))
                 elif self.remote_type == 3:  # SFTP
-                    for file in self.sftp.listdir():
+                    for file in self.remote_connection.listdir():
                         if file.endswith('.zip'):
-                            backup_files.append((file, self.sftp.stat(file).st_mtime))
+                            backup_files.append((file, self.remote_connection.stat(file).st_mtime))
                 elif self.remote_type == 4:  # WebDAV
                     if self.remote_connection and 'session' in self.remote_connection:
                         response = self.remote_connection['session'].request(
@@ -2509,9 +2704,9 @@ class BackupManager:
                             elif self.remote_type == 1:  # NFS
                                 os.remove(file_path)
                             elif self.remote_type == 2:  # FTP
-                                self.ftp.delete(file_path)
+                                self.remote_connection.delete(file_path)
                             elif self.remote_type == 3:  # SFTP
-                                self.sftp.remove(file_path)
+                                self.remote_connection.remove(file_path)
                             elif self.remote_type == 4:  # WebDAV
                                 if self.remote_connection and 'session' in self.remote_connection:
                                     response = self.remote_connection['session'].delete(file_path)
@@ -3077,6 +3272,24 @@ class BackupManager:
                 self.remote_username = remote_info.get('remote_username', '')
                 self.remote_password = remote_info.get('remote_password', '')
                 self.remote_port = remote_info.get('remote_port', '')
+                self.remote_private_key = (
+                    remote_info.get('remote_private_key')
+                    or remote_info.get('private_key')
+                    or remote_info.get('remote_ssh_private_key')
+                    or remote_info.get('key_file')
+                    or ''
+                )
+                self.remote_key_passphrase = (
+                    remote_info.get('remote_key_passphrase')
+                    or remote_info.get('key_passphrase')
+                    or remote_info.get('passphrase')
+                    or ''
+                )
+                use_key = remote_info.get('remote_sftp_use_key', remote_info.get('use_ssh_key', remote_info.get('use_key')))
+                if isinstance(use_key, str):
+                    self.remote_sftp_use_key = use_key.strip().lower() in ('true', '1', 'yes', 'on', 'key', 'private key', 'ssh key')
+                else:
+                    self.remote_sftp_use_key = bool(use_key) if use_key is not None else None
                 
                 # Log connection details for debugging
                 xbmc.log(f"Connecting to remote location: type={self.remote_type}, path={self.remote_path}", xbmc.LOGINFO)

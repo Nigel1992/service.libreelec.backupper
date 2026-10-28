@@ -1,3 +1,10 @@
+[B]1.5.3[/B] (2026-10-28)
+- Added SSH key authentication for SFTP (optional passphrase)
+- Added interactive SFTP remote browsing
+- Added built-in CLI SFTP backend for environments where paramiko cannot be imported
+- Bundled paramiko and dependencies for common architectures
+- Added toggle to use native Kodi dialogs instead of the custom GUI
+
 [B]1.5.2[/B] (2026-10-27)
 - Added optional Kodi video database backup to preserve watch status and resume positions
 - Created consistent live SQLite snapshots that include committed WAL data

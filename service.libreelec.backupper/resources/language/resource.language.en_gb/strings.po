@@ -102,6 +102,18 @@ msgctxt "#32029"
 msgid "Test Connection"
 msgstr "Test Connection"
 
+msgctxt "#32037"
+msgid "Use SSH Key (SFTP)"
+msgstr "Use SSH Key (SFTP)"
+
+msgctxt "#32038"
+msgid "Private Key File"
+msgstr "Private Key File"
+
+msgctxt "#32039"
+msgid "Key Passphrase"
+msgstr "Key Passphrase"
+
 msgctxt "#32030"
 msgid "Configuration Files"
 msgstr "Configuration Files"
@@ -309,6 +321,14 @@ msgctxt "#32171"
 msgid "Show backup summary popup after completion"
 msgstr "Show backup summary popup after completion"
 
+msgctxt "#32172"
+msgid "Use custom GUI windows"
+msgstr "Use custom GUI windows"
+
+msgctxt "#32173"
+msgid "Show Remote Settings Summary"
+msgstr "Show Remote Settings Summary"
+
 # Author Information
 msgctxt "#32113"
 msgid "Author"
@@ -319,8 +339,8 @@ msgid "Nigel1992"
 msgstr "Nigel1992"
 
 msgctxt "#32115"
-msgid "Version 1.5.2"
-msgstr "Version 1.5.2"
+msgid "Version 1.5.3"
+msgstr "Version 1.5.3"
 
 # Email Notification Settings
 msgctxt "#32120"

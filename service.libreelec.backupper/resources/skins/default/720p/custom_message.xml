@@ -5,52 +5,52 @@
         <control type="image">
             <left>0</left>
             <top>0</top>
-            <width>1920</width>
-            <height>1080</height>
+            <width>1280</width>
+            <height>720</height>
             <texture colordiffuse="C0000000">white.png</texture>
         </control>
 
         <control type="image">
-            <left>300</left>
-            <top>120</top>
-            <width>1320</width>
-            <height>840</height>
+            <left>200</left>
+            <top>80</top>
+            <width>880</width>
+            <height>560</height>
             <texture colordiffuse="F015202B">white.png</texture>
         </control>
 
         <control type="image">
-            <left>300</left>
-            <top>120</top>
-            <width>1320</width>
-            <height>4</height>
+            <left>200</left>
+            <top>80</top>
+            <width>880</width>
+            <height>3</height>
             <texture colordiffuse="FF34B6FF">white.png</texture>
         </control>
 
         <control type="label" id="1100">
-            <left>338</left>
-            <top>162</top>
-            <width>1244</width>
-            <height>44</height>
+            <left>225</left>
+            <top>108</top>
+            <width>829</width>
+            <height>29</height>
             <font>font16</font>
             <textcolor>FF61C8FF</textcolor>
             <label>Message</label>
         </control>
 
         <control type="textbox" id="2100">
-            <left>338</left>
-            <top>224</top>
-            <width>1244</width>
-            <height>620</height>
+            <left>225</left>
+            <top>149</top>
+            <width>829</width>
+            <height>413</height>
             <font>font13</font>
             <textcolor>FFD9E8F2</textcolor>
             <autoscroll>false</autoscroll>
         </control>
 
         <control type="button" id="2201">
-            <left>860</left>
-            <top>872</top>
-            <width>200</width>
-            <height>56</height>
+            <left>573</left>
+            <top>581</top>
+            <width>133</width>
+            <height>37</height>
             <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <focusedcolor>FFFFFFFF</focusedcolor>

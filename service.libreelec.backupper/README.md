@@ -166,11 +166,12 @@ Select which items to include in the backup:
 1. Set the location type to "Remote"
 2. Set the remote type to "SFTP"
 3. Enter the server and directory in the remote path (e.g., "server/directory")
-4. Enter username and password
-5. Specify a custom port if not using the default (22)
-6. Click "Test Connection" to verify the connection works properly
+4. Enter username (password is optional when using key authentication)
+5. Enable "Use SSH Key (SFTP)" and enter the private key file path and optional passphrase
+6. Specify a custom port if not using the default (22)
+7. Click "Test Connection" to verify the connection works properly
 
-Note: SFTP requires the paramiko module which may not be available on all systems.
+Note: Paramiko is bundled with the addon for common platforms (x86_64 and aarch64). SFTP key authentication also works through a built-in CLI backend where paramiko cannot be imported.
 
 ### WebDAV
 
@@ -202,7 +203,7 @@ Note: Both HTTP and HTTPS WebDAV servers are supported.
 
 ## Dependencies
 
-- script.module.paramiko (optional, for SFTP support)
+- Paramiko is bundled for common architectures (x86_64, aarch64); SFTP falls back to system SSH tools where needed
 - script.module.requests (required for WebDAV support)
 
 ## License

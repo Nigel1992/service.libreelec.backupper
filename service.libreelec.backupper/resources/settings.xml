@@ -3,6 +3,7 @@
     <category label="32001"><!-- General Settings -->
         <setting label="32110" type="lsep"/><!-- Backup Location -->
         <setting id="enable_verbose_logging" type="bool" label="32170" default="true"/>
+        <setting id="use_custom_gui" type="bool" label="32172" default="false"/>
         <setting id="backup_location_type" type="enum" label="32016" values="Local|Remote" default="0"/>
         <setting id="backup_location" type="folder" label="32010" default="/storage/backup" option="writeable" visible="eq(-1,0)"/>
         <setting type="sep"/>
@@ -24,6 +25,9 @@
         <setting id="browse_remote" type="action" label="32028" action="RunScript(service.libreelec.backupper, browse_remote)"/>
         <setting id="remote_username" type="text" label="32019" default=""/>
         <setting id="remote_password" type="text" label="32026" option="hidden" default=""/>
+        <setting id="remote_sftp_use_key" type="bool" label="32037" default="false" visible="eq(-5,3)" enable="eq(-5,3)"/>
+        <setting id="remote_private_key" type="text" label="32038" default="" visible="eq(-6,3)+eq(-1,true)" enable="eq(-6,3)+eq(-1,true)"/>
+        <setting id="remote_key_passphrase" type="text" label="32039" option="hidden" default="" visible="eq(-7,3)+eq(-2,true)" enable="eq(-7,3)+eq(-2,true)"/>
         <setting id="remote_port" type="number" label="32027" default="0"/>
         <setting id="test_connection" type="action" label="32029" action="RunScript(service.libreelec.backupper, test_connection)"/>
     </category>
