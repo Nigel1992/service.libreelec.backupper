@@ -5,10 +5,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '/addon.xml'
-      - '/service.py'
-      - '/addon.py'
-      - '/resources/**'
+      - 'addon.xml'
+      - 'service.py'
+      - 'addon.py'
+      - 'default.py'
+      - 'changelog.txt'
+      - 'resources/**'
       - '.github/workflows/export-addon.yml'
 
 jobs:
@@ -41,7 +43,7 @@ jobs:
           python3 << EOF
           import os
           from xml.etree import ElementTree as ET
-          tree = ET.parse('service.libreelec.backupper/addon.xml')
+          tree = ET.parse('addon.xml')
           root = tree.getroot()
           version = root.get('version')
           description = root.find(".//description").text.strip()
@@ -57,7 +59,10 @@ jobs:
 
       - name: Copy addon files
         run: |
-          cp -r service.libreelec.backupper/* kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
+          mkdir -p kodi-repo/repository.nigel1992/addons/service.libreelec.backupper
+          cp addon.xml addon.py service.py default.py changelog.txt kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
+          cp -r resources kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/
+          if [ -f ADDON_README.md ]; then cp ADDON_README.md kodi-repo/repository.nigel1992/addons/service.libreelec.backupper/README.md; fi
 
       - name: Update Repository README
         run: |
