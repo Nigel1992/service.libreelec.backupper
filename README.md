@@ -115,7 +115,7 @@ The backup rotation feature helps manage your backup files automatically. [Learn
 - **SMB/CIFS** - Windows network shares
 - **NFS** - Network File System
 - **FTP** - File Transfer Protocol
-- **SFTP** - Secure File Transfer Protocol
+- **SFTP** - Secure File Transfer Protocol (password or SSH key)
 - **WebDAV** - Web-based Distributed Authoring and Versioning
 
 ## 🆕 What's New in 1.5.0
@@ -133,6 +133,14 @@ The backup rotation feature helps manage your backup files automatically. [Learn
 - Optional Kodi video database backup for watch status and resume positions
 - Consistent SQLite snapshots made while Kodi is running, with WAL data included
 - Version-aware restore that preserves an existing database of the same or newer version
+
+## 🆕 What's New in 1.5.3
+
+- SFTP SSH key authentication with optional passphrase
+- Interactive SFTP remote browsing
+- Built-in CLI SFTP backend for environments where paramiko cannot be imported
+- Paramiko and dependencies bundled for common architectures
+- Toggle to use native Kodi dialogs instead of the custom GUI
 
 [View Full Changelog](CHANGELOG.md)
 
