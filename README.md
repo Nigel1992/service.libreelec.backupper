@@ -7,7 +7,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -44,6 +44,14 @@
 - 🔗 Media Sources
 
 ## 📦 Latest Updates
+
+### Version 1.5.3 (October 28, 2026)
+- Added SSH key authentication for SFTP remote backups, including optional passphrase
+- Added interactive SFTP remote browsing
+- Added built-in SFTP CLI backend for environments where paramiko cannot be imported
+- Bundled paramiko and dependencies for common architectures
+- Added toggle to use native Kodi dialogs instead of the custom GUI
+- Fixed 720p custom skin scaling
 
 ### Version 1.5.2 (October 27, 2026)
 - Added an optional Kodi video database backup to preserve resume positions and watch status
