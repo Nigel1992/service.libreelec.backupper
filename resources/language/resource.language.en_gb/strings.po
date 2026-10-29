@@ -23,7 +23,7 @@ msgstr "General Settings"
 
 msgctxt "#32002"
 msgid "Remote Settings"
-msgstr "Remote Settings"
+msgstr "Storage Settings"
 
 msgctxt "#32003"
 msgid "Backup Items"

@@ -35,9 +35,8 @@ except ImportError:
         import paramiko
         SFTP_AVAILABLE = True
     except Exception as e:
-        import traceback
-        xbmc.log("RemoteBrowser paramiko import failed: %r" % e, xbmc.LOGERROR)
-        xbmc.log(traceback.format_exc(), xbmc.LOGERROR)
+        # PyO3/cryptography modules don't support Kodi subinterpreters; fall back quietly.
+        xbmc.log("RemoteBrowser: paramiko unavailable (%s); using CLI backend where possible." % e, xbmc.LOGWARNING)
         paramiko = None
         SFTP_AVAILABLE = False
 
@@ -283,7 +282,10 @@ class RemoteBrowser:
     def _open_sftp_client(self):
         """Open an SFTP client (paramiko if available, otherwise CLI backend)."""
         host = self.remote_path.split('/')[0]
-        remote_dir = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
+        # Treat the remainder as an absolute remote path (prepend '/') so we can
+        # escape the user's home directory / reach mounted drives.
+        rest = self.remote_path[len(host):].strip('/')
+        remote_dir = '/' + rest if rest else ''
         if SFTP_AVAILABLE and paramiko is not None:
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -330,6 +332,7 @@ class RemoteBrowser:
             return self.show_manual_entry_dialog("SFTP")
         # Verify connectivity up front
         try:
+            xbmcgui.Dialog().notification("Loading", "Loading remote directory...", xbmcgui.NOTIFICATION_INFO, 2000)
             sftp.listdir('.')
         except Exception as e:
             try:
@@ -340,7 +343,9 @@ class RemoteBrowser:
             return self.show_manual_entry_dialog("SFTP")
 
         host = self.remote_path.split('/')[0]
-        base_dir = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
+        # Keep the remainder as an absolute path so browsing can leave $HOME.
+        rest = self.remote_path[len(host):].strip('/')
+        base_dir = '/' + rest if rest else ''
         rel = ''
 
         def full_rel():
@@ -355,6 +360,7 @@ class RemoteBrowser:
             while True:
                 current = rel if rel else '.'
                 try:
+                    xbmcgui.Dialog().notification("Loading", "Loading remote directory...", xbmcgui.NOTIFICATION_INFO, 1000)
                     entries = sftp.listdir(current)
                 except Exception:
                     entries = []
@@ -374,7 +380,7 @@ class RemoteBrowser:
                         files.append(name)
 
                 options = []
-                if rel not in ('', '.'):
+                if rel not in ('', '.') or (base_dir and base_dir not in ('', '/')):
                     options.append('..')
                 options.append('[Select current directory]')
                 options.extend(['[DIR] ' + d for d in dirs])
@@ -386,9 +392,16 @@ class RemoteBrowser:
                     return None
                 choice = options[selected]
                 if choice == '..':
-                    rel = _os.path.dirname(rel.rstrip('/'))
-                    if rel in ('', '.'):
-                        rel = ''
+                    if rel not in ('', '.'):
+                        rel = _os.path.dirname(rel.rstrip('/'))
+                        if rel in ('', '.'):
+                            rel = ''
+                    else:
+                        # Allow escaping above the configured base directory
+                        if base_dir and base_dir not in ('', '/'):
+                            base_dir = _os.path.dirname(base_dir.rstrip('/'))
+                            if base_dir in ('', '.'):
+                                base_dir = '/'
                 elif choice == '[Select current directory]':
                     new_path = full_rel()
                     if new_path:

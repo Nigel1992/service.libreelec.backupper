@@ -1,5 +1,7 @@
 [![Discord](https://img.shields.io/discord/1468295714961494029?color=7289da&label=Join%20Our%20Discord&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/UbPRh74PzV)
 
+[![Vibe Coded](https://img.shields.io/badge/Vibe_Coded-✨-8A2BE2?style=for-the-badge)](https://github.com)
+
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Nigel1992)
 
@@ -7,7 +9,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -126,6 +128,12 @@ The backup rotation feature helps manage your backup files automatically. [Learn
 - **SFTP** - Secure File Transfer Protocol (password or SSH key)
 - **WebDAV** - Web-based Distributed Authoring and Versioning
 
+### Remote (SFTP) path format & keys
+
+- **Remote Path** is stored as `HOST/PATH` (e.g. `192.168.1.2/mnt/libreelec/backup`). The portion after the host is treated as an **absolute** path on the remote server, so you can target locations outside your home directory (mounted drives, etc.). You do **not** need a leading slash or a double slash; the addon adds it internally.
+- The SSH **private key** is selected with a file browser. If your key lives under `/storage/.ssh/`, browse to it explicitly — the addon does not assume that directory.
+- Settings are only persisted by Kodi when the settings dialog is confirmed (**OK**). Run "Test Connection" / "Browse Remote Location" after hitting OK.
+- SFTP browsing requires either paramiko (bundled) or the built-in CLI backend, which needs **key-based** authentication (password auth is not supported by the CLI fallback).
 ## 🆕 What's New in 1.5.0
 
 - New fully custom dashboard/settings/backup browser experience (1080i + 720p)

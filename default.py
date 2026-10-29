@@ -3,6 +3,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 from resources.lib.backup_utils import BackupManager
+from resources.lib.remote_browser import RemoteBrowser
 
 try:
     from resources.lib.custom_gui import ask_yesno, show_message
@@ -41,7 +42,7 @@ def main():
 
     # Set author and version in settings
     addon.setSetting('author', 'Nigel1992')
-    addon.setSetting('version', 'Version 1.5.2')
+    addon.setSetting('version', 'Version 1.5.4')
 
     # Get command line arguments
     if len(sys.argv) < 2:
@@ -70,11 +71,11 @@ def main():
     elif command == 'view':
         backup_manager.view_backups()
     elif command == 'test_connection':
-        backup_manager.test_connection()
+        RemoteBrowser().test_connection()
     elif command == 'test_email':
         backup_manager.test_email()
     elif command == 'browse_remote':
-        backup_manager.browse_remote()
+        RemoteBrowser().browse()
     elif command == 'rotation_warning':
         # Show warning dialog when enabling rotation
         addon = xbmcaddon.Addon()

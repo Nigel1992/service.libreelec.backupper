@@ -93,9 +93,7 @@ except ImportError:
         import paramiko
         PARAMIKO_AVAILABLE = True
     except Exception as e:
-        import traceback
-        xbmc.log("BackupUtils paramiko import failed: %r" % e, xbmc.LOGERROR)
-        xbmc.log(traceback.format_exc(), xbmc.LOGERROR)
+        xbmc.log("BackupUtils: paramiko unavailable (%s); using CLI backend where possible." % e, xbmc.LOGWARNING)
         PARAMIKO_AVAILABLE = False
         xbmc.log("Paramiko module not available. SFTP functionality will be disabled.", xbmc.LOGWARNING)
 
@@ -532,7 +530,10 @@ class BackupManager:
                 
             elif self.remote_type == 3:  # SFTP
                 host = self.remote_path.split('/')[0]
-                remote_dir = '/'.join(self.remote_path.split('/')[1:]) if '/' in self.remote_path else ''
+                # Treat the remainder as an absolute remote path so backups can
+                # target locations outside the user's home directory.
+                rest = self.remote_path[len(host):].strip('/')
+                remote_dir = '/' + rest if rest else ''
 
                 if PARAMIKO_AVAILABLE:
                     # Check if paramiko is available
@@ -1803,7 +1804,9 @@ class BackupManager:
             if isinstance(backup_reference, str) and os.path.exists(backup_reference):
                 return datetime.fromtimestamp(os.path.getmtime(backup_reference)).strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
+            import traceback
             self._log(f"Error parsing backup date for {backup_reference}: {str(e)}", xbmc.LOGWARNING)
+            self._log(traceback.format_exc(), xbmc.LOGDEBUG)
 
         return "Unknown date"
     
