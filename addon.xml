@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.5.6" provider-name="Nigel">
+<addon id="service.libreelec.backupper" name="LibreELEC Backupper" version="1.5.5" provider-name="Nigel">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.22.0"/>
@@ -14,11 +14,10 @@
         <license>GPL-2.0-or-later</license>
         <forum>https://forum.libreelec.tv/</forum>
         <source>https://github.com/Nigel1992/service.libreelec.backupper</source>
-        <news>v1.5.6 (2026-11-05)
+        <news>v1.5.5 (2026-11-05)
 - Replaced the separate Local/Remote and Remote Type settings with one Storage Type selector.
 - Existing configurations are migrated automatically to the matching Local, SMB, NFS, FTP, SFTP, or WebDAV value.
 
-v1.5.5 (2026-11-05)
 - Fixed SFTP browser parent-directory navigation so `..` opens the actual parent.
 - SFTP browsing can now move above the configured starting path and select the correct absolute location.
 - Updated the Kodi installation package and documentation for the navigation fix.
