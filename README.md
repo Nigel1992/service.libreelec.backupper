@@ -9,7 +9,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.5.5-blue.svg)
+![Version](https://img.shields.io/badge/version-1.5.6-blue.svg)
 ![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)
 ![Kodi](https://img.shields.io/badge/kodi-20%2B-purple.svg)
 ![LibreELEC](https://img.shields.io/badge/LibreELEC-10.0%2B-orange.svg)
@@ -51,6 +51,11 @@
 - Fixed SFTP browser `..` navigation so it opens the actual parent directory instead of only changing the displayed path
 - SFTP browsing can now move above the configured starting directory and select the correct absolute location
 - Refreshed the Kodi installation package and release documentation
+
+### Version 1.5.6 (November 5, 2026)
+- Replaced the separate Local/Remote and Remote Type settings with one Storage Type selector
+- Choose `Local`, `SMB`, `NFS`, `FTP`, `SFTP`, or `WebDAV` directly
+- Existing configurations are migrated automatically to the equivalent storage type
 
 ### Version 1.5.4 (October 29, 2026)
 - Fixed SFTP browser navigation so `..` lists the actual parent directory, including paths above the configured starting directory

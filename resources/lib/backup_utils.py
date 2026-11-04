@@ -26,6 +26,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import xbmcgui
 from .email_utils import EmailNotifier
+from .storage_settings import get_storage_type, STORAGE_TYPES
 
 try:
     from .custom_gui import ask_yesno, show_message, show_textviewer
@@ -188,7 +189,8 @@ class BackupManager:
         self._log("BackupManager: Updating backup location settings", xbmc.LOGINFO)
 
         # Get backup location type from settings
-        self.location_type = int(self.addon.getSetting('backup_location_type') or "0")
+        storage_type = get_storage_type(self.addon)
+        self.location_type = 0 if storage_type == 0 else 1
         self._log(f"BackupManager: Location type = {self.location_type} (0=Local, 1=Remote)", xbmc.LOGINFO)
 
         # Define paths for various Kodi directories
@@ -223,7 +225,7 @@ class BackupManager:
             self._log("BackupManager: Configuring remote backup settings", xbmc.LOGINFO)
 
             # Get remote settings
-            self.remote_type = int(self.addon.getSetting('remote_location_type') or "0")
+            self.remote_type = storage_type - 1
             self.remote_path = self.addon.getSetting('remote_path')
             self.remote_username = self.addon.getSetting('remote_username')
             # Don't log actual password; just note whether one is set
@@ -236,7 +238,7 @@ class BackupManager:
             self.remote_private_key = self._sftp_private_key_path()
             self.remote_key_passphrase = self._sftp_key_passphrase()
 
-            remote_type_names = ["SMB", "NFS", "FTP", "SFTP", "WebDAV"]
+            remote_type_names = list(STORAGE_TYPES[1:])
             remote_type_name = remote_type_names[self.remote_type] if self.remote_type < len(remote_type_names) else f"Unknown({self.remote_type})"
 
             self._log(f"BackupManager: Remote type = {self.remote_type} ({remote_type_name})", xbmc.LOGINFO)

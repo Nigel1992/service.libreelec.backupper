@@ -71,11 +71,11 @@ msgid "Backup Naming"
 msgstr "Backup Naming"
 
 msgctxt "#32016"
-msgid "Location Type"
+msgid "Storage Type"
 msgstr "Location Type"
 
 msgctxt "#32017"
-msgid "Remote Type"
+msgid "Remote Type (legacy)"
 msgstr "Remote Type"
 
 msgctxt "#32018"

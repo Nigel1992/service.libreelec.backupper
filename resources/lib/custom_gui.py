@@ -634,13 +634,12 @@ class CustomSettingsWindow(xbmcgui.WindowXMLDialog):
 
         help_map = {
             'enable_verbose_logging': 'Writes extra diagnostic logs to help troubleshoot issues.',
-            'backup_location_type': 'Choose whether backups are saved locally or to remote storage.',
+            'backup_location_type': 'Choose Local or a remote protocol for backup storage.',
             'backup_location': 'Folder where local backup ZIP files are stored.',
             'compression_level': 'Higher levels compress more but can take longer.',
             'enable_rotation': 'Automatically deletes older backups based on your rotation rule.',
             'backup_rotation': 'Choose which older backups are kept during rotation.',
             'max_backups': 'Maximum number of backups to keep before cleanup runs.',
-            'remote_location_type': 'Select the remote protocol used for backup storage.',
             'remote_path': 'Server path or URL where remote backups are stored.',
             'browse_remote': 'Open remote browser to select and verify the remote path.',
             'remote_username': 'Username used to sign in to remote storage.',

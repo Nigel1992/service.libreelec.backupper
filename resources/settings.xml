@@ -4,20 +4,21 @@
         <setting label="32110" type="lsep"/><!-- Backup Location -->
         <setting id="enable_verbose_logging" type="bool" label="32170" default="true"/>
         <setting id="use_custom_gui" type="bool" label="32172" default="false"/>
-        <setting id="backup_location_type" type="enum" label="32016" values="Local|Remote" default="0"/>
-        <setting id="backup_location" type="folder" label="32010" default="/storage/backup" option="writeable" visible="eq(-1,0)"/>
+        <setting id="backup_location_type" type="enum" label="32016" values="Local|SMB|NFS|FTP|SFTP|WebDAV" default="0"/>
+        <setting id="backup_location" type="folder" label="32010" default="/storage/backup" option="writeable" visible="eq(backup_location_type,0)"/>
 
-        <!-- Remote (storage) settings, only relevant when backup_location_type == Remote -->
-        <setting id="remote_location_type" type="enum" label="32017" values="SMB|NFS|FTP|SFTP|WebDAV" default="0" visible="eq(-2,1)"/>
-        <setting id="remote_path" type="text" label="32018" default="" visible="eq(-3,1)"/>
-        <setting id="browse_remote" type="action" label="32028" action="RunScript(service.libreelec.backupper, browse_remote)" visible="eq(-4,1)"/>
-        <setting id="remote_username" type="text" label="32019" default="" visible="eq(-5,1)"/>
-        <setting id="remote_password" type="text" label="32026" option="hidden" default="" visible="eq(-6,1)"/>
-        <setting id="remote_sftp_use_key" type="bool" label="32037" default="false" visible="eq(-7,1)+eq(-5,3)" enable="eq(-7,1)+eq(-5,3)"/>
-        <setting id="remote_private_key" type="file" label="32038" default="" visible="eq(-8,1)+eq(-6,3)+eq(-1,true)" enable="eq(-8,1)+eq(-6,3)+eq(-1,true)"/>
-        <setting id="remote_key_passphrase" type="text" label="32039" option="hidden" default="" visible="eq(-9,1)+eq(-7,3)+eq(-2,true)" enable="eq(-9,1)+eq(-7,3)+eq(-2,true)"/>
-        <setting id="remote_port" type="number" label="32027" default="0" visible="eq(-10,1)"/>
-        <setting id="test_connection" type="action" label="32029" action="RunScript(service.libreelec.backupper, test_connection)" visible="eq(-11,1)"/>
+        <!-- Remote settings are selected directly by backup_location_type. -->
+        <setting id="remote_path" type="text" label="32018" default="" visible="!eq(backup_location_type,0)"/>
+        <setting id="browse_remote" type="action" label="32028" action="RunScript(service.libreelec.backupper, browse_remote)" visible="!eq(backup_location_type,0)"/>
+        <setting id="remote_username" type="text" label="32019" default="" visible="!eq(backup_location_type,0)"/>
+        <setting id="remote_password" type="text" label="32026" option="hidden" default="" visible="!eq(backup_location_type,0)"/>
+        <setting id="remote_sftp_use_key" type="bool" label="32037" default="false" visible="eq(backup_location_type,4)" enable="eq(backup_location_type,4)"/>
+        <setting id="remote_private_key" type="file" label="32038" default="" visible="eq(backup_location_type,4)+eq(remote_sftp_use_key,true)" enable="eq(backup_location_type,4)+eq(remote_sftp_use_key,true)"/>
+        <setting id="remote_key_passphrase" type="text" label="32039" option="hidden" default="" visible="eq(backup_location_type,4)+eq(remote_sftp_use_key,true)" enable="eq(backup_location_type,4)+eq(remote_sftp_use_key,true)"/>
+        <setting id="remote_port" type="number" label="32027" default="0" visible="!eq(backup_location_type,0)"/>
+        <setting id="test_connection" type="action" label="32029" action="RunScript(service.libreelec.backupper, test_connection)" visible="!eq(backup_location_type,0)"/>
+        <!-- Retained invisibly so existing pre-1.5.6 settings can be migrated. -->
+        <setting id="remote_location_type" type="enum" values="SMB|NFS|FTP|SFTP|WebDAV" default="0" visible="false"/>
         <setting type="sep"/>
 
         <setting label="32111" type="lsep"/><!-- Backup Settings -->

@@ -12,6 +12,7 @@ import xbmcvfs
 from resources.lib.backup_utils import BackupManager
 from resources.lib.remote_browser import RemoteBrowser
 from resources.lib.email_utils import EmailNotifier
+from resources.lib.storage_settings import get_storage_type
 
 try:
     from resources.lib.custom_gui import CustomDashboardWindow, CustomBackupBrowserWindow, CustomSettingsWindow, show_textviewer, ask_yesno, show_message
@@ -564,7 +565,7 @@ def main():
                 
                 # Get the current settings
                 addon = xbmcaddon.Addon()
-                remote_type = int(addon.getSetting('remote_location_type'))
+                remote_type = max(0, get_storage_type(addon) - 1)
                 remote_path = addon.getSetting('remote_path')
                 username = addon.getSetting('remote_username')
                 password = addon.getSetting('remote_password')

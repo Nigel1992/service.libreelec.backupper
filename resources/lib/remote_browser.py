@@ -14,6 +14,7 @@ from urllib.parse import urlparse, unquote
 import json
 import time
 import subprocess
+from .storage_settings import get_storage_type
 
 try:
     import paramiko
@@ -171,7 +172,7 @@ class RemoteBrowser:
             ADDON = xbmcaddon.Addon()
             self.addon = ADDON
 
-            self.remote_type = int(ADDON.getSetting('remote_location_type'))
+            self.remote_type = max(0, get_storage_type(ADDON) - 1)
             self.remote_path = ADDON.getSetting('remote_path')
             self.username = ADDON.getSetting('remote_username')
             # Don't log password for security
