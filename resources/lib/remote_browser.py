@@ -346,28 +346,23 @@ class RemoteBrowser:
         # Keep the remainder as an absolute path so browsing can leave $HOME.
         rest = self.remote_path[len(host):].strip('/')
         base_dir = '/' + rest if rest else ''
-        rel = ''
+        current_path = base_dir or '.'
 
-        def full_rel():
-            if not rel:
-                return base_dir
-            if base_dir:
-                return base_dir.rstrip('/') + '/' + rel
-            return rel
+        def display_path():
+            return '/' if current_path == '.' else current_path
 
         dialog = xbmcgui.Dialog()
         try:
             while True:
-                current = rel if rel else '.'
                 try:
                     xbmcgui.Dialog().notification("Loading", "Loading remote directory...", xbmcgui.NOTIFICATION_INFO, 1000)
-                    entries = sftp.listdir(current)
+                    entries = sftp.listdir(current_path)
                 except Exception:
                     entries = []
                 dirs = []
                 files = []
                 for name in sorted(entries):
-                    path = name if current in ('', '.') else current.rstrip('/') + '/' + name
+                    path = name if current_path in ('', '.') else current_path.rstrip('/') + '/' + name
                     is_dir = False
                     try:
                         st = sftp.stat(path)
@@ -380,32 +375,23 @@ class RemoteBrowser:
                         files.append(name)
 
                 options = []
-                if rel not in ('', '.') or (base_dir and base_dir not in ('', '/')):
+                if current_path not in ('', '/'):
                     options.append('..')
                 options.append('[Select current directory]')
                 options.extend(['[DIR] ' + d for d in dirs])
                 # Always show files for visibility, even in backup mode
                 options.extend(['[FILE] ' + f for f in files])
 
-                selected = dialog.select('Browse SFTP - %s' % (full_rel() or '/'), options)
+                selected = dialog.select('Browse SFTP - %s' % display_path(), options)
                 if selected < 0:
                     return None
                 choice = options[selected]
                 if choice == '..':
-                    if rel not in ('', '.'):
-                        rel = _os.path.dirname(rel.rstrip('/'))
-                        if rel in ('', '.'):
-                            rel = ''
-                    else:
-                        # Allow escaping above the configured base directory
-                        if base_dir and base_dir not in ('', '/'):
-                            base_dir = _os.path.dirname(base_dir.rstrip('/'))
-                            if base_dir in ('', '.'):
-                                base_dir = '/'
+                    parent = _os.path.dirname(current_path.rstrip('/'))
+                    current_path = parent or '/'
                 elif choice == '[Select current directory]':
-                    new_path = full_rel()
-                    if new_path:
-                        self.remote_path = '%s/%s' % (host, new_path.strip('/'))
+                    if current_path not in ('', '.'):
+                        self.remote_path = '%s/%s' % (host, current_path.strip('/'))
                     else:
                         self.remote_path = host
                     ADDON.setSetting('remote_path', self.remote_path)
@@ -418,7 +404,10 @@ class RemoteBrowser:
                     return self.remote_path
                 elif choice.startswith('[DIR] '):
                     name = choice[6:]
-                    rel = name if not rel else rel.rstrip('/') + '/' + name
+                    current_path = (
+                        name if current_path in ('', '.') else
+                        current_path.rstrip('/') + '/' + name
+                    )
                 elif choice.startswith('[FILE] '):
                     name = choice[7:]
                     if mode == 'restore':

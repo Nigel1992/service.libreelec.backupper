@@ -1,3 +1,12 @@
+[B]1.5.5[/B] (2026-11-05)
+- Fixed SFTP browser parent-directory navigation so `..` opens the actual parent directory
+- SFTP browsing can move above the configured starting path and select the correct absolute location
+- Refreshed the Kodi installation package and documentation
+
+[B]1.5.4[/B] (2026-10-29)
+- Fixed SFTP browser parent-directory navigation and absolute remote path handling
+- Simplified remote storage settings and added file selection for SSH private keys
+
 [B]1.5.3[/B] (2026-10-28)
 - Added SSH key authentication for SFTP (optional passphrase)
 - Added interactive SFTP remote browsing
