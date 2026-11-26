@@ -135,7 +135,24 @@ SFTP_PASSPHRASE_SETTING_IDS = [
 
 class BackupManager:
     """Utility class to manage config backups"""
-    
+
+    # Directory names that are not useful to back up and can make backups grow
+    # very large (downloaded addon packages, caches, temp files, VCS metadata).
+    _BACKUP_SKIP_DIR_NAMES = {
+        'packages', 'cache', 'caches', 'temp', 'tmp', '__pycache__', '.git',
+    }
+
+    def _is_under_backup_dir(self, path):
+        """Return True when *path* is the backup destination or inside it."""
+        try:
+            if not getattr(self, 'backup_dir', None):
+                return False
+            backup_abs = os.path.abspath(self.backup_dir)
+            path_abs = os.path.abspath(path)
+            return path_abs == backup_abs or path_abs.startswith(backup_abs + os.sep)
+        except Exception:
+            return False
+
     def __init__(self, addon=None):
         self.addon = addon or xbmcaddon.Addon()
         self.verbose_logging = False
@@ -2174,7 +2191,10 @@ class BackupManager:
                         continue
                         
                     if os.path.isfile(path):
-                        if not os.path.islink(path):  # Skip symbolic links
+                        if os.path.islink(path) or self._is_under_backup_dir(path):
+                            # Skip symbolic links and anything inside the backup destination
+                            pass
+                        else:
                             try:
                                 file_size = os.path.getsize(path)
                                 total_size += file_size
@@ -2203,35 +2223,44 @@ class BackupManager:
                                 continue
                     else:  # Directory
                         for root, dirs, files in os.walk(path):
+                            # Prune heavy/unnecessary directories and the backup destination itself.
+                            dirs[:] = [
+                                d for d in dirs
+                                if d not in self._BACKUP_SKIP_DIR_NAMES
+                                and not self._is_under_backup_dir(os.path.join(root, d))
+                            ]
                             for file in files:
                                 file_path = os.path.join(root, file)
-                                if not os.path.islink(file_path):  # Skip symbolic links
-                                    try:
-                                        file_size = os.path.getsize(file_path)
-                                        total_size += file_size
-                                        
-                                        # Determine relative path based on directory type
-                                        if item_name == 'addons':
-                                            rel_path = os.path.relpath(file_path, os.path.dirname(path))
-                                            arcname = rel_path
-                                        elif item_name == 'addon_data':
-                                            rel_path = os.path.relpath(file_path, os.path.dirname(path))
-                                            arcname = f"userdata/{rel_path}"
-                                        elif item_name == 'keymaps':
-                                            rel_path = os.path.relpath(file_path, path)
-                                            arcname = f"userdata/keymaps/{rel_path}"
-                                        elif item_name.startswith('repo_'):
-                                            rel_path = os.path.relpath(file_path, os.path.dirname(path))
-                                            arcname = f"repo/{rel_path}"
-                                        else:
-                                            rel_path = os.path.relpath(file_path, path)
-                                            arcname = f"{item_name}/{rel_path}"
-                                        arcname = self.sanitize_string_encoding(arcname)
-                                        
-                                        files_to_backup.append((file_path, arcname, file_size, item_name))
-                                    except OSError as e:
-                                        self._log(f"Error getting size for {file_path}: {str(e)}", xbmc.LOGWARNING)
-                                        continue
+                                if os.path.islink(file_path):  # Skip symbolic links
+                                    continue
+                                if self._is_under_backup_dir(file_path):
+                                    continue
+                                try:
+                                    file_size = os.path.getsize(file_path)
+                                    total_size += file_size
+
+                                    # Determine relative path based on directory type
+                                    if item_name == 'addons':
+                                        rel_path = os.path.relpath(file_path, os.path.dirname(path))
+                                        arcname = rel_path
+                                    elif item_name == 'addon_data':
+                                        rel_path = os.path.relpath(file_path, os.path.dirname(path))
+                                        arcname = f"userdata/{rel_path}"
+                                    elif item_name == 'keymaps':
+                                        rel_path = os.path.relpath(file_path, path)
+                                        arcname = f"userdata/keymaps/{rel_path}"
+                                    elif item_name.startswith('repo_'):
+                                        rel_path = os.path.relpath(file_path, os.path.dirname(path))
+                                        arcname = f"repo/{rel_path}"
+                                    else:
+                                        rel_path = os.path.relpath(file_path, path)
+                                        arcname = f"{item_name}/{rel_path}"
+                                    arcname = self.sanitize_string_encoding(arcname)
+
+                                    files_to_backup.append((file_path, arcname, file_size, item_name))
+                                except OSError as e:
+                                    self._log(f"Error getting size for {file_path}: {str(e)}", xbmc.LOGWARNING)
+                                    continue
                 
                 self._log(f"BackupManager: Total files to backup {len(files_to_backup)}", xbmc.LOGINFO)
                 total_size_formatted = self.format_size(total_size)

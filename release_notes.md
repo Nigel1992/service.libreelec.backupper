@@ -1,6 +1,11 @@
 # LibreELEC Backupper Release Notes
 
-## Latest Release: 1.5.2 (2026-10-27)
+## Latest Release: 1.5.6 (2026-11-26)
+
+- Prevented backups from growing on every run by excluding the backup destination and accumulating directories (addon packages, caches, temp files, VCS metadata)
+- Improved backup file collection for both single-file and directory backup items
+
+## Previous Release: 1.5.5 (2026-11-05)
 
 - Added optional Kodi video database backups to preserve watch status and resume positions
 - Uses SQLite online backup for a consistent snapshot while Kodi runs, including committed WAL data

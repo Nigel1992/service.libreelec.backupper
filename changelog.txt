@@ -1,3 +1,7 @@
+[B]1.5.6[/B] (2026-11-26)
+- Prevented backups from growing on every run by excluding the backup destination and accumulating directories (addon packages, caches, temp files, VCS metadata)
+- Improved backup file collection for both single-file and directory backup items
+
 [B]1.5.5[/B] (2026-11-05)
 - Fixed SFTP browser parent-directory navigation and absolute remote path handling
 - Replaced the separate Local/Remote and Remote Type settings with one Storage Type selector
